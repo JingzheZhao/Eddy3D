@@ -52,18 +52,18 @@ Represents trees as porous media for wind blocking. Essential for simulating the
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGeometryParameter(
-                "Geometry", "Geo", 
-                "Tree/vegetation geometry (one per tree for correct sizing).", 
+                "Geometry", "Geo",
+                "Tree/vegetation geometry (one per tree for correct sizing).",
                 GH_ParamAccess.item);
 
             pManager.AddTextParameter(
-                "Type", "Type", 
-                "Tree density type: 'coarse', 'medium', or 'dense'. Or custom Darcy-Forchheimer A,B coefficients.", 
+                "Type", "Type",
+                "Tree density type: 'coarse', 'medium', or 'dense'. Or custom Darcy-Forchheimer A,B coefficients.",
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                "LAI", "LAI", 
-                "Leaf Area Index. Typical: 2 (sparse) to 6 (dense). Alternative to Type.", 
+                "LAI", "LAI",
+                "Leaf Area Index. Typical: 2 (sparse) to 6 (dense). Alternative to Type.",
                 GH_ParamAccess.item);
 
             pManager[1].Optional = true;
@@ -93,7 +93,8 @@ Represents trees as porous media for wind blocking. Essential for simulating the
 
             double LAI = 0;
 
-            if (!DA.GetData("Geometry", ref geo)) { };
+            if (!DA.GetData("Geometry", ref geo)) { }
+            ;
             DA.GetDataList("Type", type);
             DA.GetData("LAI", ref LAI);
 

@@ -17,7 +17,7 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public DateTime_To_HOY_Component()
-          : base("Date to HOY", "HOY", 
+          : base("Date to HOY", "HOY",
 @"Date to HOY
 
 Converts a specific Date and Time (Month, Day, Hour) into a single 'Hour of Year' integer (1-8760). Essential for querying specific timestamps in annual data.

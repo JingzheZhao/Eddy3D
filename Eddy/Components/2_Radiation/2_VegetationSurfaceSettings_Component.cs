@@ -20,7 +20,6 @@ namespace Eddy.Components._2_Radiation
         public VegetationSurfaceSettings_Component()
           : base("Vegetation Settings", "VegSet", "Vegetation surface settings " + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTVegetationSettings");
         }
 
         /// <summary>

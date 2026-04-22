@@ -58,7 +58,7 @@ namespace EddyLib
             if (!recalc && File.Exists(binPath))
             {
                 var cached = RadianceFiles.loadBinD(binPath);
-                
+
                 if (cached.GetLength(1) == probes.Length)
                 {
                     // Cache valid - use it
@@ -69,7 +69,7 @@ namespace EddyLib
                     resultPrecalculated = true;
                     return;
                 }
-                
+
                 // Cache has wrong probe count
                 wrongNumberOfProbes = true;
                 resultPrecalculated = false;
@@ -84,7 +84,7 @@ namespace EddyLib
 
             // Preserve legacy rounding behavior for UTCI time series outputs.
             var result = CalcUTCI(probes, weather, wf, mrt, 1);
-            
+
             ValuesUTCI = result.Item1;
             ValuesCondition = result.Item2;
             ValuesAnnualPercentage = result.Item3;
@@ -119,6 +119,9 @@ namespace EddyLib
                     var processed = System.Threading.Interlocked.Increment(ref processedProbes);
                     progress.Report((double)processed / numberOfProbes);
 
+                    // Bolt: Precalculate wind profile multiplier for this probe to avoid 8760 redundant Math.Log evaluations
+                    double windProfileMultiplier = Math.Log(10 / 0.01) / Math.Log(Probes[probe].Z / 0.01);
+
                     for (int hour = 0; hour < numberOfHours; hour++)
                     {
                         uncertaintyWindArray[hour, probe] = false;
@@ -140,11 +143,23 @@ namespace EddyLib
 
                         // lift to 10 m height as required
 
-                        var resultingWindSpeedforUTCI_At10 = At10Meters(resultingWindSpeedforUTCI, Probes[probe].Z);
+                        var resultingWindSpeedforUTCI_At10 = resultingWindSpeedforUTCI * windProfileMultiplier;
 
-                        utci[hour, probe] = Math.Round(CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI_At10, resultingMRT), truncateBy);
+                        utci[hour, probe] = CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI_At10, resultingMRT);
                     }
                 });
+
+                // Apply rounding in a separate pass to avoid Math.Round in the hot loop
+                if (truncateBy >= 0)
+                {
+                    Parallel.For(0, numberOfProbes, probe =>
+                    {
+                        for (int hour = 0; hour < numberOfHours; hour++)
+                        {
+                            utci[hour, probe] = Math.Round(utci[hour, probe], truncateBy);
+                        }
+                    });
+                }
 
                 humcondition = CalcConditionOfPerson(utci);
                 valuesAnnualPercentage = CalcAnnualComfortableHours(humcondition);
@@ -196,9 +211,14 @@ namespace EddyLib
             double pa_temp = 0;
             double TaK = TaC + 273;
 
-            pa_temp = Math.Exp(2.7150305 * Math.Log(TaK) - 2.8365744 * 1000 * Math.Pow(TaK, -2) - 6.028076559 * 1000 * Math.Pow(TaK, -1)
-              + 1.954263612 * 10 - 2.737830188 / 100 * Math.Pow(TaK, 1) + 1.6261698 / 100000 * Math.Pow(TaK, 2) + 7.0229056 * Math.Pow(10, -10) * Math.Pow(TaK, 3)
-              - 1.8680009 * Math.Pow(10, -13) * Math.Pow(TaK, 4)) * 0.01 * RH / 1000;
+            // Bolt: Optimize calculation speed by substituting Math.Pow with explicit direct multiplication and literals
+            double TaK2 = TaK * TaK;
+            double TaK3 = TaK2 * TaK;
+            double TaK4 = TaK3 * TaK;
+
+            pa_temp = Math.Exp(2.7150305 * Math.Log(TaK) - 2836.5744 / TaK2 - 6028.076559 / TaK
+              + 19.54263612 - 0.02737830188 * TaK + 0.000016261698 * TaK2 + 7.0229056E-10 * TaK3
+              - 1.8680009E-13 * TaK4) * 0.00001 * RH;
 
             return pa_temp;
         }
@@ -222,17 +242,29 @@ namespace EddyLib
         {
             if (Vals == null || Vals.Count == 0) return;
 
-            // Group values by category and count occurrences
-            var counts = Vals
-                .Select(v => (int)Math.Round(v))
-                .GroupBy(v => v)
-                .ToDictionary(g => g.Key, g => g.Count());
+            // Bolt optimization: Replace LINQ grouping with a single-pass array counting.
+            // Categories range from -5 to +5, which gives us 11 bins.
+            int[] counts = new int[11];
+            foreach (double v in Vals)
+            {
+                int category = (int)Math.Round(v);
+                int binIndex = category + 5;
+                if (binIndex >= 0 && binIndex <= 10)
+                {
+                    counts[binIndex]++;
+                }
+            }
 
             int total = Vals.Count;
-            double GetPct(int category) => 
-                counts.TryGetValue(category, out int count) 
-                    ? Math.Round((double)count / total, 3) 
-                    : 0.0;
+            double GetPct(int category)
+            {
+                int binIndex = category + 5;
+                if (binIndex >= 0 && binIndex <= 10)
+                {
+                    return Math.Round((double)counts[binIndex] / total, 3);
+                }
+                return 0.0;
+            }
 
             ExtrCold = GetPct(-5);
             VryStrngCold = GetPct(-4);

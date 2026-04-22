@@ -44,9 +44,9 @@ namespace EddyLib
             foreach (var windDir in dom.BCond.WindDirections)
             {
                 string fvOptionsPath = Path.Combine(
-                    meshSettings.baseWorkingDir, 
-                    windDir.ToString(), 
-                    "system", 
+                    meshSettings.baseWorkingDir,
+                    windDir.ToString(),
+                    "system",
                     "fvOptions");
 
                 if (File.Exists(fvOptionsPath))
@@ -79,12 +79,12 @@ namespace EddyLib
 
                 var sb = new StringBuilder();
                 sb.AppendLine(FvOptionsHeader());
-                
+
                 for (int i = 0; i < trees.Count; i++)
                 {
                     sb.AppendLine(FvOptionsBody(i, trees[i].F, trees[i].D));
                 }
-                
+
                 FullExportString = sb.ToString();
 
                 if (Directory.Exists(systemDir))
@@ -102,12 +102,12 @@ namespace EddyLib
             var sb = new StringBuilder();
             sb.AppendLine(TopoSetHeader());
             sb.AppendLine("actions\n(");
-            
+
             for (int i = 0; i < trees.Count; i++)
             {
                 sb.AppendLine(TopoSetBody(i, locationInMesh));
             }
-            
+
             sb.AppendLine(");");
             File.WriteAllText(topoSetDictPath, sb.ToString());
         }
@@ -263,7 +263,7 @@ FoamFile
             Dimensions = GeometryHelpers.GetDimensionsArray(Geometry);
 
             CalculateCoefficients(A, B);
-            
+
             LAD = B.Average() / (AirProperties.Rho * Cd);
             LAI = LAD * Dimensions[2];  // Z dimension
 
@@ -283,7 +283,7 @@ FoamFile
 
             // Calculate B from LAI: B = rho * LAD * Cd
             double b = AirProperties.Rho * LAD * Cd;
-            
+
             // No viscous term for vegetation (D = 0)
             D = new double[] { 0, 0, 0 };
             // f = B * 2 / rho

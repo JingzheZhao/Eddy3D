@@ -18,16 +18,15 @@ namespace Eddy.Components._2_Radiation
         /// Initializes a new instance of the _2_SurfaceMaterialSettings_Component class.
         /// </summary>
         public TreeSettings_Component()
-          : base("Tree Settings", "TreeSet", 
+          : base("Tree Settings", "TreeSet",
 @"Define material properties for tree surfaces.
 
 Customize Radiance material for tree canopy ray-tracing.
 Default uses standard deciduous tree reflectance.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTTreeSettings");
         }
 
         /// <summary>

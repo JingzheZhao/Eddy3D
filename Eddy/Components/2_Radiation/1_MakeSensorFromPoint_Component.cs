@@ -14,14 +14,13 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the MakeRadiationSensor_Component class.
         /// </summary>
         public MakeRadiationSensorFromPoint_Component()
-          : base("Sensor", "Sen", 
+          : base("Sensor", "Sen",
 @"Single Point Sensor
 
 Creates a single sensor point for detailed MRT analysis at a specific location, such as a specific seat or standing spot.
 
 " + EddyVersion.toString(), EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTPointSensor");
         }
 
         /// <summary>

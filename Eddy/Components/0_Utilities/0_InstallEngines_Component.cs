@@ -216,12 +216,13 @@ namespace Eddy
                 {
                     if (IsMac)
                     {
-                        Process.Start(new ProcessStartInfo
+                        var psi = new ProcessStartInfo
                         {
                             FileName = "open",
-                            Arguments = string.Format("\"{0}\"", tempFile),
-                            UseShellExecute = true
-                        });
+                            UseShellExecute = false
+                        };
+                        psi.ArgumentList.Add(tempFile);
+                        Process.Start(psi);
                     }
                     else
                     {
@@ -309,13 +310,16 @@ namespace Eddy
                 string binDir = Path.Combine(targetDir, "radiance", "bin");
                 if (Directory.Exists(binDir))
                 {
-                    Process.Start(new ProcessStartInfo
+                    var psi = new ProcessStartInfo
                     {
                         FileName = "chmod",
-                        Arguments = string.Format("-R +x \"{0}\"", binDir),
                         UseShellExecute = false,
                         CreateNoWindow = true
-                    })?.WaitForExit(10000);
+                    };
+                    psi.ArgumentList.Add("-R");
+                    psi.ArgumentList.Add("+x");
+                    psi.ArgumentList.Add(binDir);
+                    Process.Start(psi)?.WaitForExit(10000);
                 }
 
                 // Clean up zip

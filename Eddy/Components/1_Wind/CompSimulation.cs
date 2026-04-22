@@ -35,7 +35,6 @@ namespace Eddy
               GH_Strings.Simulation.Desc + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
-            Analytics.Analytics.TrackComponentView("Simulation");
         }
 
         /// <summary>
@@ -205,22 +204,25 @@ namespace Eddy
                 Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\Scripts\run_make_trees.bat", taskComplete);
             }
 
+            if ((runMeshing || runSimulation) && canRun)
+            {
+                Analytics.Analytics.TrackSimulationRun(
+                    "outdoor",
+                    Analytics.Analytics.GetAnalyticsEngine(RunSettings.simEngine));
+            }
+
             if (runMeshing == true && runSimulation == true && canRun)
             {
-                Analytics.Analytics.TrackMeshCase("BlueCFD");
-                Analytics.Analytics.TrackSimulateCase("BlueCFD");
                 Utilities.DeletePhi(MeshSettings, DOM);
                 Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\Scripts\run.bat", taskComplete);
             }
             else if (runMeshing == true && runSimulation == false && canRun)
             {
-                Analytics.Analytics.TrackMeshCase("BlueCFD");
                 Utilities.DeletePhi(MeshSettings, DOM);
                 Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\Scripts\run_mesh.bat", taskComplete);
             }
             else if (runMeshing == false && runSimulation == true && canRun)
             {
-                Analytics.Analytics.TrackSimulateCase("BlueCFD");
                 Utilities.DeletePhi(MeshSettings, DOM);
                 Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, baseWorkingDirectory + @"\Scripts\run_sim_all.bat", taskComplete);
             }

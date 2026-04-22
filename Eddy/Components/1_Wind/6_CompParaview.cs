@@ -26,7 +26,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompParaview()
-          : base("Open ParaView", "ParaView", 
+          : base("Open ParaView", "ParaView",
 @"Launch ParaView for 3D CFD result visualization.
 
 Opens simulation results in ParaView for visualizing velocity fields, 
@@ -44,13 +44,13 @@ with blueCFD fallback when no standalone install is found.
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter(
-                "Result", "Res", 
-                "Simulation result from Wind Simulation component.", 
+                "Result", "Res",
+                "Simulation result from Wind Simulation component.",
                 GH_ParamAccess.item);
 
             pManager.AddIntegerParameter(
-                "Wind Directions", "Dir", 
-                "Wind directions to visualize (subset or all).", 
+                "Wind Directions", "Dir",
+                "Wind directions to visualize (subset or all).",
                 GH_ParamAccess.list);
             pManager.AddBooleanParameter("Run", "Run", "Start Paraview", GH_ParamAccess.item, false);
 

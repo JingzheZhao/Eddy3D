@@ -19,7 +19,7 @@ namespace EddyLib.OutdoorComfort
 
             public static double emsk = 0.99;
 
-            public static double eps = Math.Pow(10, -6);
+            public static double eps = 1E-6;
 
             public static double eta = 0.0;
 
@@ -29,7 +29,7 @@ namespace EddyLib.OutdoorComfort
 
             public static double icl = 0.5;
 
-            public static double Lvap = 2.42 * Math.Pow(10.0, 6.0);
+            public static double Lvap = 2.42E6;
 
             public static int M = 80;
 
@@ -45,7 +45,7 @@ namespace EddyLib.OutdoorComfort
 
             public static int sex = 1;
 
-            public static double sigm = 5.67 * Math.Pow(10.0, -8.0);
+            public static double sigm = 5.67E-8;
 
             public static double[] T = new double[] { 38, 40, 40 };
 
@@ -81,9 +81,18 @@ namespace EddyLib.OutdoorComfort
             {
                 // Definition of a function with the input variables of the PET reference situation
 
+                // Bolt optimization: Precalculate Math.Pow constants
+                var mbody_0_75 = Math.Pow(mbody, 0.75);
+                var mbody_1_3 = Math.Pow(mbody, 1.0 / 3.0);
+                var mbody_0_425 = Math.Pow(mbody, 0.425);
+                var ht_0_725 = Math.Pow(ht, 0.725);
+                var v_0_67 = Math.Pow(0.1, 0.67);
+                var v_0_513 = Math.Pow(0.1, 0.513);
+                var p_po_0_55 = Math.Pow(p / po, 0.55);
+
                 Func<double, double[]> f = Tx =>
                 {
-                    return Syst(Tstable, Tx, Tx, 50, 0.1, age, sex, ht, mbody, pos, M, 0.9, false);
+                    return Syst(Tstable, Tx, Tx, 50, 0.1, age, sex, ht, mbody, pos, M, 0.9, false, mbody_0_75, mbody_1_3, mbody_0_425, ht_0_725, v_0_67, v_0_513, p_po_0_55);
                 };
                 var Ti = Tmin;
                 var Tf = Tmax;
@@ -105,7 +114,9 @@ namespace EddyLib.OutdoorComfort
             }
 
             // Solving the 3 equation non-linear system
-            public static Tuple<double[], double> Resolution(
+            // Bolt optimization: Replace Tuple with ValueTuple to eliminate heap allocations
+            // inside this high-frequency root-finding objective function loop.
+            public static (double[], double) Resolution(
               double Ta,
               double Tmrt,
               double HR,
@@ -119,9 +130,18 @@ namespace EddyLib.OutdoorComfort
               double icl,
               double[] Tx)
             {
+                // Bolt optimization: Precalculate Math.Pow constants
+                var mbody_0_75 = Math.Pow(mbody, 0.75);
+                var mbody_1_3 = Math.Pow(mbody, 1.0 / 3.0);
+                var mbody_0_425 = Math.Pow(mbody, 0.425);
+                var ht_0_725 = Math.Pow(ht, 0.725);
+                var v_0_67 = Math.Pow(v, 0.67);
+                var v_0_513 = Math.Pow(v, 0.513);
+                var p_po_0_55 = Math.Pow(p / po, 0.55);
+
                 Func<double[], double[]> ff = Txx =>
                 {
-                    return Syst(Txx, Ta, Tmrt, HR, v, age, sex, ht, mbody, pos, M, icl, true);
+                    return Syst(Txx, Ta, Tmrt, HR, v, age, sex, ht, mbody, pos, M, icl, true, mbody_0_75, mbody_1_3, mbody_0_425, ht_0_725, v_0_67, v_0_513, p_po_0_55);
                 };
 
                 var firstGuess = new double[] { 0, 0, 0 };
@@ -131,7 +151,7 @@ namespace EddyLib.OutdoorComfort
 
                 //   Tuple<double[],double> res =                    new Tuple<doubl, string, string>(1, "Steve", "Jobs");
 
-                return Tuple.Create(Tn, 1.0);
+                return (Tn, 1.0);
             }
 
             // Sweating calculation function
@@ -151,7 +171,7 @@ namespace EddyLib.OutdoorComfort
                 }
 
                 // qmsw = 170 * sig_body * math.exp((sig_skin) / 10.7)  # [g/m2/h] is the expression from Gagge's model
-                var qmsw = 304.94 * Math.Pow(10, -3) * sig_body;
+                var qmsw = 304.94E-3 * sig_body;
 
                 // 500 g/m^2/h is the upper sweat rate limit
                 if (qmsw > 500)
@@ -175,27 +195,22 @@ namespace EddyLib.OutdoorComfort
               int pos,
               int M,
               double icl,
-              bool mode
+              bool mode,
+              double mbody_0_75,
+              double mbody_1_3,
+              double mbody_0_425,
+              double ht_0_725,
+              double v_0_67,
+              double v_0_513,
+              double p_po_0_55
               )
             {
                 double fec;
                 double metab;
                 double vpa;
 
-                // Conversion of T vector in an array
-                //var arr = np.ones(3, 1);
-                var arr = new double[3] { 1, 1, 1 };
-                arr[0] = T[0];
-                arr[1] = T[1];
-                arr[2] = T[2];
-                T = arr;
-
-                // required for the vectorial expression of the balance
-                //var enbal_vec = np.zeros(3, 1);
-                var enbal_vec = new double[3] { 0, 0, 0 }; ;
-
                 // Area parameters of the body:
-                var Adu = 0.203 * Math.Pow(mbody, 0.425) * Math.Pow(ht, 0.725);
+                var Adu = 0.203 * mbody_0_425 * ht_0_725;
                 var feff = 0.725;
                 if (pos == 1 || pos == 3)
                 {
@@ -209,7 +224,7 @@ namespace EddyLib.OutdoorComfort
                 // Calculation of the Burton surface increase coefficient, k = 0.31 for Hoeppe:
                 // Increase heat exchange surface depending on clothing level
                 var fcl = 1 + 0.31 * icl;
-                var facl = (173.51 * icl - 2.36 - 100.76 * icl * icl + 19.28 * Math.Pow(icl, 3.0)) / 100;
+                var facl = (173.51 * icl - 2.36 - 100.76 * icl * icl + 19.28 * (icl * icl * icl)) / 100;
                 var Aclo = Adu * facl + Adu * (fcl - 1.0);
                 var Aeffr = Adu * feff;
 
@@ -229,23 +244,23 @@ namespace EddyLib.OutdoorComfort
                 var hc = 0.0;
                 if (pos == 1)
                 {
-                    hc = 2.67 + 6.5 * Math.Pow(v, 0.67);
+                    hc = 2.67 + 6.5 * v_0_67;
                 }
                 if (pos == 2)
                 {
-                    hc = 2.26 + 7.42 * Math.Pow(v, 0.67);
+                    hc = 2.26 + 7.42 * v_0_67;
                 }
                 if (pos == 3)
                 {
-                    hc = 8.6 * Math.Pow(v, 0.513);
+                    hc = 8.6 * v_0_513;
 
                     // modification of hc with the total pressure
-                    hc = hc * Math.Pow(p / po, 0.55);
+                    hc = hc * p_po_0_55;
                 }
 
                 // Base metabolism for men and women in [W]
-                var metab_female = 3.19 * Math.Pow(mbody, 0.75) * (1.0 + 0.004 * (30.0 - age) + 0.018 * (ht * 100.0 / Math.Pow(mbody, 1.0 / 3.0) - 42.1));
-                var metab_male = 3.45 * Math.Pow(mbody, 0.75) * (1.0 + 0.004 * (30.0 - age) + 0.01 * (ht * 100.0 / Math.Pow(mbody, 1.0 / 3.0) - 43.4));
+                var metab_female = 3.19 * mbody_0_75 * (1.0 + 0.004 * (30.0 - age) + 0.018 * (ht * 100.0 / mbody_1_3 - 42.1));
+                var metab_male = 3.45 * mbody_0_75 * (1.0 + 0.004 * (30.0 - age) + 0.01 * (ht * 100.0 / mbody_1_3 - 43.4));
 
                 // Source term : metabolic activity
                 if (mode == true)
@@ -278,13 +293,13 @@ namespace EddyLib.OutdoorComfort
                 var texp = 0.47 * Ta + 21.0;
 
                 // Pulmonary flow rate
-                var dventpulm = he * 1.44 * Math.Pow(10.0, -6.0);
+                var dventpulm = he * 1.44E-6;
 
                 // Sensible heat energy loss:
                 var eres = cair * (Ta - texp) * dventpulm;
 
                 // Latent heat energy loss:
-                var vpexp = 6.11 * Math.Pow(10.0, 7.45 * texp / (235.0 + texp));
+                var vpexp = 6.11 * Math.Exp(2.302585092994046 * (7.45 * texp / (235.0 + texp)));
                 var erel = 0.623 * Lvap / p * (vpa - vpexp) * dventpulm;
                 var ere = eres + erel;
 
@@ -319,7 +334,9 @@ namespace EddyLib.OutdoorComfort
 
                 // Calculation of the equivalent thermal resistance of body tissues
 
-                var alpha = VasoC((double)T[0], (double)T[1]).Item2;
+                // Bolt: optimize redundant VasoC calculations by caching method call
+                var vasoC_res = VasoC((double)T[0], (double)T[1]);
+                var alpha = vasoC_res.Item2;
                 var tbody = alpha * (double)T[1] + (1 - alpha) * (double)T[0];
                 var htcl = 6.28 * ht * y * di / (rcl * Math.Log(r2 / r1) * Aclo);
 
@@ -333,7 +350,7 @@ namespace EddyLib.OutdoorComfort
                 var Pvsk = 6.105 * Math.Exp((17.27 * ((double)T[1] + 273.15) - 4717.03) / (237.7 + (double)T[1]));
 
                 // Calculation of vapour transfer
-                var Lw = 16.7 * Math.Pow(10, -1);
+                var Lw = 1.67;
                 var he_diff = hc * Lw;
                 var fecl = 1 / (1 + 0.92 * hc * rcl);
                 var emax = he_diff * fecl * (Pvsk - vpa);
@@ -362,10 +379,23 @@ namespace EddyLib.OutdoorComfort
 
                 // Radiation losses
                 // For bare skin area:
-                var rbare = Aeffr * (1.0 - facl) * emsk * sigm * (Math.Pow(Tmrt + 273.15, 4.0) - Math.Pow((double)T[1] + 273.15, 4.0)) / Adu;
+                double tmrtK = Tmrt + 273.15;
+                double t1K = (double)T[1] + 273.15;
+                double t2K = (double)T[2] + 273.15;
+
+                double tmrtK2 = tmrtK * tmrtK;
+                double tmrtK4 = tmrtK2 * tmrtK2;
+
+                double t1K2 = t1K * t1K;
+                double t1K4 = t1K2 * t1K2;
+
+                double t2K2 = t2K * t2K;
+                double t2K4 = t2K2 * t2K2;
+
+                var rbare = Aeffr * (1.0 - facl) * emsk * sigm * (tmrtK4 - t1K4) / Adu;
 
                 // For dressed area:
-                var rclo = feff * Aclo * emcl * sigm * (Math.Pow(Tmrt + 273.15, 4.0) - Math.Pow((double)T[2] + 273.15, 4.0)) / Adu;
+                var rclo = feff * Aclo * emcl * sigm * (tmrtK4 - t2K4) / Adu;
                 var rsum = rclo + rbare;
 
                 // Convection losses #
@@ -375,36 +405,32 @@ namespace EddyLib.OutdoorComfort
 
                 // Balance equations of the 3-nodes model
 
-                double term1 = (VasoC(T[0], T[1]).Item1 / 3600 * cb + 5.28);
+                double term1 = (vasoC_res.Item1 / 3600 * cb + 5.28);
                 double t1t2 = htcl * (T[1] - T[2]);
 
-                enbal_vec[0] = h + ere - (term1) * (T[0] - T[1]); // Core balance [W/m^2]
-                enbal_vec[1] = rbare + cbare + evap + (term1) * (T[0] - T[1]) - t1t2; //# Skin balance [W/m^2]
-                enbal_vec[2] = cclo + rclo + t1t2; //# Clothes balance [W/m^2]
+                double enbal0 = h + ere - (term1) * (T[0] - T[1]); // Core balance [W/m^2]
+                double enbal1 = rbare + cbare + evap + (term1) * (T[0] - T[1]) - t1t2; //# Skin balance [W/m^2]
+                double enbal2 = cclo + rclo + t1t2; //# Clothes balance [W/m^2]
                 var enbal_scal = h + ere + rsum + csum + evap;
 
                 // returning either the calculated core,skin,clo temperatures or the PET
 
-                var res = new double[3];
-
                 if (mode)
                 {
                     // if we solve for the system we need to return 3 temperatures
-                    res[0] = (double)enbal_vec[0];
-                    res[1] = (double)enbal_vec[1];
-                    res[2] = (double)enbal_vec[2];
-                    return res;
+                    return new double[] { enbal0, enbal1, enbal2 };
                 }
                 else
                 {
                     // solving for the PET requires the scalar balance only
-                    res[0] = enbal_scal;
-                    return res;
+                    return new double[] { enbal_scal };
                 }
             }
 
             // Skin blood flow calculation function:
-            public static Tuple<double, double> VasoC(double tcore, double tsk)
+            // Bolt optimization: Replace Tuple with ValueTuple to eliminate heap allocations
+            // inside this method which is called repeatedly during non-linear root finding.
+            public static (double, double) VasoC(double tcore, double tsk)
             {
                 // Set value signals
                 var sig_skin = tsk_set - tsk;
@@ -432,7 +458,7 @@ namespace EddyLib.OutdoorComfort
                 // in the transient model, alpha is used to update tbody
                 //alpha = 0.04177 + 0.74518 / (qmblood + 0.585417)
                 var alpha = 0.1;
-                return Tuple.Create(qmblood, alpha);
+                return (qmblood, alpha);
             }
         }
     }

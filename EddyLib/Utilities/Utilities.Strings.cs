@@ -27,5 +27,22 @@ namespace EddyLib
             }
             return hasWhiteSpace;
         }
+
+        public static bool IsValidProbeName(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return false;
+            }
+
+            foreach (char ch in input)
+            {
+                if (!Char.IsLetterOrDigit(ch) && ch != '_' && ch != '-')
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }

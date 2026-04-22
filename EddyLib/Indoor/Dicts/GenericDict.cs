@@ -38,8 +38,7 @@ namespace EddyLib.Indoor.Dicts
         {
             var path = Path.Combine(baseWorkingDir, PrintLocation(Location));
             Directory.CreateDirectory(path);
-            if (!path.EndsWith("\\")) path += "\\";
-            File.WriteAllText(path + this.DictionaryName, this.FullDictString);
+            File.WriteAllText(Path.Combine(path, this.DictionaryName), this.FullDictString);
         }
 
         public static string GetHeader(GenericDict dict)
@@ -96,7 +95,7 @@ namespace EddyLib.Indoor.Dicts
 
         public void RemoveDict(string baseWorkingDir)
         {
-            string path = baseWorkingDir + "\\" + this.Location + this.DictionaryName;
+            string path = Path.Combine(baseWorkingDir, PrintLocation(this.Location), this.DictionaryName);
 
             if (File.Exists(path))
             {

@@ -26,7 +26,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BCondABLComp()
-          : base(GH_Strings.ABL.Name, GH_Strings.ABL.Nick, 
+          : base(GH_Strings.ABL.Name, GH_Strings.ABL.Nick,
 GH_Strings.ABL.Desc + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
@@ -40,33 +40,33 @@ GH_Strings.ABL.Desc + EddyVersion.toString(),
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddIntegerParameter(
-                GH_Strings.ABL.WindDirs, GH_Strings.ABL.WindDirsNick, 
-                GH_Strings.ABL.WindDirsDesc, 
+                GH_Strings.ABL.WindDirs, GH_Strings.ABL.WindDirsNick,
+                GH_Strings.ABL.WindDirsDesc,
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                GH_Strings.ABL.Uref, GH_Strings.ABL.UrefNick, 
-                GH_Strings.ABL.UrefDesc, 
+                GH_Strings.ABL.Uref, GH_Strings.ABL.UrefNick,
+                GH_Strings.ABL.UrefDesc,
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                GH_Strings.ABL.Zref, GH_Strings.ABL.ZrefNick, 
-                GH_Strings.ABL.ZrefDesc, 
+                GH_Strings.ABL.Zref, GH_Strings.ABL.ZrefNick,
+                GH_Strings.ABL.ZrefDesc,
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                GH_Strings.ABL.Z0, GH_Strings.ABL.Z0Nick, 
-                GH_Strings.ABL.Z0Desc, 
+                GH_Strings.ABL.Z0, GH_Strings.ABL.Z0Nick,
+                GH_Strings.ABL.Z0Desc,
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                GH_Strings.ABL.Zgnd, GH_Strings.ABL.ZgndNick, 
-                GH_Strings.ABL.ZgndDesc, 
+                GH_Strings.ABL.Zgnd, GH_Strings.ABL.ZgndNick,
+                GH_Strings.ABL.ZgndDesc,
                 GH_ParamAccess.list);
 
             pManager.AddTextParameter(
-                GH_Strings.ABL.EPW, GH_Strings.ABL.EPWNick, 
-                GH_Strings.ABL.EPWDesc, 
+                GH_Strings.ABL.EPW, GH_Strings.ABL.EPWNick,
+                GH_Strings.ABL.EPWDesc,
                 GH_ParamAccess.item, "");
 
             pManager[0].Optional = true;

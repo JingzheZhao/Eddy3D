@@ -78,7 +78,6 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 " + EddyVersion.toString(),
               EddyVersion.Name, "1 | Wind")
         {
-            Analytics.Analytics.TrackComponentView("ProbeSimulation");
         }
 
         /// <summary>
@@ -350,12 +349,6 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The number of probes must be greater than 0.");
                 return;
             }
-            if (!meshExists)
-            {
-                // A specific warning was already emitted above (missing/empty meshDir).
-                // Stop here to avoid duplicate mesh-missing warnings.
-                return;
-            }
             if (RES.Domain is OFCylDomain || RES.Domain is OFBoxDomain)
             {
                 try
@@ -382,7 +375,10 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         string currCase = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
 
                         // If yes, write the dicts for both Docker and BlueCFD
-                        string path = Path.Combine(currCase, "system", probeNameByUser);
+                        string systemDir = Path.Combine(currCase, "system");
+                        if (!Directory.Exists(systemDir)) Directory.CreateDirectory(systemDir);
+
+                        string path = Path.Combine(systemDir, probeNameByUser);
                         File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(listOfPoints, currField));
 
                         if (!File.Exists(pathToPointFile))
@@ -417,7 +413,9 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                     if (run == true && canRun == true)
                     {
-                        Analytics.Analytics.TrackProbeCase(listOfPoints.Count);
+                        Analytics.Analytics.TrackSimulationRun(
+                            "probing",
+                            Analytics.Analytics.GetAnalyticsEngine(RES.RunSettings.simEngine));
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
                             RunDockerProbing(dockerProbeCmds, RES.WorkingDirectory);
@@ -428,7 +426,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         else
                         {
                             var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
-                            Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
+                            Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, probingComplete);
                             return;
                         }
                     }
@@ -479,7 +477,10 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                     string pathToPointFile = Path.Combine(RES.WorkingDirectory, "constant", "polyMesh", "points");
                     // If yes, write the dicts for both Docker and BlueCFD
-                    string path = Path.Combine(RES.WorkingDirectory, "system", probeNameByUser);
+                    string systemDir = Path.Combine(RES.WorkingDirectory, "system");
+                    if (!Directory.Exists(systemDir)) Directory.CreateDirectory(systemDir);
+
+                    string path = Path.Combine(systemDir, probeNameByUser);
                     File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbes(listOfPoints, currField));
 
                     if (!File.Exists(pathToPointFile))
@@ -502,7 +503,9 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
                     if (run == true && canRun == true)
                     {
-                        Analytics.Analytics.TrackProbeCase(listOfPoints.Count);
+                        Analytics.Analytics.TrackSimulationRun(
+                            "probing",
+                            Analytics.Analytics.GetAnalyticsEngine(RES.RunSettings.simEngine));
                         if (RES.RunSettings.simEngine == SimEngine.Docker)
                         {
                             var dockerCmds = new List<string>
@@ -518,7 +521,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         else
                         {
                             var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
-                            Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
+                            Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, probingComplete);
                             return;
                         }
                     }

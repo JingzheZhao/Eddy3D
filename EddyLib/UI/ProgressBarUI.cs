@@ -1,5 +1,6 @@
 ﻿using Eto.Drawing;
 using Eto.Forms;
+using System.Diagnostics;
 using System;
 using System.IO;
 using System.Text;
@@ -12,8 +13,12 @@ namespace EddyLib.UI
     {
         public Label Status;
         public TextArea StatusLog;
+        private Label TimeElapsed;
+        private Stopwatch stopwatch;
+        private UITimer timer;
 
         public bool Canceled = false;
+        private bool isFinished = false;
         private ProgressBar pbar;
 
         public float Progress
@@ -23,35 +28,80 @@ namespace EddyLib.UI
             {
                 pbar.Progress = value;
                 pbar.Invalidate();
+                Title = $"Simulation Progress - {(int)(value * 100)}%";
             }
         }
 
         public ProgressDialog(Func<CancellationTokenSource, Task> task, double refreshRate = 1000)
         {
-            Title = "Simulation Progress";
-            BackgroundColor = Colors.LightGrey;
+            Title = "Simulation Progress - 0%";
             //Icon = Icon.FromResource("Properties.Resources.eddy_icon.png");
             ClientSize = new Size(450, 250);
+            MinimumSize = new Size(450, 250);
+            Resizable = true;
             ShowInTaskbar = true;
 
             // controls
-            Status = new Label();
-            StatusLog = new TextArea() { Height = 150 };
+            Status = new Label() { Text = "Starting simulation...", ToolTip = "Current simulation status", Wrap = WrapMode.Word };
+            StatusLog = new TextArea() { Height = 150, ReadOnly = true, Font = Fonts.Monospace(10), ToolTip = "Detailed simulation log output" };
 
-            pbar = new ProgressBar();
-            var cancel = new Button { Text = "Cancel" };
+            TimeElapsed = new Label { Text = "Elapsed: 00:00:00", VerticalAlignment = VerticalAlignment.Center, ToolTip = "Time elapsed since simulation started" };
+            stopwatch = Stopwatch.StartNew();
+            timer = new UITimer { Interval = 1.0 };
+            timer.Elapsed += (s, e) => { TimeElapsed.Text = "Elapsed: " + stopwatch.Elapsed.ToString(@"hh\:mm\:ss"); };
+            timer.Start();
+
+            pbar = new ProgressBar { ToolTip = "Simulation Progress" };
+            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation (Esc)" };
+            AbortButton = cancel;
+            var copyLog = new Button { Text = "Copy Log", ToolTip = "Copy the simulation log to clipboard (Enter)" };
+            DefaultButton = copyLog; // Map the Enter key to the Copy Log action when focused
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
 
             // events
             cancel.Click += (s, e) =>
             {
-                Canceled = true;
-                Close();
+                if (MessageBox.Show(this, "Are you sure you want to abort the simulation?", "Abort Simulation", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.Yes)
+                {
+                    Canceled = true;
+                    Close();
+                }
+            };
+            copyLog.Click += (s, e) =>
+            {
+                try
+                {
+                    Clipboard.Instance.Text = StatusLog.Text;
+                    copyLog.Text = "Copied!";
+                    Task.Delay(2000).ContinueWith((t) =>
+                    {
+                        if (uiThread != null) uiThread.Post((object state) => { copyLog.Text = "Copy Log"; }, null);
+                    });
+                }
+                catch (Exception)
+                {
+                    copyLog.Text = "Failed!";
+                    Task.Delay(2000).ContinueWith((t) =>
+                    {
+                        if (uiThread != null) uiThread.Post((object state) => { copyLog.Text = "Copy Log"; }, null);
+                    });
+                }
             };
             Closing += (s, e) =>
             {
-                cts.Cancel();
+                if (!isFinished && !Canceled)
+                {
+                    if (MessageBox.Show(this, "Are you sure you want to abort the simulation?", "Abort Simulation", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.No)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
+                    Canceled = true;
+                }
+
+                if (!e.Cancel) cts.Cancel();
+                if (!e.Cancel) timer.Stop();
             };
 
             // layout
@@ -61,9 +111,10 @@ namespace EddyLib.UI
             layout.EndVertical();
             layout.BeginVertical();
             layout.BeginHorizontal();
-            layout.Add(new Spinner { Height = 20, Enabled = true }, false, false);
+            layout.Add(new Spinner { Height = 20, Enabled = true, ToolTip = "Simulation is running" }, false, false);
             layout.Add(new Drawable { Width = 5 }, false, false);
             layout.Add(Status, true, false);
+            layout.Add(TimeElapsed, false, false);
             layout.EndHorizontal();
             layout.EndVertical();
             layout.BeginVertical();
@@ -72,7 +123,11 @@ namespace EddyLib.UI
 
             layout.BeginVertical();
             layout.Add(null, true, true);
-            layout.Add(cancel, true, false);
+            layout.BeginHorizontal();
+            layout.Add(null, true, false);
+            layout.Add(copyLog, false, false);
+            layout.Add(cancel, false, false);
+            layout.EndHorizontal();
             layout.EndVertical();
             Content = layout;
 
@@ -85,6 +140,7 @@ namespace EddyLib.UI
             // when finished, close dialog
             run.ContinueWith((r) =>
             {
+                isFinished = true;
                 if (uiThread != null) uiThread.Send((object state) => { Close(); }, null);
             });
         }
@@ -93,8 +149,8 @@ namespace EddyLib.UI
     public class ProgressBar : Drawable
     {
         public float Progress; // 0-1
-        private Color backColor = Colors.Gray;
-        private Color fillColor = Colors.Blue;
+        private Color backColor = SystemColors.Control;
+        private Color fillColor = SystemColors.Highlight;
 
         public ProgressBar()
         {
@@ -105,13 +161,27 @@ namespace EddyLib.UI
         protected override void OnPaint(PaintEventArgs e)
         {
             var rect = new RectangleF(Size);
+            var fullRect = rect;
             e.Graphics.FillRectangle(new SolidBrush(backColor), rect);
             float w = Progress > 1 ? 1 : Progress;
+            if (w < 0) w = 0;
+
             if (w > 0)
             {
                 rect.Width *= w;
                 e.Graphics.FillRectangle(new SolidBrush(fillColor), rect);
             }
+
+            // Draw percentage text
+            string text = $"{(int)(w * 100)}%";
+            var font = SystemFonts.Label();
+            var textSize = e.Graphics.MeasureString(font, text);
+            var textLocation = new PointF(
+                fullRect.X + (fullRect.Width - textSize.Width) / 2,
+                fullRect.Y + (fullRect.Height - textSize.Height) / 2
+            );
+            e.Graphics.DrawText(font, Colors.Black, textLocation + new SizeF(1, 1), text);
+            e.Graphics.DrawText(font, Colors.White, textLocation, text);
         }
     }
 
@@ -132,7 +202,7 @@ namespace EddyLib.UI
             if (context != null) context.Send((object state) =>
             {
                 dialog.Status.Text = value;
-                dialog.StatusLog.Text += value + Environment.NewLine;
+                dialog.StatusLog.Append(value + Environment.NewLine, true);
             }, null);
         }
 
@@ -150,7 +220,7 @@ namespace EddyLib.UI
                 else
                 {
                     dialog.Status.Text = value;
-                    dialog.StatusLog.Text += value + Environment.NewLine;
+                    dialog.StatusLog.Append(value + Environment.NewLine, true);
                 }
             }, null);
         }

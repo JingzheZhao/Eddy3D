@@ -22,15 +22,14 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the MakeRadiationMesh_Component class.
         /// </summary>
         public MakeGroundSurface_Component()
-          : base("Ground Surface", "GndSrf", 
+          : base("Ground Surface", "GndSrf",
 @"Ground Material
 
 Defines properties for ground surfaces like asphalt, concrete, or soil. Critical for analyzing the Urban Heat Island effect.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTGroundSurface");
         }
 
         /// <summary>
@@ -39,24 +38,24 @@ Defines properties for ground surfaces like asphalt, concrete, or soil. Critical
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddBrepParameter(
-                "Geometry", "Geo", 
-                "Ground surface geometry (Breps). Will be meshed into analysis patches.", 
+                "Geometry", "Geo",
+                "Ground surface geometry (Breps). Will be meshed into analysis patches.",
                 GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
-                "Patch Size", "Patch", 
-                "Size of analysis mesh patches. Units: meters. Default: 3m", 
+                "Patch Size", "Patch",
+                "Size of analysis mesh patches. Units: meters. Default: 3m",
                 GH_ParamAccess.item, 3);
 
             pManager.AddGenericParameter(
-                "Settings", "Set", 
-                "Optional: Material settings (albedo, emissivity) from Surface Settings component.", 
+                "Settings", "Set",
+                "Optional: Material settings (albedo, emissivity) from Surface Settings component.",
                 GH_ParamAccess.item);
             pManager[2].Optional = true;
 
             pManager.AddIntegerParameter(
-                "Temp Source", "Src", 
-                "Surface temperature data source (EnergyPlus, measured, or user-defined).", 
+                "Temp Source", "Src",
+                "Surface temperature data source (EnergyPlus, measured, or user-defined).",
                 GH_ParamAccess.item, 1);
             var types = Enum.GetNames(typeof(SimulationType));
             Param_Integer param = pManager[3] as Param_Integer;
@@ -66,8 +65,8 @@ Defines properties for ground surfaces like asphalt, concrete, or soil. Critical
             }
 
             pManager.AddNumberParameter(
-                "Temperature", "Temp", 
-                "Optional: User-defined surface temperatures. Units: °C", 
+                "Temperature", "Temp",
+                "Optional: User-defined surface temperatures. Units: °C",
                 GH_ParamAccess.list);
             pManager[4].Optional = true;
         }

@@ -2,6 +2,7 @@
 using Eto.Forms;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,12 @@ namespace Urbano.Simulation
     public class ProgressDialog : Dialog
     {
         public Label Status;
+        private Label TimeElapsed;
+        private Stopwatch stopwatch;
+        private UITimer timer;
+
         public bool Canceled = false;
+        private bool isFinished = false;
         private ProgressBar pbar;
         public float Progress
         {
@@ -22,21 +28,33 @@ namespace Urbano.Simulation
             {
                 pbar.Progress = value;
                 pbar.Invalidate();
+                Title = $"Simulation Progress - {(int)(value * 100)}%";
             }
         }
 
         public ProgressDialog(Func<CancellationTokenSource, Task> task, double refreshRate = 1000)
         {
-            Title = "Simulation Progress";
-            BackgroundColor = Colors.Gray;
+            Title = "Simulation Progress - 0%";
+            //BackgroundColor = Colors.Gray; // Removed to respect system theme
             //Icon = Icon.FromResource("Properties.Resources.urbano_icon.png");
             ClientSize = new Size(400, 200);
+            MinimumSize = new Size(400, 200);
+            Resizable = true;
             ShowInTaskbar = true;
 
             // controls
-            Status = new Label();
-            pbar = new ProgressBar();
-            var cancel = new Button { Text = "Cancel" };
+            Status = new Label() { Text = "Starting simulation...", ToolTip = "Current simulation status", Wrap = WrapMode.Word };
+
+            TimeElapsed = new Label { Text = "Elapsed: 00:00:00", VerticalAlignment = VerticalAlignment.Center, ToolTip = "Time elapsed since simulation started" };
+            stopwatch = Stopwatch.StartNew();
+            timer = new UITimer { Interval = 1.0 };
+            timer.Elapsed += (s, e) => { TimeElapsed.Text = "Elapsed: " + stopwatch.Elapsed.ToString(@"hh\:mm\:ss"); };
+            timer.Start();
+
+            pbar = new ProgressBar { ToolTip = "Simulation Progress" };
+            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation (Esc, Enter)" };
+            AbortButton = cancel; // Add Escape key support
+            DefaultButton = cancel; // Map the Enter key to the Cancel action when focused
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
 
@@ -44,12 +62,25 @@ namespace Urbano.Simulation
             // events
             cancel.Click += (s, e) =>
             {
-                Canceled = true;
-                Close();
+                if (MessageBox.Show(this, "Are you sure you want to abort the simulation?", "Abort Simulation", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.Yes)
+                {
+                    Canceled = true;
+                    Close();
+                }
             };
             Closing += (s, e) =>
             {
-                cts.Cancel();
+                if (!isFinished && !Canceled)
+                {
+                    if (MessageBox.Show(this, "Are you sure you want to abort the simulation?", "Abort Simulation", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.No)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
+                    Canceled = true;
+                }
+                if (!e.Cancel) cts.Cancel();
+                if (!e.Cancel) timer.Stop();
             };
 
             // layout
@@ -59,9 +90,10 @@ namespace Urbano.Simulation
             layout.EndVertical();
             layout.BeginVertical();
             layout.BeginHorizontal();
-            layout.Add(new Spinner { Height = 20, Enabled = true }, false, false);
+            layout.Add(new Spinner { Height = 20, Enabled = true, ToolTip = "Simulation is running" }, false, false);
             layout.Add(new Drawable { Width = 5 }, false, false);
             layout.Add(Status, true, false);
+            layout.Add(TimeElapsed, false, false);
             layout.EndHorizontal();
             layout.EndVertical();
             layout.BeginVertical();
@@ -79,6 +111,7 @@ namespace Urbano.Simulation
             // when finished, close dialog
             run.ContinueWith((r) =>
             {
+                isFinished = true;
                 if (uiThread != null) uiThread.Send((object state) => { Close(); }, null);
             });
         }
@@ -87,8 +120,8 @@ namespace Urbano.Simulation
     public class ProgressBar : Drawable
     {
         public float Progress; // 0-1
-        private Color backColor = Colors.Gray;
-        private Color fillColor = Colors.Blue;
+        private Color backColor = SystemColors.Control;
+        private Color fillColor = SystemColors.Highlight;
 
 
         public ProgressBar()
@@ -100,13 +133,27 @@ namespace Urbano.Simulation
         protected override void OnPaint(PaintEventArgs e)
         {
             var rect = new RectangleF(Size);
+            var fullRect = rect;
             e.Graphics.FillRectangle(new SolidBrush(backColor), rect);
             float w = Progress > 1 ? 1 : Progress;
+            if (w < 0) w = 0;
+
             if (w > 0)
             {
                 rect.Width *= w;
                 e.Graphics.FillRectangle(new SolidBrush(fillColor), rect);
             }
+
+            // Draw percentage text
+            string text = $"{(int)(w * 100)}%";
+            var font = SystemFonts.Label();
+            var textSize = e.Graphics.MeasureString(font, text);
+            var textLocation = new PointF(
+                fullRect.X + (fullRect.Width - textSize.Width) / 2,
+                fullRect.Y + (fullRect.Height - textSize.Height) / 2
+            );
+            e.Graphics.DrawText(font, Colors.Black, textLocation + new SizeF(1, 1), text);
+            e.Graphics.DrawText(font, Colors.White, textLocation, text);
         }
     }
 

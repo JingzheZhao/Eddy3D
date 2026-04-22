@@ -103,7 +103,7 @@ Use this for quick convergence monitoring without external plotting windows.
                 _activeDirection = null;
                 _snapshot = ResidualPlotSnapshot.Empty;
                 _liveRequested = false;
-                Message = "No data";
+                Message = "Connect a result";
                 DA.SetData(0, _activeFile);
                 return;
             }
@@ -131,7 +131,7 @@ Use this for quick convergence monitoring without external plotting windows.
                 _snapshot = BuildSnapshot(logScale: true, xMaxTarget: result.RunSettings?.endTime);
             }
 
-            Message = live ? "Live" : "Idle";
+            Message = live ? "Live" : "Toggle 'Live' to monitor";
 
             if (live)
             {
@@ -806,9 +806,17 @@ Use this for quick convergence monitoring without external plotting windows.
                 if (!snapshot.HasData)
                 {
                     var textRect = new RectangleF(_plotBounds.X + 6, _plotBounds.Y + 6, _plotBounds.Width - 12, _plotBounds.Height - 12);
-                    using (var brush = new SolidBrush(Color.FromArgb(90, 90, 90)))
+                    using (var brush = new SolidBrush(Color.FromArgb(140, 140, 140)))
+                    using (var format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
                     {
-                        g.DrawString(status ?? "no data", GH_FontServer.Small, brush, textRect);
+                        string msg = string.IsNullOrWhiteSpace(status) ? "No data available" : char.ToUpperInvariant(status[0]) + status.Substring(1).ToLowerInvariant();
+
+                        if (string.Equals(status, "missing result", StringComparison.OrdinalIgnoreCase)) msg += "\nConnect a valid simulation result.";
+                        else if (string.Equals(status, "idle", StringComparison.OrdinalIgnoreCase)) msg += "\nEnable 'Live' toggle to monitor.";
+                        else if (string.Equals(status, "residuals.dat not found", StringComparison.OrdinalIgnoreCase)) msg += "\nRun the simulation to generate residuals.";
+                        else if (string.Equals(status, "waiting for residuals", StringComparison.OrdinalIgnoreCase)) msg += "\nSimulation is preparing data...";
+
+                        g.DrawString(msg, GH_FontServer.StandardItalic, brush, textRect, format);
                     }
                     return;
                 }

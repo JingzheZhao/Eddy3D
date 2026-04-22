@@ -15,15 +15,14 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the Emitter class.
         /// </summary>
         public MomentumSource_Component()
-          : base("Momentum Source", "MomSrc", 
+          : base("Momentum Source", "MomSrc",
 @"Fan / Jet Source
 
 Creates a volume that actively pushes air in a specific direction. Use this to model fans, blowers, HVAC supply jets, or other active airflow devices.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorMomentumSource");
         }
 
         /// <summary>

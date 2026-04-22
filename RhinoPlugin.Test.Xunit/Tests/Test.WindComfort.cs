@@ -193,9 +193,12 @@ namespace RhinoPlugin.Test.Xunit
         public void Exceedance_ReturnsExpected(PedCmftMetric metric, int expectedCat, bool useCounting)
         {
             var pcMetric = WindComfortMetricsWeibull.ThresholdInfo(metric);
+            double[,] arr2D = new double[arr.Length, 1];
+            for (int i = 0; i < arr.Length; i++) arr2D[i, 0] = arr[i];
+
             CmftThresholdInfo ti = useCounting
-                ? WindComfortMetricsCounting.CalcComfortCountBins(arr, pcMetric)
-                : WindComfortMetricsWeibull.CalcExceedance(arr, pcMetric);
+                ? WindComfortMetricsCounting.CalcComfortCountBins(arr2D, 0, pcMetric)
+                : WindComfortMetricsWeibull.CalcExceedance(arr2D, 0, pcMetric);
 
             Assert.Equal(expectedCat, ti.Cat);
         }
@@ -224,9 +227,19 @@ namespace RhinoPlugin.Test.Xunit
                 .Concat(Enumerable.Repeat(4.0, (hoursPerYear / 2) - 1))
                 .ToArray();
 
-            var atThreshold = WindComfortMetricsCounting.CalcComfortCountBins(exactlyAtThreshold, thresholds);
-            var belowThreshold = WindComfortMetricsCounting.CalcComfortCountBins(oneBelowThreshold, thresholds);
-            var aboveThreshold = WindComfortMetricsCounting.CalcComfortCountBins(oneAboveThreshold, thresholds);
+            double[,] exact2D = new double[hoursPerYear, 1];
+            double[,] below2D = new double[hoursPerYear, 1];
+            double[,] above2D = new double[hoursPerYear, 1];
+            for (int i = 0; i < hoursPerYear; i++)
+            {
+                exact2D[i, 0] = exactlyAtThreshold[i];
+                below2D[i, 0] = oneBelowThreshold[i];
+                above2D[i, 0] = oneAboveThreshold[i];
+            }
+
+            var atThreshold = WindComfortMetricsCounting.CalcComfortCountBins(exact2D, 0, thresholds);
+            var belowThreshold = WindComfortMetricsCounting.CalcComfortCountBins(below2D, 0, thresholds);
+            var aboveThreshold = WindComfortMetricsCounting.CalcComfortCountBins(above2D, 0, thresholds);
 
             Assert.Equal(2, atThreshold.Cat);
             Assert.Equal(1, belowThreshold.Cat);
@@ -244,8 +257,10 @@ namespace RhinoPlugin.Test.Xunit
         {
             var thresholds = WindComfortMetricsWeibull.ThresholdInfo(metric);
             var annualSeries = Enumerable.Repeat(0.5, TestConstants.HoursPerYear).ToArray();
+            double[,] arr2D = new double[annualSeries.Length, 1];
+            for (int i = 0; i < annualSeries.Length; i++) arr2D[i, 0] = annualSeries[i];
 
-            var result = WindComfortMetricsCounting.CalcComfortCountBins(annualSeries, thresholds);
+            var result = WindComfortMetricsCounting.CalcComfortCountBins(arr2D, 0, thresholds);
 
             Assert.Equal(expectedCat, result.Cat);
         }
@@ -261,8 +276,10 @@ namespace RhinoPlugin.Test.Xunit
         {
             var thresholds = WindComfortMetricsWeibull.ThresholdInfo(metric);
             var annualSeries = Enumerable.Repeat(30.0, TestConstants.HoursPerYear).ToArray();
+            double[,] arr2D = new double[annualSeries.Length, 1];
+            for (int i = 0; i < annualSeries.Length; i++) arr2D[i, 0] = annualSeries[i];
 
-            var result = WindComfortMetricsCounting.CalcComfortCountBins(annualSeries, thresholds);
+            var result = WindComfortMetricsCounting.CalcComfortCountBins(arr2D, 0, thresholds);
 
             Assert.Equal(expectedCat, result.Cat);
         }
@@ -273,10 +290,13 @@ namespace RhinoPlugin.Test.Xunit
             var thresholds = WindComfortMetricsWeibull.ThresholdInfo(PedCmftMetric.NEN8100Comfort);
             int bestCaseCategory = thresholds.Values.OrderBy(t => t.UThres).First().Cat;
 
-            var empty = WindComfortMetricsWeibull.CalcExceedance(Array.Empty<double>(), thresholds);
-            var invalid = WindComfortMetricsWeibull.CalcExceedance(
-                new[] { double.NaN, double.PositiveInfinity, double.NegativeInfinity, -1.0, 0.0 },
-                thresholds);
+            var empty = WindComfortMetricsWeibull.CalcExceedance(new double[0, 0], 0, thresholds);
+
+            var invalid1D = new[] { double.NaN, double.PositiveInfinity, double.NegativeInfinity, -1.0, 0.0 };
+            double[,] invalid2D = new double[invalid1D.Length, 1];
+            for (int i = 0; i < invalid1D.Length; i++) invalid2D[i, 0] = invalid1D[i];
+
+            var invalid = WindComfortMetricsWeibull.CalcExceedance(invalid2D, 0, thresholds);
 
             Assert.Equal(bestCaseCategory, empty.Cat);
             Assert.Equal(bestCaseCategory, invalid.Cat);
@@ -290,14 +310,22 @@ namespace RhinoPlugin.Test.Xunit
             var mostlyCalm = BuildAnnualSeries((int)(0.05 * TestConstants.HoursPerYear), 6.0, 4.0);
             var stronglyWindy = BuildAnnualSeries((int)(0.25 * TestConstants.HoursPerYear), 6.0, 4.0);
 
-            var catMostlyCalm = WindComfortMetricsCounting.CalcComfortCountBins(mostlyCalm, thresholds);
-            var catStronglyWindy = WindComfortMetricsCounting.CalcComfortCountBins(stronglyWindy, thresholds);
+            double[,] mostlyCalm2D = new double[mostlyCalm.Length, 1];
+            double[,] stronglyWindy2D = new double[stronglyWindy.Length, 1];
+            for (int i = 0; i < mostlyCalm.Length; i++)
+            {
+                mostlyCalm2D[i, 0] = mostlyCalm[i];
+                stronglyWindy2D[i, 0] = stronglyWindy[i];
+            }
+
+            var catMostlyCalm = WindComfortMetricsCounting.CalcComfortCountBins(mostlyCalm2D, 0, thresholds);
+            var catStronglyWindy = WindComfortMetricsCounting.CalcComfortCountBins(stronglyWindy2D, 0, thresholds);
 
             Assert.Equal(4, catMostlyCalm.Cat);
             Assert.Equal(5, catStronglyWindy.Cat);
         }
 
-  
+
 
 
         [RhinoRequiredTheory]

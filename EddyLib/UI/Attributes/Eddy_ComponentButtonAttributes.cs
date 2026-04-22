@@ -43,6 +43,34 @@ namespace EddyLib.UI
             }
         }
 
+        private static MethodInfo _attachCursorMethod;
+        private static bool _attachCursorMethodSearched = false;
+
+        public override GH_ObjectResponse RespondToMouseMove(GH_Canvas sender, GH_CanvasMouseEvent e)
+        {
+            if (ButtonBounds.Contains(System.Drawing.Point.Round(e.CanvasLocation)))
+            {
+                if (!_attachCursorMethodSearched)
+                {
+                    var cursorServerType = Grasshopper.Instances.CursorServer.GetType();
+                    _attachCursorMethod = cursorServerType.GetMethod("AttachCursor", new[] { typeof(object), typeof(string) });
+                    _attachCursorMethodSearched = true;
+                }
+
+                if (_attachCursorMethod != null)
+                {
+                    _attachCursorMethod.Invoke(Grasshopper.Instances.CursorServer, new object[] { sender, "GH_Hand" });
+                }
+                else
+                {
+                    // Fallback using dynamic to bypass compilation dependency on System.Windows.Forms.Control
+                    try { ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(sender, "GH_Hand"); } catch { }
+                }
+                return GH_ObjectResponse.Handled;
+            }
+            return base.RespondToMouseMove(sender, e);
+        }
+
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
             if (ButtonBounds.Contains(System.Drawing.Point.Round(e.CanvasLocation)))

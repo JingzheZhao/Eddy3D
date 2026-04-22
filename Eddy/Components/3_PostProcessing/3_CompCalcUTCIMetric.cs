@@ -23,7 +23,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompUTCI()
-          : base("UTCI", "UTCI", 
+          : base("UTCI", "UTCI",
 @"UTCI Calculation
 
 Computes the Universal Thermal Climate Index (UTCI), a measure of how the weather ""feels"" to the human body.
@@ -45,23 +45,23 @@ Combines:
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddNumberParameter(
-                "Air Temperature", "Tair", 
-                "Ambient air temperature. Units: °C. Valid: -50 to +50°C", 
+                "Air Temperature", "Tair",
+                "Ambient air temperature. Units: °C. Valid: -50 to +50°C",
                 GH_ParamAccess.item, 0);
 
             pManager.AddNumberParameter(
-                "Mean Radiant Temp", "MRT", 
-                "Mean radiant temperature from MRT simulation or sensors. Units: °C", 
+                "Mean Radiant Temp", "MRT",
+                "Mean radiant temperature from MRT simulation or sensors. Units: °C",
                 GH_ParamAccess.item, 0);
 
             pManager.AddNumberParameter(
-                "Wind Speed", "Wind", 
-                "Wind velocity at pedestrian height (1.5m). Units: m/s. Valid: 0.5-17 m/s", 
+                "Wind Speed", "Wind",
+                "Wind velocity at pedestrian height (1.5m). Units: m/s. Valid: 0.5-17 m/s",
                 GH_ParamAccess.item, 0);
 
             pManager.AddNumberParameter(
-                "Relative Humidity", "RH", 
-                "Relative humidity. Units: % (0-100)", 
+                "Relative Humidity", "RH",
+                "Relative humidity. Units: % (0-100)",
                 GH_ParamAccess.item, 0);
         }
 

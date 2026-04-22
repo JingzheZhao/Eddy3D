@@ -16,12 +16,12 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public AnalysisBinsCustom_Component()
-          : base("Custom Time Filter", "CustomTime", 
+          : base("Custom Time Filter", "CustomTime",
 @"Filter analysis results by custom date/time range.
 
 Specify start and end DateTime objects for precise temporal filtering.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "3 | PostProcessing")
         {
         }

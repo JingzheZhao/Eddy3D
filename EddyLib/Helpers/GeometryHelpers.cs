@@ -36,7 +36,7 @@ namespace EddyLib
                 {
                     brep = extrusion.ToBrep();
                 }
-                
+
                 if (brep != null)
                 {
                     var meshes = Mesh.CreateFromBrep(brep, mp);
@@ -83,12 +83,48 @@ namespace EddyLib
         {
             if (vertices == null || vertices.Count < 3) return 0;
 
-            // Use Rhino's AreaMassProperties for accuracy with planar polygons
-            var polyline = new Polyline(vertices);
-            if (!polyline.IsClosed) polyline.Add(polyline[0]);
-            
-            var amp = AreaMassProperties.Compute(polyline.ToNurbsCurve());
-            return amp != null ? amp.Area : 0;
+            double totalX = 0;
+            double totalY = 0;
+            double totalZ = 0;
+
+            // Cache p0 coordinates to avoid repeated property access
+            var p0 = vertices[0];
+            double p0x = p0.X;
+            double p0y = p0.Y;
+            double p0z = p0.Z;
+
+            // Pre-calculate vector v1 for the first iteration (p1 - p0)
+            var p1 = vertices[1];
+            double v1x = p1.X - p0x;
+            double v1y = p1.Y - p0y;
+            double v1z = p1.Z - p0z;
+
+            int count = vertices.Count;
+            for (int i = 1; i < count - 1; i++)
+            {
+                var p2 = vertices[i + 1];
+
+                // Vector 2: p2 - p0
+                double v2x = p2.X - p0x;
+                double v2y = p2.Y - p0y;
+                double v2z = p2.Z - p0z;
+
+                // Cross product: v1 x v2
+                double cx = v1y * v2z - v1z * v2y;
+                double cy = v1z * v2x - v1x * v2z;
+                double cz = v1x * v2y - v1y * v2x;
+
+                totalX += cx;
+                totalY += cy;
+                totalZ += cz;
+
+                // Shift v2 to v1 for next iteration to reuse calculation
+                v1x = v2x;
+                v1y = v2y;
+                v1z = v2z;
+            }
+
+            return 0.5 * Math.Sqrt(totalX * totalX + totalY * totalY + totalZ * totalZ);
         }
     }
 

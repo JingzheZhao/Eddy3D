@@ -16,37 +16,36 @@ namespace EddyLib.Radiation
         #region 6. LoadResultFile
 
         public static int[] LoadResultFile(int HCnt, string Path, bool Run)
-
         {
-            if (!Run) { }
+            // Optimization: Use streaming to avoid loading all lines into memory.
+            // Use Span to avoid string allocations for trimming.
 
-            var lines = File.ReadAllLines(Path);
+            var result = new List<int>();
+            int currentHitCount = 0;
+            int rayIndex = 0;
 
-            var ptCnt = lines.Length / HCnt;
-            var result = new int[ptCnt];
-
-            //A = "Lines: " + lines.Length + " Points: " + ptCnt;
-            if (lines.Length == 0) { }
-
-            int lindex = 0;
-            for (int pt = 0; pt < ptCnt; pt++)
+            // File.ReadLines is lazy and efficient
+            foreach (string line in File.ReadLines(Path))
             {
-                for (int h = 0; h < HCnt; h++)
+                ReadOnlySpan<char> span = line.AsSpan().TrimStart();
+
+                // Check if line starts with '*'
+                if (span.Length > 0 && span[0] == '*')
                 {
-                    // var m = Regex.Match(lines[lindex].Trim(), @"^\d");
-                    var m = lines[lindex].Trim().StartsWith("*");
+                    currentHitCount++;
+                }
 
-                    if (m)
-                    {
-                        //if(m.Success) {
-                        result[pt]++;
-                    }
+                rayIndex++;
 
-                    lindex++;
+                if (rayIndex == HCnt)
+                {
+                    result.Add(currentHitCount);
+                    currentHitCount = 0;
+                    rayIndex = 0;
                 }
             }
 
-            return result;
+            return result.ToArray();
         }
 
         #endregion 6. LoadResultFile

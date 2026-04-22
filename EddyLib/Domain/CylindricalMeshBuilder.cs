@@ -226,20 +226,34 @@ namespace EddyLib.Domain
         private void SetPointsOnCircle(Point3d center, double circleRadius, Polyline nakedEdges)
         {
             var points = new List<Point3d>();
-            Point3d newCenter = new Point3d(center.X, center.Y, 0);
+            Point3d newCenter = new Point3d(center.X, center.Y, center.Z);
             Circle c = new Circle(newCenter, circleRadius);
 
             for (int i = 0; i < nakedEdges.Count; i++)
             {
-                Vector3d vec = newCenter - nakedEdges[i];
+                Vector3d vec = nakedEdges[i] - newCenter;
                 vec.Unitize();
                 vec *= (circleRadius + 1);
 
-                Rhino.Geometry.Intersect.Intersection.LineCircle(
+                var inter = Rhino.Geometry.Intersect.Intersection.LineCircle(
                     new Line(newCenter, vec), c,
-                    out _, out Point3d p1, out _, out _);
+                    out _, out Point3d p1, out _, out Point3d p2);
 
-                points.Add(new Point3d(p1.X, p1.Y, center.Z));
+                if (inter == Rhino.Geometry.Intersect.LineCircleIntersection.None)
+                {
+                    throw new InvalidOperationException("Could not intersect radial line with perimeter circle.");
+                }
+
+                // Pick the intersection point aligned with the outward direction
+                var outward = vec;
+                outward.Unitize();
+                Vector3d p1Dir = p1 - newCenter;
+                Vector3d p2Dir = p2 - newCenter;
+                p1Dir.Unitize();
+                p2Dir.Unitize();
+                Point3d chosen = (p1Dir * outward >= p2Dir * outward) ? p1 : p2;
+
+                points.Add(new Point3d(chosen.X, chosen.Y, center.Z));
             }
 
             PointsOnCircle = points.ToArray();

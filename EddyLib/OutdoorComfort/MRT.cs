@@ -101,8 +101,8 @@ namespace EddyLib.OutdoorComfort
 
             double es = Math.Log(RelHum / 100) + 17.67 * Tair / (243.5 + Tair); // [3] for -30 -- 35°C
             double T_dewP = 243.5 * es / (17.67 - es); // [3]
-            double e = 0.7122 + 0.0056 * T_dewP + 0.000073 * Math.Pow(T_dewP, 2) + 0.00884; // polinomial for curve fit [1]
-            double TSkyKelvin = (Tair + 273) * Math.Pow(e, 0.25);  // [1]
+            double e = 0.7122 + 0.0056 * T_dewP + 0.000073 * (T_dewP * T_dewP) + 0.00884; // polinomial for curve fit [1]
+            double TSkyKelvin = (Tair + 273) * Math.Sqrt(Math.Sqrt(e));  // [1]
             double T_celsius_kelvin = T_celsius + 273;
 
             double Fs = (Math.Atan(0.5 * Wst / (Hst - 1))) * 180 / Math.PI * 0.0056; // where does this come from?
@@ -114,13 +114,18 @@ namespace EddyLib.OutdoorComfort
             double Ec = 0.95;  // Emissivities?
 
             double Fd = 0.50;  // Does this account for 50 % sky and 50 % ground? if yes then this should be an input that changes with respect to the canyon
-            double f = 0.00000043 * Math.Pow(SolarElev, 3) - 0.000068 * Math.Pow(SolarElev, 2) + 0.0003 * SolarElev + 0.3081; // Where does this come from?
+            double f = 0.00000043 * (SolarElev * SolarElev * SolarElev) - 0.000068 * (SolarElev * SolarElev) + 0.0003 * SolarElev + 0.3081; // Where does this come from?
 
-            double IR = Math.Pow((1 / Eb * (Fs * Math.Pow(TSkyKelvin, 4) * Es + Fc * Math.Pow(T_celsius_kelvin, 4) * Ec)), 0.25);
-            double DF = Math.Pow(((DiffRad * Fd + (DiffRad + DirRad * Math.Sin(SolarElev * Math.PI / 180)) * GrRef) * BodyA * 0.725 / (Eb * SBConst)), 0.25);
-            double DR = Math.Pow((DirRad * f * BodyA * 0.725 / (Eb * SBConst)), 0.25);
+            // Bolt: Optimize redundant Math.Pow calculations
+            double TSkyKelvin2 = TSkyKelvin * TSkyKelvin;
+            double T_celsius_kelvin2 = T_celsius_kelvin * T_celsius_kelvin;
 
-            double MRTKelvin = Math.Pow(Math.Pow(IR, 4) + Math.Pow(DF, 4) + Math.Pow(DR, 4), 0.25);
+            double IR_to_4th = (1 / Eb * (Fs * (TSkyKelvin2 * TSkyKelvin2) * Es + Fc * (T_celsius_kelvin2 * T_celsius_kelvin2) * Ec));
+            double DF_to_4th = ((DiffRad * Fd + (DiffRad + DirRad * Math.Sin(SolarElev * Math.PI / 180)) * GrRef) * BodyA * 0.725 / (Eb * SBConst));
+            double DR_to_4th = (DirRad * f * BodyA * 0.725 / (Eb * SBConst));
+
+            double IR = Math.Sqrt(Math.Sqrt(IR_to_4th));
+            double MRTKelvin = Math.Sqrt(Math.Sqrt(IR_to_4th + DF_to_4th + DR_to_4th));
             double MRTCelsius = MRTKelvin - 273;
 
             MRT[0] = MRTCelsius;

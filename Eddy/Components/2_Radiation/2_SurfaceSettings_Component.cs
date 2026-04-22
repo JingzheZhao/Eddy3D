@@ -18,15 +18,14 @@ namespace Eddy.Components._2_Radiation
         /// Initializes a new instance of the _2_SurfaceMaterialSettings_Component class.
         /// </summary>
         public SurfaceSettings_Component()
-          : base("Surface Settings", "SrfSet", 
+          : base("Surface Settings", "SrfSet",
 @"Material Properties
 
 Defines thermal and optical properties for building or ground surfaces (e.g., concrete, asphalt). Controls heat calculation parameters like conductivity, density, and emissivity.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTSurfaceSettings");
         }
 
         /// <summary>

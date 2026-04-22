@@ -39,8 +39,19 @@ namespace Eddy.Components.Radiation
 
         public class CustomAttributes : GH_ComponentAttributes
         {
+            private static System.Reflection.MethodInfo _attachCursorMethod;
+            private object[] _cursorArgs = new object[2];
+
             public CustomAttributes(InspectProbe_Component owner) : base(owner)
             {
+                if (_attachCursorMethod == null)
+                {
+                    var cursorServer = Grasshopper.Instances.CursorServer;
+                    if (cursorServer != null)
+                    {
+                        _attachCursorMethod = cursorServer.GetType().GetMethod("AttachCursor");
+                    }
+                }
             }
 
             #region Custom layout logic
@@ -90,6 +101,25 @@ namespace Eddy.Components.Radiation
                 return base.RespondToMouseDown(sender, e);
             }
 
+            public override GH_ObjectResponse RespondToMouseMove(GH_Canvas sender, GH_CanvasMouseEvent e)
+            {
+                if (isSensor.Contains(e.CanvasLocation) || isHour.Contains(e.CanvasLocation))
+                {
+                    if (_attachCursorMethod != null)
+                    {
+                        var cursorServer = Grasshopper.Instances.CursorServer;
+                        if (cursorServer != null)
+                        {
+                            _cursorArgs[0] = sender;
+                            _cursorArgs[1] = "GH_Hand";
+                            _attachCursorMethod.Invoke(cursorServer, _cursorArgs);
+                            return GH_ObjectResponse.Handled;
+                        }
+                    }
+                }
+                return base.RespondToMouseMove(sender, e);
+            }
+
             #endregion Custom Mouse handling
 
             #region Custom Render logic
@@ -133,7 +163,7 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the ThermalSystem_Component class.
         /// </summary>
         public InspectProbe_Component()
-          : base("Point Probe Inspector", "InSen", 
+          : base("Point Probe Inspector", "InSen",
 @"Point Probe Inspector
 
 Visualizes simulation data at specific sensor points. Displays metrics like Wind Speed, UTCI, or MRT for individual locations or hours.

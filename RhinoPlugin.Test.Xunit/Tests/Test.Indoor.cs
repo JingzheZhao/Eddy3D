@@ -31,7 +31,7 @@ namespace RhinoPlugin.Test.Xunit
             var p1 = new Point3d(10, 0, 0);
             var p2 = new Point3d(10, 10, 0);
             var p3 = new Point3d(0, 10, 0);
-            
+
             var p4 = new Point3d(0, 0, 3);
             var p5 = new Point3d(10, 0, 3);
             var p6 = new Point3d(10, 10, 3);
@@ -49,7 +49,7 @@ namespace RhinoPlugin.Test.Xunit
 
             // Walls
             var wallsMesh = new Mesh();
-            
+
             // Floor (Z=0: p0, p1, p2, p3)
             var floorSrf = NurbsSurface.CreateFromCorners(p0, p1, p2, p3);
             wallsMesh.Append(Mesh.CreateFromBrep(floorSrf.ToBrep(), mp)[0]);
@@ -82,7 +82,7 @@ namespace RhinoPlugin.Test.Xunit
             int endTime = 100;
             string workingDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "IndoorTest");
             if (!System.IO.Directory.Exists(workingDir)) System.IO.Directory.CreateDirectory(workingDir);
-            
+
             double cellSize = 0.2;
             Point3d pointInside = new Point3d(5, 5, 1.5);
             int cpus = 8;
@@ -94,7 +94,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.NotNull(domain);
             Assert.Equal(100, domain.endTime);
             Assert.Equal(workingDir, domain.WorkingDir);
-            
+
             // Check if geometry was added
             // Using reflection or checking public properties if available.
             // IndoorDomain has public properties? Not for the lists of geometry directly, but they are used in constructor.
@@ -114,7 +114,7 @@ namespace RhinoPlugin.Test.Xunit
             var p1 = new Point3d(10, 0, 0);
             var p2 = new Point3d(10, 10, 0);
             var p3 = new Point3d(0, 10, 0);
-            
+
             var p4 = new Point3d(0, 0, 3);
             var p5 = new Point3d(10, 0, 3);
             var p6 = new Point3d(10, 10, 3);
@@ -167,7 +167,7 @@ namespace RhinoPlugin.Test.Xunit
             int endTime = 100;
             string workingDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "IndoorTest_CO2");
             if (!System.IO.Directory.Exists(workingDir)) System.IO.Directory.CreateDirectory(workingDir);
-            
+
             double cellSize = 0.2;
             Point3d pointInside = new Point3d(2, 2, 1.5); // Adjusted to ensure it's not inside the emitter
             int cpus = 8;
@@ -190,7 +190,7 @@ namespace RhinoPlugin.Test.Xunit
         {
             // 1. Create Geometry
             var mp = new MeshingParameters();
-            
+
             // Coordinates
             // Room 10x10x3
             // Inlet Window on X=0: Y=4-6, Z=1-2
@@ -198,13 +198,13 @@ namespace RhinoPlugin.Test.Xunit
 
             // Inlet (X=0)
             var inletSrf = NurbsSurface.CreateFromCorners(
-                new Point3d(0, 4, 1), new Point3d(0, 6, 1), 
+                new Point3d(0, 4, 1), new Point3d(0, 6, 1),
                 new Point3d(0, 6, 2), new Point3d(0, 4, 2));
             var inletMesh = Mesh.CreateFromBrep(inletSrf.ToBrep(), mp)[0];
 
             // Outlet (X=10)
             var outletSrf = NurbsSurface.CreateFromCorners(
-                new Point3d(10, 4, 1), new Point3d(10, 6, 1), 
+                new Point3d(10, 4, 1), new Point3d(10, 6, 1),
                 new Point3d(10, 6, 2), new Point3d(10, 4, 2));
             var outletMesh = Mesh.CreateFromBrep(outletSrf.ToBrep(), mp)[0];
 
@@ -213,34 +213,34 @@ namespace RhinoPlugin.Test.Xunit
 
             // Floor (Z=0)
             wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(
-                new Point3d(0,0,0), new Point3d(10,0,0), new Point3d(10,10,0), new Point3d(0,10,0)).ToBrep(), mp)[0]);
-            
+                new Point3d(0, 0, 0), new Point3d(10, 0, 0), new Point3d(10, 10, 0), new Point3d(0, 10, 0)).ToBrep(), mp)[0]);
+
             // Ceiling (Z=3)
             wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(
-                new Point3d(0,0,3), new Point3d(10,0,3), new Point3d(10,10,3), new Point3d(0,10,3)).ToBrep(), mp)[0]);
+                new Point3d(0, 0, 3), new Point3d(10, 0, 3), new Point3d(10, 10, 3), new Point3d(0, 10, 3)).ToBrep(), mp)[0]);
 
             // Side Wall Y=0
             wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(
-                new Point3d(0,0,0), new Point3d(10,0,0), new Point3d(10,0,3), new Point3d(0,0,3)).ToBrep(), mp)[0]);
+                new Point3d(0, 0, 0), new Point3d(10, 0, 0), new Point3d(10, 0, 3), new Point3d(0, 0, 3)).ToBrep(), mp)[0]);
 
             // Side Wall Y=10
             wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(
-                new Point3d(0,10,0), new Point3d(10,10,0), new Point3d(10,10,3), new Point3d(0,10,3)).ToBrep(), mp)[0]);
+                new Point3d(0, 10, 0), new Point3d(10, 10, 0), new Point3d(10, 10, 3), new Point3d(0, 10, 3)).ToBrep(), mp)[0]);
 
             // Remaining X=0 Face (Inlet Side) - simplified as 4 surrounding rectangles
             // Bottom strip (Z=0-1), Top strip (Z=2-3), Left strip (Y=0-4, Z=1-2), Right strip (Y=6-10, Z=1-2)
             // Note: X is constant 0
-            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(0,0,0), new Point3d(0,10,0), new Point3d(0,10,1), new Point3d(0,0,1)).ToBrep(), mp)[0]); // Bottom
-            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(0,0,2), new Point3d(0,10,2), new Point3d(0,10,3), new Point3d(0,0,3)).ToBrep(), mp)[0]); // Top
-            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(0,0,1), new Point3d(0,4,1), new Point3d(0,4,2), new Point3d(0,0,2)).ToBrep(), mp)[0]); // Left
-            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(0,6,1), new Point3d(0,10,1), new Point3d(0,10,2), new Point3d(0,6,2)).ToBrep(), mp)[0]); // Right
+            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(0, 0, 0), new Point3d(0, 10, 0), new Point3d(0, 10, 1), new Point3d(0, 0, 1)).ToBrep(), mp)[0]); // Bottom
+            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(0, 0, 2), new Point3d(0, 10, 2), new Point3d(0, 10, 3), new Point3d(0, 0, 3)).ToBrep(), mp)[0]); // Top
+            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(0, 0, 1), new Point3d(0, 4, 1), new Point3d(0, 4, 2), new Point3d(0, 0, 2)).ToBrep(), mp)[0]); // Left
+            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(0, 6, 1), new Point3d(0, 10, 1), new Point3d(0, 10, 2), new Point3d(0, 6, 2)).ToBrep(), mp)[0]); // Right
 
             // Remaining X=10 Face (Outlet Side) - similar
             // Note: X is constant 10
-            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(10,0,0), new Point3d(10,10,0), new Point3d(10,10,1), new Point3d(10,0,1)).ToBrep(), mp)[0]); // Bottom
-            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(10,0,2), new Point3d(10,10,2), new Point3d(10,10,3), new Point3d(10,0,3)).ToBrep(), mp)[0]); // Top
-            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(10,0,1), new Point3d(10,4,1), new Point3d(10,4,2), new Point3d(10,0,2)).ToBrep(), mp)[0]); // Left
-            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(10,6,1), new Point3d(10,10,1), new Point3d(10,10,2), new Point3d(10,6,2)).ToBrep(), mp)[0]); // Right
+            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(10, 0, 0), new Point3d(10, 10, 0), new Point3d(10, 10, 1), new Point3d(10, 0, 1)).ToBrep(), mp)[0]); // Bottom
+            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(10, 0, 2), new Point3d(10, 10, 2), new Point3d(10, 10, 3), new Point3d(10, 0, 3)).ToBrep(), mp)[0]); // Top
+            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(10, 0, 1), new Point3d(10, 4, 1), new Point3d(10, 4, 2), new Point3d(10, 0, 2)).ToBrep(), mp)[0]); // Left
+            wallsMesh.Append(Mesh.CreateFromBrep(NurbsSurface.CreateFromCorners(new Point3d(10, 6, 1), new Point3d(10, 10, 1), new Point3d(10, 10, 2), new Point3d(10, 6, 2)).ToBrep(), mp)[0]); // Right
 
             // 2. Boundary Conditions
             var walls = new List<IndoorBC.Wall> { new IndoorBC.Wall(wallsMesh, 3, 20.0) };
@@ -253,7 +253,7 @@ namespace RhinoPlugin.Test.Xunit
             string workingDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "IndoorTest_FullSetup");
             if (System.IO.Directory.Exists(workingDir)) System.IO.Directory.Delete(workingDir, true); // Clean up first
             System.IO.Directory.CreateDirectory(workingDir);
-            
+
             double cellSize = 0.2;
             Point3d pointInside = new Point3d(5, 5, 1.5);
             int cpus = 8;
@@ -267,24 +267,24 @@ namespace RhinoPlugin.Test.Xunit
             Assert.True(System.IO.Directory.Exists(System.IO.Path.Combine(workingDir, "system")), "system directory not created");
 
             Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "run_all.bat")), "run_all.bat not created");
-                        Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "run_mesh.bat")), "run_mesh.bat not created");
-                        Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "run_sim.bat")), "run_sim.bat not created");
-                        Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "system", "controlDict")), "controlDict not created");
-                        Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "0", "T")), "0/T not created");
-                        
-                        // Check specific dictionary content (e.g., endTime in controlDict)
-                        string controlDictContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "system", "controlDict"));
-                        Assert.Matches($"endTime\\s+{endTime};", controlDictContent);
+            Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "run_mesh.bat")), "run_mesh.bat not created");
+            Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "run_sim.bat")), "run_sim.bat not created");
+            Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "system", "controlDict")), "controlDict not created");
+            Assert.True(System.IO.File.Exists(System.IO.Path.Combine(workingDir, "0", "T")), "0/T not created");
 
-                        // Ensure base blockMesh patches are present in thermal boundary conditions.
-                        string tDictContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "0", "T"));
-                        Assert.Contains("Back", tDictContent);
+            // Check specific dictionary content (e.g., endTime in controlDict)
+            string controlDictContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "system", "controlDict"));
+            Assert.Matches($"endTime\\s+{endTime};", controlDictContent);
 
-                        // Ensure simulation-only script includes topology step.
-                        string runSimContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "run_sim.bat"));
-                        Assert.Contains("topoSet", runSimContent);
-            
-                        _output.WriteLine($"Full simulation setup verified in {workingDir}");
-                    }
+            // Ensure base blockMesh patches are present in thermal boundary conditions.
+            string tDictContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "0", "T"));
+            Assert.Contains("Back", tDictContent);
+
+            // Ensure simulation-only script includes topology step.
+            string runSimContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "run_sim.bat"));
+            Assert.Contains("topoSet", runSimContent);
+
+            _output.WriteLine($"Full simulation setup verified in {workingDir}");
+        }
     }
 }

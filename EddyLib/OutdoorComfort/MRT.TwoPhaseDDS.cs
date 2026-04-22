@@ -71,15 +71,23 @@ namespace EddyLib.OutdoorComfort
 
                 System.Threading.Tasks.Parallel.For(0, HoursPerYear, h =>
                  {
+                     // Bolt optimization: Cache array lookups outside the inner loop
+                     // to avoid repetitive bounds checking and array indirection
+                     double elev = weather.SolarElevation[h];
+                     double azi = weather.SolarAzi[h];
+                     double dryBulb = weather.DryBulbTemp[h];
+                     double sTemp = sky.Temp[h];
+                     double[] ddsTotalH = DDSTOTAL[h];
+
                      for (int p = 0; p < probes.Length; p++)
                      {
                          double dMRT;
                          double ERF;
 
-                         SolarGain.ERF(weather.SolarElevation[h], weather.SolarAzi[h], SolarGain.Posture.standing, DDSTOTAL[h][p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
+                         SolarGain.ERF(elev, azi, SolarGain.Posture.standing, ddsTotalH[p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
 
-                         var surfaceTempBuilding = weather.DryBulbTemp[h] * (1 - ViewFactors[p]);
-                         var skyTemp = sky.Temp[h] * ViewFactors[p];
+                         var surfaceTempBuilding = dryBulb * (1 - ViewFactors[p]);
+                         var skyTemp = sTemp * ViewFactors[p];
 
                          this.Values[h, p] = surfaceTempBuilding + dMRT + skyTemp;
                      }

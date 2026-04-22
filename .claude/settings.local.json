@@ -11,7 +11,12 @@
       "Bash(ls:*)",
       "Bash(find:*)",
       "Bash(dotnet list:*)",
-      "Bash(dotnet package search:*)"
+      "Bash(dotnet package search:*)",
+      "Bash(python3 -c ':*)",
+      "Bash(python -c ':*)",
+      "Bash(grep -v \"^$\")",
+      "Bash(python -m pytest test_add_mag_u.py -v)",
+      "Bash(python -m unittest test_add_mag_u -v)"
     ]
   }
 }

@@ -45,8 +45,8 @@ namespace EddyLib.Web
                         {
                             // Remove 'v' prefix if present
                             var cleanTag = tagName.TrimStart('v', 'V');
-                            
-                            if (Version.TryParse(cleanTag, out Version latest) && 
+
+                            if (Version.TryParse(cleanTag, out Version latest) &&
                                 Version.TryParse(CurrentVersion, out Version current))
                             {
                                 if (latest > current)

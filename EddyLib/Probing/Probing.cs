@@ -52,7 +52,7 @@ namespace EddyLib
         /// <param name="result">Result settings.</param>
         /// <param name="rerun">Force re-parsing even if binary cache exists.</param>
         /// <param name="currWindDir">Current wind direction.</param>
-        public Probing(List<Point3d> probePoints, string caseDirectory, string baseWorkingDirectory, 
+        public Probing(List<Point3d> probePoints, string caseDirectory, string baseWorkingDirectory,
                        OFField ofField, OFResult result, bool rerun, string currWindDir = "")
         {
             this.probePoints = probePoints;
@@ -167,7 +167,7 @@ namespace EddyLib
         /// </summary>
         public static double[] FilterExtremeValues(double[] values)
         {
-            return values.Select(v => 
+            return values.Select(v =>
                 (v < -InvalidValueThreshold || v > InvalidValueThreshold) ? 0.0 : v
             ).ToArray();
         }

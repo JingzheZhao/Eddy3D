@@ -154,7 +154,7 @@ namespace EddyLib.Radiation
 
             foreach (Point3d p in sensors)
             {
-                sunRaysFile.AppendLine(Rays(p, equiSolidAngleVectors4PI().ToList()));
+                sunRaysFile.AppendLine(Rays(p, equiSolidAngleVectors4PI()));
             }
 
             File.WriteAllText(sunRaysFilePath, sunRaysFile.ToString());
@@ -171,39 +171,9 @@ namespace EddyLib.Radiation
 
             var HCnt = equiSolidAngleVectors4PI().Length;
 
-            var lines = File.ReadAllLines(sunRaysResPath);
+            this.hitCounts = LoadResultFile(HCnt, sunRaysResPath, true);
 
-            var ptCnt = lines.Length / HCnt;
-
-            var result = new int[ptCnt];
-
-            //A = "Lines: " + lines.Length + " Points: " + ptCnt;
-            if (lines.Length == 0) return;
-
-            int lindex = 0;
-            for (int pt = 0; pt < ptCnt; pt++)
-            {
-                for (int h = 0; h < HCnt; h++)
-                {
-                    // var m = Regex.Match(lines[lindex].Trim(), @"^\d");
-
-                    // Everything that is not hit is the Sky
-                    // We are counting the ones that don't hit anything
-                    var m = lines[lindex].Trim().StartsWith("*");
-
-                    if (m)
-                    {
-                        //if(m.Success) {
-                        result[pt]++;
-                    }
-
-                    lindex++;
-                }
-            }
-
-            //B = result.ToList();
-
-            this.hitCounts = result;
+            var ptCnt = hitCounts.Length;
 
             for (int pt = 0; pt < ptCnt; pt++)
             {

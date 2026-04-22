@@ -24,7 +24,7 @@ namespace EddyLib.Radiation
         public int methodsteps = 54; // E+ prints ~52 lines + 2 extra steps
         public double IgnoreSmallFacesCutoff = 0.1;
         public double CumulativeViewFactorCutoff;
-        
+
         // Backward compatibility alias
         public double CummulativeViewFactorCutoff
         {
@@ -73,13 +73,13 @@ namespace EddyLib.Radiation
 
             // Initialize sky temperature
             var skyModel = new SkyTemperatureModel(
-                Weather.DewPointTemp, 
-                Weather.DryBulbTemp, 
-                Weather.TotalSkyCover, 
-                Weather.RelativeHumidity, 
-                true, 
+                Weather.DewPointTemp,
+                Weather.DryBulbTemp,
+                Weather.TotalSkyCover,
+                Weather.RelativeHumidity,
+                true,
                 SkyTemperatureModel.CalculationType.DefaultClarkAllen);
-            
+
             SkyTemperature = skyModel.Temp;
         }
 
@@ -89,7 +89,7 @@ namespace EddyLib.Radiation
 
             // 0. Prepare EPJSON
             var epJsonObject = PrepareEpJson();
-            
+
             // 1. Write EPJSON
             string epJsonFile = WriteEpJsonFile(epJsonObject, ref stepCnt, steps);
 
@@ -120,7 +120,7 @@ namespace EddyLib.Radiation
                 string id = $"{prefix}_{s.ID}";
 
                 var epSurf = CreateDetailedSurface(s);
-                
+
                 // Add construction based on surface type
                 if (s.Type == RadiationSurfaceType.Vegetation)
                 {
@@ -132,7 +132,7 @@ namespace EddyLib.Radiation
                 }
 
                 epJsonObject.AllThermalSurfaces.Add(id, epSurf);
-                
+
                 if (s.Type == RadiationSurfaceType.Building) surfIndex++;
                 else groundIndex++;
             }
@@ -243,10 +243,10 @@ namespace EddyLib.Radiation
                 mesh.Vertices[face.B],
                 mesh.Vertices[face.C]
             };
-            
+
             if (face.IsQuad)
                 verts.Add(mesh.Vertices[face.D]);
-                
+
             return verts;
         }
 
@@ -262,10 +262,10 @@ namespace EddyLib.Radiation
 
             // Load template
             string jsonTemplate = Encoding.Default.GetString(Resources.Box);
-            
+
             // Serialize main object
             string mainJson = JsonHelper.Serialize(epJsonObject).Trim().Trim('{', '}').Trim() + ",";
-            
+
             string outputJson = jsonTemplate.Replace("\"@@SURFS@@\": null,", mainJson);
 
             // Inject dictionaries
@@ -290,11 +290,11 @@ namespace EddyLib.Radiation
         private void RunEnergyPlusProcess(string epJsonFile, ref int stepCnt, int steps, CancellationToken ct)
         {
             Console.WriteLine("Run EnergyPlus...");
-            
+
             var epExe = Path.Combine(DefaultDirectoriesAndPaths.EnergyPlusDir, "energyplus.exe");
             var epDir = Path.GetDirectoryName(epJsonFile);
-            
-            var energyPlus = Command.Run(epExe, 
+
+            var energyPlus = Command.Run(epExe,
                 new[] { "-r", "-w", Path.GetFullPath(Weather.epwFilePath), "-p", ProjectName, epJsonFile },
                 options => options.WorkingDirectory(epDir).CancellationToken(ct));
 
@@ -371,10 +371,17 @@ namespace EddyLib.Radiation
             var sunPositions = PrecomputeSunPositions();
             var sg = new SolarGeometry();
 
+            int[] hourToSunIdx = new int[8760];
+            for (int h = 0; h < 8760; h++)
+            {
+                sg.HourOfYear_To_MDH(h, out int month, out int day, out int hour);
+                hourToSunIdx[h] = (month * 24) + hour;
+            }
+
             Parallel.ForEach(vegPolys, p =>
             {
                 bool[] inDirSunlight = RayTraceSunlight(p, sunPositions);
-                ApplyTemperatureReduction(p, inDirSunlight, sunPositions, MaxShadowTempDelta, sg);
+                ApplyTemperatureReduction(p, inDirSunlight, sunPositions, MaxShadowTempDelta, hourToSunIdx);
             });
         }
 
@@ -408,12 +415,11 @@ namespace EddyLib.Radiation
             return inDirSunlight;
         }
 
-        private void ApplyTemperatureReduction(RPolygon p, bool[] inDirSunlight, Vector3d[] sunPositions, double maxDelta, SolarGeometry sg)
+        private void ApplyTemperatureReduction(RPolygon p, bool[] inDirSunlight, Vector3d[] sunPositions, double maxDelta, int[] hourToSunIdx)
         {
             for (int h = 0; h < 8760; h++)
             {
-                sg.HourOfYear_To_MDH(h, out int month, out int day, out int hour);
-                int sunIdx = (month * 24) + hour;
+                int sunIdx = hourToSunIdx[h];
                 double dnr = Weather.DirectNormalRadiation[h];
 
                 if (dnr > 50 && sunPositions[sunIdx] != Vector3d.Zero)

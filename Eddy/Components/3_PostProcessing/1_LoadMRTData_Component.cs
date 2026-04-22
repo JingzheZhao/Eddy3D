@@ -20,15 +20,14 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public LoadMRTData_Component()
-          : base("Load MRT Results", "LoadMRT", 
+          : base("Load MRT Results", "LoadMRT",
 @"MRT Results Loader
 
 Import calculated Mean Radiant Temperature (MRT) data for thermal comfort analysis.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "3 | PostProcessing")
         {
-            Analytics.Analytics.TrackComponentView("LoadMRTResults");
         }
 
         /// <summary>
@@ -37,13 +36,13 @@ Import calculated Mean Radiant Temperature (MRT) data for thermal comfort analys
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddTextParameter(
-                "File Path", "Path", 
-                "Path to .mrt.eddy result file from MRT Simulation.", 
+                "File Path", "Path",
+                "Path to .mrt.eddy result file from MRT Simulation.",
                 GH_ParamAccess.item);
 
             pManager.AddBooleanParameter(
-                "Load", "Load!", 
-                "Set True to load data from disk into memory.", 
+                "Load", "Load!",
+                "Set True to load data from disk into memory.",
                 GH_ParamAccess.item, false);
         }
 

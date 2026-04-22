@@ -53,7 +53,7 @@ namespace EddyLib.Radiation
         #endregion
 
         // Zone name prefixes to strip
-        private static readonly string[] ZonePrefixes = 
+        private static readonly string[] ZonePrefixes =
         {
             "IDEAL LOADS AIR SYSTEM",
             "IDEAL LOADS AIR",
@@ -124,14 +124,14 @@ namespace EddyLib.Radiation
     public class EsoReader
     {
         // IDs 1-6 are reserved for timestamp/environment data
-        private static readonly HashSet<string> ReservedIds = 
+        private static readonly HashSet<string> ReservedIds =
             new HashSet<string> { "1", "2", "3", "4", "5", "6" };
 
-        private static readonly NumberStyles NumberStyle = 
+        private static readonly NumberStyles NumberStyle =
             NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent | NumberStyles.AllowLeadingSign;
 
         // Patterns to remove from zone names
-        private static readonly string[] ZoneCleanupPatterns = 
+        private static readonly string[] ZoneCleanupPatterns =
         {
             "THERMALCHIMNEYSYSTEM",
             "PEOPLE "

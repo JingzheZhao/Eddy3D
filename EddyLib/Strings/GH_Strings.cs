@@ -12,7 +12,7 @@ namespace EddyLib
 
             public const string WorkingDir = "Working directory";
             public const string WorkingDirNick = "Dir";
-            public const string WorkingDirDesc = "Folder for simulation files. Use a simple name (e.g., 'MyProject') to create under %LocalAppData%\\Eddy3D\\Cases on Windows (~/Eddy3D/Cases on macOS), or provide a full path.";
+            public const string WorkingDirDesc = "Folder for simulation files. Use a simple name (e.g., 'MyProject') to create under %USERPROFILE%\\Eddy3D\\Cases on Windows (~/Eddy3D/Cases on macOS), or provide a full path.";
 
             public const string MeshSettings = "Mesh settings";
             public const string MeshSettingsNick = "MSet";
@@ -296,7 +296,7 @@ namespace EddyLib
 
             public const string Mode = "Mesh Mode";
             public const string ModeNick = "Mode";
-            public const string ModeDesc = "0: No snapping (fast debug), 1: With snapping (production), 2: With layers (accurate but slow)";
+            public const string ModeDesc = "Meshing strategy:\n0: No snapping (Fast debug)\n1: With snapping (Standard production)\n2: With layers (Accurate boundary layers, slower)";
 
             public const string Preset = "Preset";
             public const string PresetNick = "Preset";
@@ -323,15 +323,15 @@ namespace EddyLib
 
             public const string Turb = "Turbulence Model";
             public const string TurbNick = "Turb";
-            public const string TurbDesc = "RANS turbulence model. k-epsilon is fast and robust for urban flows. k-omega SST is more accurate near walls.";
+            public const string TurbDesc = "RANS turbulence model selection.\n- k-epsilon: Fast & robust (Standard for urban flows)\n- RNG k-epsilon: Default, improved for swirling flows\n- k-omega SST: More accurate for wall-bounded flows";
 
             public const string Relax = "Relaxation Factors";
             public const string RelaxNick = "Relax";
-            public const string RelaxDesc = "Under-relaxation for solver stability. Robust is safer for complex geometry. Default: Optimized";
+            public const string RelaxDesc = "Under-relaxation factors control solver stability.\n- Fast: Aggressive settings (may diverge)\n- Robust: Stable settings for complex geometry\n- Optimized: Default balanced settings";
 
             public const string Schemes = "Numerical Schemes";
             public const string SchemesNick = "Schemes";
-            public const string SchemesDesc = "Discretization schemes for equations. Optimized balances accuracy and stability.";
+            public const string SchemesDesc = "Numerical discretization schemes.\n- Default: Standard OpenFOAM schemes\n- Optimized: Enhances stability for urban flows (Recommended)";
 
             public const string PotInit = "Potential Flow Init";
             public const string PotInitNick = "PotInit";
@@ -456,14 +456,59 @@ namespace EddyLib
             public const string Name = "Select Template";
             public const string Nick = "Select";
             public const string Desc = "Load example Grasshopper definitions for common workflows.\n\nTemplates include wind comfort studies, MRT analysis, and \nindoor airflow simulations.";
-            
+
             public const string InputName = "Additional Folders";
             public const string InputNick = "Dirs";
             public const string InputDesc = "Optional: Additional folder paths or GitHub URLs to search for .gh/.ghx templates.\nExample URL: https://github.com/Startraders/Eddy3D-Templates/tree/main/Indoor";
-            
+
             public const string OutputName = "Template Paths";
             public const string OutputNick = "Paths";
             public const string OutputDesc = "Full paths to discovered template files (.gh/.ghx)";
+        }
+
+        public static class GanPredict
+        {
+            public const string Name = "GAN Wind Prediction";
+            public const string Nick = "GANPredict";
+            public const string Desc = "Predict pedestrian-level wind speeds using a GAN surrogate model.\n\n"
+                + "Generates a normalised input array from building geometry and sends it "
+                + "to the Eddy3D cloud API for real-time inference.\n\n";
+
+            public const string Building = "Building Geometry";
+            public const string BuildingNick = "Bldg";
+            public const string BuildingDesc = "Joined mesh of all buildings to include in the prediction.";
+
+            public const string AnalysisPlane = "Analysis Plane";
+            public const string AnalysisPlaneNick = "Plane";
+            public const string AnalysisPlaneDesc = "Square Rectangle3d defining the analysis area. Must be square.";
+
+            public const string WindDir = "Wind Direction";
+            public const string WindDirNick = "WDir";
+            public const string WindDirDesc = "Wind direction in degrees clockwise from north (0 = north).";
+
+            public const string Run = "Run";
+            public const string RunNick = "Run";
+            public const string RunDesc = "Set to true to trigger the prediction.";
+
+            public const string ApiUrl = "API URL";
+            public const string ApiUrlNick = "URL";
+            public const string ApiUrlDesc = "GAN API endpoint URL. Uses default Eddy3D cloud API if empty.";
+
+            public const string VSize = "Height Scale";
+            public const string VSizeNick = "vSize";
+            public const string VSizeDesc = "Height coloring scale factor for the input image.";
+
+            public const string ColorSize = "Distance Scale";
+            public const string ColorSizeNick = "cSize";
+            public const string ColorSizeDesc = "Distance coloring scale factor for the input image.";
+
+            public const string WindSpeed = "Wind Speed";
+            public const string WindSpeedNick = "UMag";
+            public const string WindSpeedDesc = "Predicted wind speed magnitude at each pixel (m/s).";
+
+            public const string ResultMesh = "Result Mesh";
+            public const string ResultMeshNick = "Mesh";
+            public const string ResultMeshDesc = "Coloured mesh showing predicted wind speed distribution, previewed on a horizontal plane at z = 2.0 m.";
         }
     }
 }

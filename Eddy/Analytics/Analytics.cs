@@ -40,6 +40,12 @@ namespace Eddy.Analytics
 
             /// <summary>Gets or sets whether tracking is enabled.</summary>
             public static bool Enabled { get; set; } = true;
+
+            /// <summary>
+            /// Emergency quota guard. When enabled, only startup tracking is sent.
+            /// Defaults to false because the reduced analytics schema is already low volume.
+            /// </summary>
+            public static bool LimitTrackingToStartupOnly { get; set; } = false;
         }
 
         /// <summary>
@@ -58,6 +64,13 @@ namespace Eddy.Analytics
             if (!Config.Enabled)
             {
                 if (callback != null) callback("Tracking disabled");
+                return;
+            }
+
+            // High volume guard: skip all non-startup events if the flag is set.
+            if (Config.LimitTrackingToStartupOnly && url != "/startup")
+            {
+                if (callback != null) callback("Event skipped (LimitTrackingToStartupOnly is true)");
                 return;
             }
 
@@ -81,6 +94,7 @@ namespace Eddy.Analytics
         /// </summary>
         public static async Task<string> TrackPageViewAsync(string url, string title)
         {
+            if (Config.LimitTrackingToStartupOnly && url != "/startup") return "Page View skipped";
             return await SendPayloadAsync(url, null, title, null);
         }
 
@@ -96,6 +110,7 @@ namespace Eddy.Analytics
             string url = "/",
             JObject additionalData = null)
         {
+            if (Config.LimitTrackingToStartupOnly && url != "/startup") return "Event skipped";
             return await SendPayloadAsync(url, eventName, eventName, additionalData);
         }
 
@@ -124,7 +139,7 @@ namespace Eddy.Analytics
                 string eddyVersion = GetEddyVersion();
                 string deviceType = GetDeviceType();
                 string screenSize = GetScreenSize();
-                
+
                 // Fetch network org once per session (cached)
                 await EnsureNetworkOrgCachedAsync();
 
@@ -137,7 +152,7 @@ namespace Eddy.Analytics
                     { "profile_eddy_version", eddyVersion },
                     { "profile_device_type", deviceType }
                 };
-                
+
                 // Add network_org if available (shows university/company)
                 if (!string.IsNullOrWhiteSpace(_cachedNetworkOrg))
                 {
@@ -176,7 +191,7 @@ namespace Eddy.Analytics
                         { "type", "identify" },
                         { "payload", identifyPayloadData }
                     };
-                    
+
                     var identifyRequest = new HttpRequestMessage(HttpMethod.Post, Config.Endpoint);
                     identifyRequest.Content = new StringContent(identifyPayload.ToString(), Encoding.UTF8, "application/json");
                     identifyRequest.Headers.UserAgent.ParseAdd(GetUserAgent(deviceType, eddyVersion));
@@ -244,9 +259,9 @@ namespace Eddy.Analytics
                 request.Headers.UserAgent.ParseAdd(GetUserAgent(deviceType, eddyVersion));
 
                 var response = await HttpClient.SendAsync(request);
-                
-                return response.IsSuccessStatusCode 
-                    ? $"Success: {(eventName ?? "Page View")} tracked" 
+
+                return response.IsSuccessStatusCode
+                    ? $"Success: {(eventName ?? "Page View")} tracked"
                     : $"Failed: {response.StatusCode}";
             }
             catch (Exception ex)
@@ -283,93 +298,92 @@ namespace Eddy.Analytics
                 }
 
                 string result = await TrackEventAsync("/outdoor/software-launch", "/startup", data);
-                
+
                 if (callback != null) callback(result);
             });
         }
 
         /// <summary>
-        /// Tracks which component was added to the canvas.
-        /// Sent as a Page View ONLY to avoid cluttering the custom events timeline.
+        /// Tracks a simulation run for the major product workflows.
+        /// This is the primary non-launch analytics event and is intentionally low-volume.
         /// </summary>
-        public static void TrackComponentView(string componentName)
+        public static void TrackSimulationRun(
+            string workflow,
+            string engine,
+            JObject additionalData = null)
         {
-            Task.Run(async () =>
+            string normalizedWorkflow = NormalizeWorkflow(workflow);
+            var data = new JObject
             {
-                string slug = ToAnalyticsComponentSlug(componentName);
-                await TrackPageViewAsync($"/gh/{slug}", $"Component: {componentName}");
-            });
-        }
+                { "workflow", normalizedWorkflow },
+                { "engine", NormalizeEngine(engine) }
+            };
 
-        /// <summary>
-        /// Tracks a "Write Case" action.
-        /// </summary>
-        public static void TrackWriteCase()
-        {
-            TrackEvent("/outdoor/write-case", "/workflow/write");
-        }
-
-        /// <summary>
-        /// Tracks a "Mesh Case" action (simulation preparation).
-        /// </summary>
-        /// <param name="mode">Execution mode (e.g., "BlueCFD", "Docker", "WSL").</param>
-        public static void TrackMeshCase(string mode = "unknown")
-        {
-            TrackEvent("/outdoor/mesh-case", "/workflow/mesh", new JObject { { "mode", mode } });
-        }
-
-        /// <summary>
-        /// Tracks an indoor "Mesh Case" action.
-        /// </summary>
-        /// <param name="mode">Execution mode (e.g., "BlueCFD", "Docker", "WSL").</param>
-        public static void TrackIndoorMeshCase(string mode = "unknown")
-        {
-            TrackEvent("/indoor/mesh-case", "/indoor/workflow/mesh", new JObject { { "mode", mode } });
-        }
-
-        /// <summary>
-        /// Tracks a "Simulate Case" action.
-        /// </summary>
-        /// <param name="mode">Execution mode (e.g., "BlueCFD", "Docker", "WSL").</param>
-        public static void TrackSimulateCase(string mode = "unknown")
-        {
-            TrackEvent("/outdoor/simulate-case", "/workflow/simulate", new JObject { { "mode", mode } });
-        }
-
-        /// <summary>
-        /// Tracks an indoor "Simulate Case" action.
-        /// </summary>
-        /// <param name="mode">Execution mode (e.g., "BlueCFD", "Docker", "WSL").</param>
-        public static void TrackIndoorSimulateCase(string mode = "unknown")
-        {
-            TrackEvent("/indoor/simulate-case", "/indoor/workflow/simulate", new JObject { { "mode", mode } });
-        }
-
-        /// <summary>
-        /// Tracks an MRT simulation run.
-        /// </summary>
-        /// <param name="mode">Execution mode identifier.</param>
-        /// <param name="windCoupled">Whether a CFD result was provided for wind coupling.</param>
-        public static void TrackMrtSimulateCase(string mode = "mrt", bool windCoupled = false)
-        {
-            TrackEvent(
-                "/mrt/simulate-case",
-                "/mrt/workflow/simulate",
-                new JObject
+            if (additionalData != null)
+            {
+                foreach (var prop in additionalData.Properties())
                 {
-                    { "mode", mode },
-                    { "wind_coupled", windCoupled }
-                });
+                    data[prop.Name] = prop.Value;
+                }
+            }
+
+            TrackEvent("simulation_run", "/run/" + normalizedWorkflow, data);
         }
 
         /// <summary>
-        /// Tracks a "Probe Case" action.
+        /// Maps the current CFD engine enum to a stable analytics value.
         /// </summary>
-        /// <param name="probeCount">Number of probe points.</param>
-        public static void TrackProbeCase(int probeCount = 0)
+        public static string GetAnalyticsEngine(SimEngine engine)
         {
-            const string probeSlug = "probe-simulation";
-            TrackEvent(probeSlug, $"/gh/{probeSlug}", new JObject { { "probe_count", probeCount } });
+            switch (engine)
+            {
+                case SimEngine.Docker:
+                    return "docker";
+                case SimEngine.BlueCFD:
+                    return "bluecfd";
+                default:
+                    return "unknown";
+            }
+        }
+
+        /// <summary>
+        /// Attempts to infer the engine from a path or label.
+        /// Useful for workflows that consume external result files rather than a typed engine enum.
+        /// </summary>
+        public static string InferEngineFromPath(string pathOrLabel, string fallbackEngine = "unknown")
+        {
+            if (string.IsNullOrWhiteSpace(pathOrLabel))
+            {
+                return NormalizeEngine(fallbackEngine);
+            }
+
+            string value = pathOrLabel.Trim().ToLowerInvariant();
+            if (value.Contains("fluidx3d") || value.Contains("fluid-x3d"))
+            {
+                return "fluidx3d";
+            }
+
+            if (Regex.IsMatch(value, @"(^|[^a-z])gan(s)?([^a-z]|$)"))
+            {
+                return "gan";
+            }
+
+            if (value.Contains("bluecfd"))
+            {
+                return "bluecfd";
+            }
+
+            if (value.Contains("docker"))
+            {
+                return "docker";
+            }
+
+            if (Regex.IsMatch(value, @"(^|[^a-z])wsl([^a-z]|$)"))
+            {
+                return "wsl";
+            }
+
+            return NormalizeEngine(fallbackEngine);
         }
 
         /// <summary>
@@ -442,6 +456,67 @@ namespace Eddy.Analytics
 
             string slug = sb.ToString().Trim('-');
             return string.IsNullOrEmpty(slug) ? "unknown-component" : slug;
+        }
+
+        private static string NormalizeWorkflow(string workflow)
+        {
+            if (string.IsNullOrWhiteSpace(workflow))
+            {
+                return "unknown";
+            }
+
+            switch (workflow.Trim().ToLowerInvariant())
+            {
+                case "outdoor":
+                    return "outdoor";
+                case "indoor":
+                    return "indoor";
+                case "mrt":
+                case "legacymrt":
+                    return "mrt";
+                case "probe":
+                case "probing":
+                    return "probing";
+                default:
+                    return "unknown";
+            }
+        }
+
+        private static string NormalizeEngine(string engine)
+        {
+            if (string.IsNullOrWhiteSpace(engine))
+            {
+                return "unknown";
+            }
+
+            string value = engine.Trim().ToLowerInvariant()
+                .Replace("_", "")
+                .Replace("-", "")
+                .Replace(" ", "");
+
+            switch (value)
+            {
+                case "docker":
+                case "dockerdesktop":
+                    return "docker";
+                case "bluecfd":
+                case "bluecfdcore":
+                    return "bluecfd";
+                case "wsl":
+                    return "wsl";
+                case "fluidx3d":
+                    return "fluidx3d";
+                case "gan":
+                case "gans":
+                    return "gan";
+                case "native":
+                case "radiance":
+                case "energyplus":
+                case "radianceenergyplus":
+                    return "native";
+                default:
+                    return "unknown";
+            }
         }
 
         /// <summary>

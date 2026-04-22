@@ -37,7 +37,7 @@ namespace EddyLib
         /// <summary>
         /// Creates a probing session and loads results.
         /// </summary>
-        public ProbingNew(List<Point3d> probePoints, string caseDirectory, string baseWorkingDirectory, 
+        public ProbingNew(List<Point3d> probePoints, string caseDirectory, string baseWorkingDirectory,
                           OFFieldNew ofField, int currWindDir, OFResult result)
         {
             this.probePoints = probePoints;

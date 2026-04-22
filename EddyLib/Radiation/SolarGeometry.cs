@@ -24,11 +24,11 @@ namespace EddyLib
                 for (int h = 0; h < 24; h++)
                 {
                     int hourOfYear = HourInYear(m, 0, h);
-                    
-                    if (hourOfYear >= solarElevation.Count) 
+
+                    if (hourOfYear >= solarElevation.Count)
                     {
-                         sunPositions[vcnt++] = Vector3d.Zero;
-                         continue;
+                        sunPositions[vcnt++] = Vector3d.Zero;
+                        continue;
                     }
 
                     double el = solarElevation[hourOfYear];

@@ -22,15 +22,14 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the MakeRadiationMesh_Component class.
         /// </summary>
         public MakeTreeSurface_Component()
-          : base("Tree Surface", "TreeSrf", 
+          : base("Tree Surface", "TreeSrf",
 @"Tree Canopies
 
 Converts tree geometries for radiation analysis. Simulates shading and evapotranspiration cooling effects.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "2 | Radiation")
         {
-            Analytics.Analytics.TrackComponentView("MRTTreeSurface");
         }
 
         /// <summary>

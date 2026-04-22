@@ -46,7 +46,7 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             _selectedEngine = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? SimEngine.BlueCFD
                 : SimEngine.Docker;
-            
+
             EddyLib.Web.UpdateChecker.CheckForUpdateAsync();
         }
 
@@ -93,41 +93,41 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter(
-                GH_Strings.Common.Domain, GH_Strings.Common.DomainNick, 
-                GH_Strings.Common.DomainDesc, 
+                GH_Strings.Common.Domain, GH_Strings.Common.DomainNick,
+                GH_Strings.Common.DomainDesc,
                 GH_ParamAccess.item);
 
             pManager.AddTextParameter(
-                GH_Strings.Common.WorkingDir, GH_Strings.Common.WorkingDirNick, 
-                GH_Strings.Common.WorkingDirDesc, 
+                GH_Strings.Common.WorkingDir, GH_Strings.Common.WorkingDirNick,
+                GH_Strings.Common.WorkingDirDesc,
                 GH_ParamAccess.item, DefaultDirectoriesAndPaths.CasesDir);
             pManager[1].Optional = true;
 
             pManager.AddGenericParameter(
-                GH_Strings.Common.MeshSettings, GH_Strings.Common.MeshSettingsNick, 
-                GH_Strings.Common.MeshSettingsDesc, 
+                GH_Strings.Common.MeshSettings, GH_Strings.Common.MeshSettingsNick,
+                GH_Strings.Common.MeshSettingsDesc,
                 GH_ParamAccess.item);
             pManager[2].Optional = true;
 
             pManager.AddGenericParameter(
-                GH_Strings.Common.RunSettings, GH_Strings.Common.RunSettingsNick, 
-                GH_Strings.Common.RunSettingsDesc, 
+                GH_Strings.Common.RunSettings, GH_Strings.Common.RunSettingsNick,
+                GH_Strings.Common.RunSettingsDesc,
                 GH_ParamAccess.item);
             pManager[3].Optional = true;
 
             pManager.AddBooleanParameter(
-                GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick, 
-                GH_Strings.Common.RunMeshingDesc, 
+                GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick,
+                GH_Strings.Common.RunMeshingDesc,
                 GH_ParamAccess.item, false);
 
             pManager.AddBooleanParameter(
-                GH_Strings.Common.MakeTrees, GH_Strings.Common.MakeTreesNick, 
-                GH_Strings.Common.MakeTreesDesc, 
+                GH_Strings.Common.MakeTrees, GH_Strings.Common.MakeTreesNick,
+                GH_Strings.Common.MakeTreesDesc,
                 GH_ParamAccess.item, false);
 
             pManager.AddBooleanParameter(
-                GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick, 
-                GH_Strings.Common.RunSimulationDesc, 
+                GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick,
+                GH_Strings.Common.RunSimulationDesc,
                 GH_ParamAccess.item, false);
         }
 
@@ -174,7 +174,7 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
 
             if (EddyLib.Web.UpdateChecker.IsUpdateAvailable)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, 
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
                     $"A new version of Eddy3D is available: {EddyLib.Web.UpdateChecker.LatestVersion}\n" +
                     "Please visit https://github.com/Eddy3D-Dev/Eddy3D/releases to download.");
             }
@@ -215,10 +215,10 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             string baseWorkingDirectory = "";
             DA.GetData(GH_Strings.Common.WorkingDir, ref baseWorkingDirectory);
             baseWorkingDirectory = ResolveAutoWorkingDirectoryWhenDirIsUnwired(baseWorkingDirectory);
-            
+
             // Resolve simple case names to full paths under the platform-specific Eddy3D cases folder
             baseWorkingDirectory = DefaultDirectoriesAndPaths.ResolveWorkingDirectory(baseWorkingDirectory);
-            
+
             if (!Directory.Exists(baseWorkingDirectory)) { Directory.CreateDirectory(baseWorkingDirectory); }
 
             var sep = Path.DirectorySeparatorChar.ToString();
@@ -353,6 +353,13 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             #endregion RUN SIMULATION
 
             #region START PROCESSES
+
+            if ((runMeshing || runSimulation) && canRun)
+            {
+                Analytics.Analytics.TrackSimulationRun(
+                    "outdoor",
+                    Analytics.Analytics.GetAnalyticsEngine(_selectedEngine));
+            }
 
             if (_selectedEngine == SimEngine.Docker)
             {
@@ -971,10 +978,10 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "/usr/bin/open",
-                    Arguments = string.Format("\"{0}\"", path),
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
+                psi.ArgumentList.Add(path);
                 using (var p = System.Diagnostics.Process.Start(psi))
                 {
                     p?.WaitForExit();
@@ -987,10 +994,10 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "xdg-open",
-                    Arguments = string.Format("\"{0}\"", path),
-                    UseShellExecute = true,
+                    UseShellExecute = false,
                     CreateNoWindow = true
                 };
+                psi.ArgumentList.Add(path);
                 System.Diagnostics.Process.Start(psi);
             }
             catch
@@ -1002,29 +1009,33 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         private static void OpenBatchFile(string path)
         {
             var workingDir = Path.GetDirectoryName(path) ?? string.Empty;
-            var quotedPath = string.Format("\"{0}\"", path);
 
             try
             {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "wt.exe",
-                    Arguments = "cmd /k " + quotedPath,
                     WorkingDirectory = workingDir,
                     UseShellExecute = false,
                     CreateNoWindow = false
-                });
+                };
+                psi.ArgumentList.Add("cmd");
+                psi.ArgumentList.Add("/k");
+                psi.ArgumentList.Add(path);
+                System.Diagnostics.Process.Start(psi);
             }
             catch
             {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    Arguments = "/k " + quotedPath,
                     WorkingDirectory = workingDir,
                     UseShellExecute = false,
                     CreateNoWindow = false
-                });
+                };
+                psi.ArgumentList.Add("/k");
+                psi.ArgumentList.Add(path);
+                System.Diagnostics.Process.Start(psi);
             }
         }
 

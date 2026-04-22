@@ -19,6 +19,7 @@ namespace EddyLib
         String.Format(eddy3dculture, "{0:0.###} {1:0.###} {2:0.###}", v.X, v.Y, v.Z);
 
         public static string FormatDouble(double d) =>
-        String.Format(eddy3dculture, "{0:0.###}", d);
+        // Preserve small non-zero physical values (e.g. roughness length z0 = 0.00015).
+        String.Format(eddy3dculture, "{0:0.########}", d);
     }
 }

@@ -1,4 +1,4 @@
-﻿using MathNet.Numerics.Distributions;
+using MathNet.Numerics.Distributions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ using static EddyLib.OutdoorComfort.WindComfortHelper;
 
 namespace EddyLib.OutdoorComfort
 {
-    internal class WindComfortMetricsWeibull
+    public class WindComfortMetricsWeibull
     {
         public static Dictionary<int, CmftThresholdInfo> ThresholdInfo(PedCmftMetric cmftidx)
         {
@@ -97,25 +97,39 @@ namespace EddyLib.OutdoorComfort
         }
 
         public static CmftThresholdInfo CalcExceedance(
-       double[] temporalVelocityArray,
+       double[,] temporalVelocityMatrix, int probeIndex,
        Dictionary<int, CmftThresholdInfo> CTID)
         {
             if (CTID == null || CTID.Count == 0)
                 throw new ArgumentException("CTID must contain at least one threshold.", nameof(CTID));
 
-            // Best-case scenario: "no wind, sitting is possible"
-            // Heuristic: sitting has the lowest threshold (smallest UThres).
-            var bestCase = CTID.Values.OrderBy(t => t.UThres).First();
+            // Bolt optimization: Replace LINQ OrderBy/First with a simple iterative minimum
+            // to avoid array and enumerator allocations inside the Parallel.For loop.
+            CmftThresholdInfo bestCase = default;
+            double minUThres = double.MaxValue;
+            foreach (var t in CTID.Values)
+            {
+                if (t.UThres < minUThres)
+                {
+                    minUThres = t.UThres;
+                    bestCase = t;
+                }
+            }
 
-            if (temporalVelocityArray == null || temporalVelocityArray.Length == 0)
+            if (temporalVelocityMatrix == null || temporalVelocityMatrix.GetLength(0) == 0)
                 return bestCase;
 
+            int rowCount = temporalVelocityMatrix.GetLength(0);
+
             // Filter invalid values; Weibull needs strictly positive samples.
+            // Bolt optimization: Replace expensive double.IsNaN() and double.IsInfinity() calls inside the tight loop.
+            // value > 0.0 implicitly filters out NaN, 0.0, and -Infinity.
+            // value < double.PositiveInfinity filters out +Infinity.
             int validCount = 0;
-            for (int i = 0; i < temporalVelocityArray.Length; i++)
+            for (int i = 0; i < rowCount; i++)
             {
-                double value = temporalVelocityArray[i];
-                if (!double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0)
+                double value = temporalVelocityMatrix[i, probeIndex];
+                if (value > 0.0 && value < double.PositiveInfinity)
                 {
                     validCount++;
                 }
@@ -126,10 +140,10 @@ namespace EddyLib.OutdoorComfort
 
             var arrToProcess = new double[validCount];
             int validIndex = 0;
-            for (int i = 0; i < temporalVelocityArray.Length; i++)
+            for (int i = 0; i < rowCount; i++)
             {
-                double value = temporalVelocityArray[i];
-                if (!double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0)
+                double value = temporalVelocityMatrix[i, probeIndex];
+                if (value > 0.0 && value < double.PositiveInfinity)
                 {
                     arrToProcess[validIndex] = value;
                     validIndex++;
@@ -152,8 +166,14 @@ namespace EddyLib.OutdoorComfort
                 return bestCase;
             }
 
+            // Bolt optimization: Replace LINQ OrderByDescending with a sort array
+            // Since CTID only holds a few values (e.g., 5-7), sort an array of them efficiently.
+            var thresholds = new CmftThresholdInfo[CTID.Count];
+            CTID.Values.CopyTo(thresholds, 0);
+            Array.Sort(thresholds, (a, b) => b.UThres.CompareTo(a.UThres));
+
             // Start from highest threshold and bin down
-            foreach (var TI in CTID.Values.OrderByDescending(t => t.UThres))
+            foreach (var TI in thresholds)
             {
                 // Treat all wind directions with equal weight (per your ref).
                 double exceedanceProbability = Prob_Exceedance(1.0, TI.UThres, kappa, lambda); // P( U > U_thres )
@@ -167,7 +187,194 @@ namespace EddyLib.OutdoorComfort
             return bestCase;
         }
 
+        public static CmftThresholdInfo CalcExceedance(
+            double[] temporalVelocities,
+            Dictionary<int, CmftThresholdInfo> CTID)
+        {
+            if (CTID == null || CTID.Count == 0)
+                throw new ArgumentException("CTID must contain at least one threshold.", nameof(CTID));
+
+            CmftThresholdInfo bestCase = default;
+            double minUThres = double.MaxValue;
+            foreach (var t in CTID.Values)
+            {
+                if (t.UThres < minUThres)
+                {
+                    minUThres = t.UThres;
+                    bestCase = t;
+                }
+            }
+
+            if (temporalVelocities == null || temporalVelocities.Length == 0)
+                return bestCase;
+
+            int validCount = 0;
+            int length = temporalVelocities.Length;
+            for (int i = 0; i < length; i++)
+            {
+                double value = temporalVelocities[i];
+                if (value > 0.0 && value < double.PositiveInfinity)
+                {
+                    validCount++;
+                }
+            }
+
+            if (validCount == 0)
+                return bestCase;
+
+            var arrToProcess = new double[validCount];
+            int validIndex = 0;
+            for (int i = 0; i < length; i++)
+            {
+                double value = temporalVelocities[i];
+                if (value > 0.0 && value < double.PositiveInfinity)
+                {
+                    arrToProcess[validIndex] = value;
+                    validIndex++;
+                }
+            }
+
+            double kappa, lambda;
+            try
+            {
+                var estimate = Weibull.Estimate(arrToProcess);
+                kappa = estimate.Shape;
+                lambda = estimate.Scale;
+
+                if (!(kappa > 0.0) || !(lambda > 0.0) || double.IsNaN(kappa) || double.IsNaN(lambda))
+                    return bestCase;
+            }
+            catch
+            {
+                return bestCase;
+            }
+
+            var thresholds = new CmftThresholdInfo[CTID.Count];
+            CTID.Values.CopyTo(thresholds, 0);
+            Array.Sort(thresholds, (a, b) => b.UThres.CompareTo(a.UThres));
+
+            foreach (var TI in thresholds)
+            {
+                double exceedanceProbability = Prob_Exceedance(1.0, TI.UThres, kappa, lambda);
+                bool exceedance = CheckExceedance(exceedanceProbability, TI);
+
+                if (exceedance)
+                    return TI;
+            }
+
+            return bestCase;
+        }
+
+        public static void GetWeibullParams(double[] temporalVelocities, out double kappa, out double lambda, double[] workBuffer = null)
+        {
+            kappa = double.NaN;
+            lambda = double.NaN;
+
+            int validCount = 0;
+            int length = temporalVelocities.Length;
+            for (int i = 0; i < length; i++)
+            {
+                if (temporalVelocities[i] > 0.0 && temporalVelocities[i] < double.PositiveInfinity)
+                    validCount++;
+            }
+
+            if (validCount == 0) return;
+
+            // Reuse workBuffer if provided and large enough, otherwise allocate
+            double[] arrToProcess = (workBuffer != null && workBuffer.Length >= validCount) ? workBuffer : new double[validCount];
+            
+            int validIndex = 0;
+            for (int i = 0; i < length; i++)
+            {
+                double value = temporalVelocities[i];
+                if (value > 0.0 && value < double.PositiveInfinity)
+                {
+                    arrToProcess[validIndex++] = value;
+                }
+            }
+
+            try
+            {
+                // Passing Take(validCount) to avoid processing trailing zeros/garbage in reused buffer
+                IEnumerable<double> data = (workBuffer != null) ? arrToProcess.Take(validCount) : arrToProcess;
+                var estimate = Weibull.Estimate(data);
+                if (estimate.Shape > 0.0 && estimate.Scale > 0.0 && !double.IsNaN(estimate.Shape) && !double.IsNaN(estimate.Scale))
+                {
+                    kappa = estimate.Shape;
+                    lambda = estimate.Scale;
+                }
+            }
+            catch { }
+        }
+
+        public static void GetWeibullParamsMoM(double[] temporalVelocities, out double kappa, out double lambda)
+        {
+            kappa = double.NaN;
+            lambda = double.NaN;
+
+            int length = temporalVelocities.Length;
+            double sum = 0;
+            double sumSq = 0;
+            int count = 0;
+
+            for (int i = 0; i < length; i++)
+            {
+                double v = temporalVelocities[i];
+                if (v > 0 && v < double.PositiveInfinity)
+                {
+                    sum += v;
+                    sumSq += v * v;
+                    count++;
+                }
+            }
+
+            if (count < 2) return;
+
+            double mean = sum / count;
+            double variance = (sumSq / count) - (mean * mean);
+            if (variance <= 0) return;
+            double stdDev = Math.Sqrt(variance);
+
+            // Justus (1978) approximation for Shape (k)
+            kappa = Math.Pow(stdDev / mean, -1.086);
+            
+            // Scale (lambda) from Mean and Gamma function
+            // lambda = mean / Gamma(1 + 1/kappa)
+            try
+            {
+                lambda = mean / MathNet.Numerics.SpecialFunctions.Gamma(1.0 + 1.0 / kappa);
+            }
+            catch { }
+        }
+
+        public static CmftThresholdInfo CalcExceedanceFromParams(double kappa, double lambda, Dictionary<int, CmftThresholdInfo> CTID)
+        {
+            CmftThresholdInfo bestCase = default;
+            double minUThres = double.MaxValue;
+            foreach (var t in CTID.Values)
+            {
+                if (t.UThres < minUThres)
+                {
+                    minUThres = t.UThres;
+                    bestCase = t;
+                }
+            }
+
+            if (double.IsNaN(kappa) || double.IsNaN(lambda)) return bestCase;
+
+            var thresholds = CTID.Values.OrderBy(v => v.Cat).ToArray();
+
+            foreach (var TI in thresholds)
+            {
+                double exceedanceProbability = Prob_Exceedance(1.0, TI.UThres, kappa, lambda);
+                if (CheckExceedance(exceedanceProbability, TI))
+                    return TI;
+            }
+            return bestCase;
+        }
+
         private static bool CheckExceedance(double ExceedanceProbability, CmftThresholdInfo TI)
+
         {
             if (TI.Operator == CompOperator.G)
             {

@@ -69,7 +69,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompVisProbesCustomWProbes()
-          : base("WProbes", "WProbes", 
+          : base("WProbes", "WProbes",
 @"Wind Field Visualizer
 
 Generates visualizations of the wind field, including vector arrows and streamlines, to understand flow patterns and identify problematic high-wind or stagnant zones.
@@ -278,6 +278,11 @@ Generates visualizations of the wind field, including vector arrows and streamli
                 probeNameByUser = "test";
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, @"Please provide a unique name for this probing instance, otherwise a new instance will overwrite the results.");
             }
+            if (!Utilities.IsValidProbeName(probeNameByUser))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Probe name contains invalid characters. Only alphanumeric, underscore, and dash are allowed.");
+                return;
+            }
             if (Char.IsDigit((probeNameByUser).First()))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, @"Please make sure name doesn't start with digit.");
@@ -328,12 +333,9 @@ Generates visualizations of the wind field, including vector arrows and streamli
             //    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.ProbingFuncObjects(RES, currField));
             //}
 
-            if (!(numberOfProbes > 0) || !meshExists)
+            if (!(numberOfProbes > 0))
             {
-                if (!(numberOfProbes > 0))
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The number of probes must be greater than 0.");
-                }
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, @"The number of probes must be greater than 0.");
                 return;
             }
 
@@ -348,17 +350,21 @@ Generates visualizations of the wind field, including vector arrows and streamli
                 {
                     // Check if mesh exists
 
+                    // Write the dicts for both Docker and BlueCFD
                     string pathToPointFile = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString(), "constant", "polyMesh", "points");
+                    string currCase = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
+                    string systemDir = Path.Combine(currCase, "system");
+                    if (!Directory.Exists(systemDir)) Directory.CreateDirectory(systemDir);
+
+                    string path = Path.Combine(systemDir, probeNameByUser);
+                    File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
+
                     if (!File.Exists(pathToPointFile))
                     {
                         base.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, EddyLib.Strings.ReturnMsg.MeshDoesntExist(pathToPointFile));
-                        return;
+                        if (run) return;
+                        else continue;
                     }
-
-                    // If yes, write the dicts for both Docker and BlueCFD
-                    string currCase = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
-                    string path = Path.Combine(currCase, "system", probeNameByUser);
-                    File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
 
                     if (RES.RunSettings.simEngine == SimEngine.Docker)
                     {
@@ -394,7 +400,7 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     else
                     {
                         var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
-                        Utilities.StartProcess.StartProcessCMDNT(cmdArg, false, true, true, true, probingComplete);
+                        Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, probingComplete);
                         return;
                     }
                 }

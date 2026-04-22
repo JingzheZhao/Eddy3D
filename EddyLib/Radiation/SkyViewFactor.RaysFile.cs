@@ -15,7 +15,7 @@ namespace EddyLib.Radiation
     {
         #region 4. RaysFile
 
-        public static string SensorPoints(List<Point3d> pts, List<Vector3d> pts_norm)
+        public static string SensorPoints(IList<Point3d> pts, IList<Vector3d> pts_norm)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -26,7 +26,12 @@ namespace EddyLib.Radiation
             return sb.ToString();
         }
 
-        public static string Rays(Point3d pt, List<Vector3d> pts_norm)
+        public static string SensorPoints(List<Point3d> pts, List<Vector3d> pts_norm)
+        {
+            return SensorPoints((IList<Point3d>)pts, (IList<Vector3d>)pts_norm);
+        }
+
+        public static string Rays(Point3d pt, IList<Vector3d> pts_norm)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -35,6 +40,11 @@ namespace EddyLib.Radiation
                 sb.AppendLine(FormatPointAndNormal(pt, pts_norm[k]));
             }
             return sb.ToString();
+        }
+
+        public static string Rays(Point3d pt, List<Vector3d> pts_norm)
+        {
+            return Rays(pt, (IList<Vector3d>)pts_norm);
         }
 
         private static string FormatPointAndNormal(Point3d p, Vector3d n)

@@ -33,7 +33,7 @@ namespace EddyLib.OpenFOAM
 
             var logPath = Path.Combine(meshWorkingDir, "log");
             var logDir = Path.GetDirectoryName(logPath);
-            
+
             if (!string.IsNullOrWhiteSpace(logDir))
             {
                 Directory.CreateDirectory(logDir);

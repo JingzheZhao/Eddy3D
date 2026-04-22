@@ -52,7 +52,6 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             _selectedEngine = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? SimEngine.BlueCFD
                 : SimEngine.Docker;
-            Analytics.Analytics.TrackComponentView("IndoorSimulation");
         }
 
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
@@ -89,53 +88,53 @@ Requires connected walls, inlets, outlets, and optional heat sources.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddParameter(new Param_IndoorBC_Wall(), 
-                "Geo", "Geo", 
-                "Indoor CFD Walls", 
+            pManager.AddParameter(new Param_IndoorBC_Wall(),
+                "Geo", "Geo",
+                "Indoor CFD Walls",
                 GH_ParamAccess.list);
 
-            pManager.AddParameter(new Param_IndoorBC_Inlet(), 
-                "Inlet", "In", 
-                "Indoor CFD Inlets", 
+            pManager.AddParameter(new Param_IndoorBC_Inlet(),
+                "Inlet", "In",
+                "Indoor CFD Inlets",
                 GH_ParamAccess.list);
 
-            pManager.AddParameter(new Param_IndoorBC_Outlet(), 
-                "Outlet", "Out", 
-                "Indoor CFD Outlets", 
+            pManager.AddParameter(new Param_IndoorBC_Outlet(),
+                "Outlet", "Out",
+                "Indoor CFD Outlets",
                 GH_ParamAccess.list);
 
-            pManager.AddParameter(new Param_FunctionObject(), 
-                "Function Objects", "FOs", 
-                "Indoor CFD Function Objects", 
+            pManager.AddParameter(new Param_FunctionObject(),
+                "Function Objects", "FOs",
+                "Indoor CFD Function Objects",
                 GH_ParamAccess.list);
             pManager[3].Optional = true;
 
             pManager.AddTextParameter(
-                "Directory", "Dir", 
-                "Working Directory", 
+                "Directory", "Dir",
+                "Working Directory",
                 GH_ParamAccess.item, Path.Combine(DefaultDirectoriesAndPaths.CasesDir, "IndoorProject"));
             pManager[4].Optional = true;
 
             pManager.AddPointParameter(
-                "Point Inside", "PInside", 
-                "Point inside domain.", 
+                "Point Inside", "PInside",
+                "Point inside domain.",
                 GH_ParamAccess.item);
 
             pManager.AddNumberParameter(
-                "CellSize", "Cs", 
-                "Cell Size", 
+                "CellSize", "Cs",
+                "Cell Size",
                 GH_ParamAccess.item, 1);
             pManager[6].Optional = true;
 
             pManager.AddIntegerParameter(
-                "Iterations", "Iter", 
-                "Iterations for Simulation.", 
+                "Iterations", "Iter",
+                "Iterations for Simulation.",
                 GH_ParamAccess.item, 1);
             pManager[7].Optional = true;
 
             pManager.AddIntegerParameter(
-                "CPUs", "CPUs", 
-                "Number of CPUs to decompose the simulation with.", 
+                "CPUs", "CPUs",
+                "Number of CPUs to decompose the simulation with.",
                 GH_ParamAccess.item, 2);
             pManager[8].Optional = true;
 
@@ -220,7 +219,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             int endTime = 2000;
             DA.GetData(7, ref endTime);
 
-         
+
 
             // Function Objects
 
@@ -271,12 +270,13 @@ Requires connected walls, inlets, outlets, and optional heat sources.
 
             int CPUs = 2;
             DA.GetData(8, ref CPUs);
-            if (CPUs < 2) { CPUs = 2; }; // Indor is not setup up for single CPU currently
+            if (CPUs < 2) { CPUs = 2; }
+            ; // Indor is not setup up for single CPU currently
 
             var dom = new IndoorDomain(endTime, BaseWorkingDir, cellSize, pointInsideDomain, Walls, Inlets, Outlets, FOs, CPUs);
             //var domGoo = new IndoorDomaingGoo(dom);
 
-         
+
 
             var runSettings = new OFRunSettings(
                 endTime: endTime,
@@ -298,15 +298,9 @@ Requires connected walls, inlets, outlets, and optional heat sources.
 
             if ((runMeshing || runSimulation) && canRun)
             {
-                string analyticsMode = _selectedEngine == SimEngine.Docker ? "Docker" : "BlueCFD";
-                if (runMeshing)
-                {
-                    Analytics.Analytics.TrackIndoorMeshCase(analyticsMode);
-                }
-                if (runSimulation)
-                {
-                    Analytics.Analytics.TrackIndoorSimulateCase(analyticsMode);
-                }
+                Analytics.Analytics.TrackSimulationRun(
+                    "indoor",
+                    Analytics.Analytics.GetAnalyticsEngine(_selectedEngine));
 
                 if (_selectedEngine == SimEngine.Docker)
                 {

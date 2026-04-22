@@ -22,10 +22,10 @@ namespace Eddy
         /// </summary>
         public WindRoseCluster_Component()
           : base(
-              GH_Strings.Cluster.Name, 
-              GH_Strings.Cluster.Nick, 
+              GH_Strings.Cluster.Name,
+              GH_Strings.Cluster.Nick,
               GH_Strings.Cluster.Desc + EddyVersion.toString(),
-              EddyVersion.Name, 
+              EddyVersion.Name,
               "1 | Wind")
         {
         }
@@ -36,13 +36,13 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddNumberParameter(
-                GH_Strings.Cluster.Directions, GH_Strings.Cluster.DirectionsNick, 
-                GH_Strings.Cluster.DirectionsDesc, 
+                GH_Strings.Cluster.Directions, GH_Strings.Cluster.DirectionsNick,
+                GH_Strings.Cluster.DirectionsDesc,
                 GH_ParamAccess.list);
 
             pManager.AddIntegerParameter(
-                GH_Strings.Cluster.Budget, GH_Strings.Cluster.BudgetNick, 
-                GH_Strings.Cluster.BudgetDesc, 
+                GH_Strings.Cluster.Budget, GH_Strings.Cluster.BudgetNick,
+                GH_Strings.Cluster.BudgetDesc,
                 GH_ParamAccess.item, 8);
         }
 
@@ -76,7 +76,7 @@ namespace Eddy
             }
 
             var results = KMeans.Cluster<KMpt>(kmd, budget, 5000, null, 1);
-            
+
             var centroids = results.Centroids.Select(i => dirsDeg[i]).ToList();
             var distinctCentroids = results.Centroids.Distinct().Select(i => dirsDeg[i]).OrderBy(d => d).ToList();
 

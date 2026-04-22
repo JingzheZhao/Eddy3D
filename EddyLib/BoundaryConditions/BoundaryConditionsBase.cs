@@ -1,4 +1,4 @@
-﻿using Rhino.Geometry;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -174,7 +174,11 @@ namespace EddyLib.BCs
         public double z0;
 
         public int windDir;
-
+ 
+        public System.Collections.Generic.List<double> SimulatedDirections { get; set; } = new System.Collections.Generic.List<double>();
+ 
+        public string EPWPath { get; set; }
+ 
         public Vector3d flowDir;
 
         protected double Cmu = DefaultCmu;
@@ -208,7 +212,8 @@ namespace EddyLib.BCs
         {
             // view-source:https://www.cfd-online.com/Tools/turbulence.php
 
-            epsilon = this.Cmu * Math.Pow(k, 2) / (this.nu * this.eddyViscosityRatio);
+            // Bolt optimization: Replace Math.Pow(k, 2) with k * k for faster computation
+            epsilon = this.Cmu * (k * k) / (this.nu * this.eddyViscosityRatio);
 
             return epsilon;
         }
@@ -221,7 +226,9 @@ namespace EddyLib.BCs
 
         protected double K(double Tu, double URef)
         {
-            double k = 1.5 * Math.Pow(Tu / 100, 2) * Math.Pow(URef, 2);
+            // Bolt optimization: Replace Math.Pow(..., 2) with explicit multiplication for faster computation
+            double tu100 = Tu / 100;
+            double k = 1.5 * (tu100 * tu100) * (URef * URef);
             return k;
         }
 

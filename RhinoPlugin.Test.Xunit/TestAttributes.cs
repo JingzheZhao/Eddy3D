@@ -1,7 +1,30 @@
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace RhinoPlugin.Test.Xunit
 {
+    public class WindowsOnlyFactAttribute : FactAttribute
+    {
+        public WindowsOnlyFactAttribute()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Skip = "Windows-only test.";
+            }
+        }
+    }
+
+    public class WindowsOnlyTheoryAttribute : TheoryAttribute
+    {
+        public WindowsOnlyTheoryAttribute()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Skip = "Windows-only test.";
+            }
+        }
+    }
+
     /// <summary>
     /// Backward-compatible attribute name for tests that require Rhino native host support.
     /// </summary>

@@ -16,17 +16,16 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public IndoorOutlet_Component()
           : base(
-              "Indoor Outlet", 
+              "Indoor Outlet",
               "Outlet",
               @"Ventilation Outlet
 
 Defines where air exhausts from the room, such as return grilles or open windows.
 
 " + EddyVersion.toString(),
-              EddyVersion.Name, 
+              EddyVersion.Name,
               "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorOutlet");
         }
 
         /// <summary>

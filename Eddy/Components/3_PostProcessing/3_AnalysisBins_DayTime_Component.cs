@@ -17,13 +17,13 @@ namespace Eddy.Components.Radiation
         /// Initializes a new instance of the LoadRadiationData_Component class.
         /// </summary>
         public AnalysisBins_DayTime_Component()
-         : base("Time of Day Filter", "TimeDay", 
+         : base("Time of Day Filter", "TimeDay",
 @"Filter analysis results by time of day.
 
 Periods: Morning (12am-6am), Breakfast (7-11am), Lunch (12-3pm),
 Afternoon (4-5pm), Dinner (6-9pm), Nightlife (10pm-12am).
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
              EddyVersion.Name, "3 | PostProcessing")
         {
         }

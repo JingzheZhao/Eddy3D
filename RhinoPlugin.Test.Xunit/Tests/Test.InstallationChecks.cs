@@ -136,7 +136,7 @@ namespace RhinoPlugin.Test.Xunit
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var expected = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                     "Eddy3D",
                     "Cases");
                 Assert.Equal(expected, DefaultDirectoriesAndPaths.CasesDir, ignoreCase: true);

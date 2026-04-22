@@ -39,8 +39,8 @@ namespace EddyLib.Indoor
         {
         }
 
-        public IndoorDomain(int endTime, string WorkingDir, double CellSize, Point3d PointInsideDomain, 
-            List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets, 
+        public IndoorDomain(int endTime, string WorkingDir, double CellSize, Point3d PointInsideDomain,
+            List<IndoorBC.Wall> RoomGeometry, List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets,
             List<FunctionObject> FOs, int CPUs)
         {
             this.WorkingDir = WorkingDir;
@@ -186,7 +186,7 @@ namespace EddyLib.Indoor
             }
         }
 
-        private void ExportSystemDicts(string workingDir, List<IndoorBC.Wall> RoomGeometry, 
+        private void ExportSystemDicts(string workingDir, List<IndoorBC.Wall> RoomGeometry,
             List<IndoorBC.Inlet> Inlets, List<IndoorBC.Outlet> Outlets, int CPUs)
         {
             // TopoSetDict

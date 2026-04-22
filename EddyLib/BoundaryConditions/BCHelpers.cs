@@ -38,88 +38,155 @@ namespace EddyLib.BCs
                 rows.Add(new[]
                 {
                 windDirs[i].ToString(CultureInfo.InvariantCulture),
-                uref?[i].ToString("0.##", CultureInfo.InvariantCulture) ?? "",
-                zref != null ? zref[i].ToString("0.##", CultureInfo.InvariantCulture) : null,
-                z0  != null ? z0[i].ToString("0.##", CultureInfo.InvariantCulture)  : null,
-                zGround != null ? zGround[i].ToString("0.##", CultureInfo.InvariantCulture) : null
+                uref != null ? FormatSummaryDouble(uref[i]) : "",
+                zref != null ? FormatSummaryDouble(zref[i]) : null,
+                z0  != null ? FormatSummaryDouble(z0[i])  : null,
+                zGround != null ? FormatSummaryDouble(zGround[i]) : null
             }.Where(s => s != null).ToArray());
             }
             return rows;
         }
 
+        private static string FormatSummaryDouble(double value)
+        {
+            var abs = Math.Abs(value);
+            if (abs == 0)
+            {
+                return "0";
+            }
+
+            // Keep common values compact but do not collapse small non-zero values to 0.
+            return abs >= 0.01
+                ? value.ToString("0.##", CultureInfo.InvariantCulture)
+                : value.ToString("0.######", CultureInfo.InvariantCulture);
+        }
+
         // Core: measure strings with GH's font and add spaces until columns line up in pixels.
         private static string BuildPixelAligned(string[] headers, List<string[]> rows, string epwPath)
         {
-            // Use GH's standard small UI font (same as tooltips)
-            var font = GH_FontServer.Small;
-            var gapPx = 12f; // space between columns
-            var fmt = (StringFormat)StringFormat.GenericTypographic.Clone();
-            fmt.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
-
-            // Measure function
-            float Measure(Graphics g, string s) => g.MeasureString(s, font, int.MaxValue, fmt).Width;
-
-            // Compute max pixel width per column (header + all rows)
             var colCount = headers.Length;
-            var colWidths = new float[colCount];
+            var outSb = new StringBuilder();
 
-            using (var bmp = new Bitmap(1, 1))
-            using (var g = Graphics.FromImage(bmp))
+            try
             {
-                for (int c = 0; c < colCount; c++)
+                // ATTEMPT 1: Pixel-perfect alignment using System.Drawing.
+                // 
+                // Why does this need a try-catch?
+                // Historically, System.Drawing.Common worked cross-platform via libgdiplus.
+                // However, starting in .NET 6, Microsoft marked it as Windows-only to reduce
+                // cross-platform rendering bugs. In .NET 7/8, code that instantiates 
+                // 'System.Drawing.Graphics', 'Bitmap', or 'Font' on macOS or Linux will 
+                // instantly throw a PlatformNotSupportedException.
+                //
+                // When running Eddy3D normally inside Rhino 8 on macOS, Rhino implements
+                // its own native GUI host, so this block often survives. However, during 
+                // headless xUnit tests in CI/CD pipelines (e.g., `dotnet test`), there is
+                // no GUI host. This block will predictably crash on Mac/Linux.
+
+                var font = GH_FontServer.Small;
+                var gapPx = 12f; // space between columns
+                var fmt = (StringFormat)StringFormat.GenericTypographic.Clone();
+                fmt.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
+
+                float Measure(Graphics g, string s) => g.MeasureString(s, font, int.MaxValue, fmt).Width;
+
+                var colWidths = new float[colCount];
+
+                using (var bmp = new Bitmap(1, 1))
+                using (var g = Graphics.FromImage(bmp))
                 {
-                    float w = Measure(g, headers[c]);
+                    for (int c = 0; c < colCount; c++)
+                    {
+                        float w = Measure(g, headers[c]);
+                        for (int r = 0; r < rows.Count; r++)
+                            w = Math.Max(w, Measure(g, rows[r][c]));
+                        colWidths[c] = (float)Math.Ceiling(w);
+                    }
+
+                    var starts = new float[colCount];
+                    float x = 0;
+                    for (int c = 0; c < colCount; c++)
+                    {
+                        starts[c] = x;
+                        x += colWidths[c] + gapPx;
+                    }
+
+                    string PadTo(string baseText, float targetX)
+                    {
+                        var sb = new StringBuilder(baseText);
+                        while (Measure(g, sb.ToString()) < targetX)
+                            sb.Append(' ');
+                        return sb.ToString();
+                    }
+
+                    outSb.AppendLine("Boundary Conditions Summary:");
+
+                    var line = headers[0];
+                    for (int c = 1; c < colCount; c++)
+                        line = PadTo(line, starts[c]) + headers[c];
+                    outSb.AppendLine(line);
+
+                    var headerWidth = Measure(g, line);
+                    outSb.AppendLine(new string('-', (int)Math.Max(8, headerWidth / 3)));
+
                     for (int r = 0; r < rows.Count; r++)
-                        w = Math.Max(w, Measure(g, rows[r][c]));
-                    colWidths[c] = (float)Math.Ceiling(w);
+                    {
+                        var row = rows[r];
+                        var rowLine = row[0];
+                        for (int c = 1; c < colCount; c++)
+                            rowLine = PadTo(rowLine, starts[c]) + row[c];
+                        outSb.AppendLine(rowLine);
+                    }
                 }
+            }
+            catch (Exception)
+            {
+                // ATTEMPT 2: Headless / Cross-Platform Fallback (macOS / Linux).
+                //
+                // If System.Drawing crashes (e.g., PlatformNotSupportedException), we clear
+                // the StringBuilder and rebuild the string using a simpler, purely character-based
+                // padding strategy (String.PadRight). The columns won't perfectly align if 
+                // the font is heavily proportional, but it ensures the software (and the test 
+                // suite) doesn't crash.
 
-                // Column start x-positions
-                var starts = new float[colCount];
-                float x = 0;
+                outSb.Clear();
+                var colWidths = new int[colCount];
                 for (int c = 0; c < colCount; c++)
                 {
-                    starts[c] = x;
-                    x += colWidths[c] + gapPx;
+                    int w = headers[c].Length;
+                    for (int r = 0; r < rows.Count; r++)
+                        w = Math.Max(w, rows[r][c].Length);
+                    colWidths[c] = w;
                 }
 
-                // Build lines, padding with spaces until next column start is reached in pixels
-                string PadTo(string baseText, float targetX)
-                {
-                    var sb = new StringBuilder(baseText);
-                    while (Measure(g, sb.ToString()) < targetX)
-                        sb.Append(' ');
-                    return sb.ToString();
-                }
+                int gap = 3; // spaces
 
-                var outSb = new StringBuilder();
                 outSb.AppendLine("Boundary Conditions Summary:");
 
-                // Header
-                var line = headers[0];
-                for (int c = 1; c < colCount; c++)
-                    line = PadTo(line, starts[c]) + headers[c];
+                var lineSb = new StringBuilder();
+                for (int c = 0; c < colCount; c++)
+                {
+                    lineSb.Append(headers[c].PadRight(colWidths[c] + (c < colCount - 1 ? gap : 0)));
+                }
+                var line = lineSb.ToString();
                 outSb.AppendLine(line);
+                outSb.AppendLine(new string('-', line.Length));
 
-                // Separator (approximate using dashes to header width)
-                var headerWidth = Measure(g, line);
-                outSb.AppendLine(new string('-', (int)Math.Max(8, headerWidth / 3))); // 6px-ish per char
-
-                // Rows
                 for (int r = 0; r < rows.Count; r++)
                 {
-                    var row = rows[r];
-                    var rowLine = row[0];
-                    for (int c = 1; c < colCount; c++)
-                        rowLine = PadTo(rowLine, starts[c]) + row[c];
-                    outSb.AppendLine(rowLine);
+                    var rowLineSb = new StringBuilder();
+                    for (int c = 0; c < colCount; c++)
+                    {
+                        rowLineSb.Append(rows[r][c].PadRight(colWidths[c] + (c < colCount - 1 ? gap : 0)));
+                    }
+                    outSb.AppendLine(rowLineSb.ToString());
                 }
-
-                if (!string.IsNullOrEmpty(epwPath))
-                    outSb.AppendLine(epwPath);
-
-                return outSb.ToString();
             }
+
+            if (!string.IsNullOrEmpty(epwPath))
+                outSb.AppendLine(epwPath);
+
+            return outSb.ToString();
         }
 
         public static void AdjustInputList<T>(

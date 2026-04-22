@@ -88,11 +88,11 @@ namespace EddyLib
         {
             Vector3d north = Vector3d.YAxis;
             windVec.Unitize();
-            
+
             double dotProduct = north * windVec;
             // Clamp to handle floating point errors
             dotProduct = Math.Max(-1.0, Math.Min(1.0, dotProduct));
-            
+
             return Math.Acos(dotProduct) * 180.0 / Math.PI;
         }
 
@@ -113,10 +113,10 @@ namespace EddyLib
             // Convert from math convention (0° = East, CCW) to meteorological (0° = North, CW)
             double mathDeg = Math.Atan2(vec.Y, vec.X) * 180.0 / Math.PI;
             double meteoDeg = 90.0 - mathDeg;
-            
+
             // Normalize to 0-360 range
             meteoDeg = ((meteoDeg % 360.0) + 360.0) % 360.0;
-            
+
             return (int)Math.Round(meteoDeg);
         }
 

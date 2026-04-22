@@ -101,6 +101,74 @@ exit
                 //}
                 //if (close) { p.Close(); }
             }
+
+            public static void StartBatchScriptCMDNT(string scriptContent, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, EventHandler eh = null)
+            {
+                if (string.IsNullOrWhiteSpace(scriptContent)) { return; }
+
+                string cmdExe = @"C:\Windows\System32\cmd.exe";
+                if (!File.Exists(cmdExe)) { return; }
+
+                string tempDir = Path.Combine(Path.GetTempPath(), "Eddy3D");
+                Directory.CreateDirectory(tempDir);
+
+                string tempBatchFile = Path.Combine(tempDir, $"Eddy3D_{Guid.NewGuid():N}.bat");
+                File.WriteAllText(tempBatchFile, scriptContent);
+
+                ThreadStart ths = new ThreadStart(() =>
+                {
+                    System.Diagnostics.Process p = new System.Diagnostics.Process();
+                    p.StartInfo.FileName = cmdExe;
+                    p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.CreateNoWindow = createnowindow;
+                    p.StartInfo.ArgumentList.Add("/c");
+                    p.StartInfo.ArgumentList.Add(tempBatchFile);
+
+                    try
+                    {
+                        p.Start();
+
+                        if (waitforexit)
+                        {
+                            p.WaitForExit();
+                        }
+
+                        if (close)
+                        {
+                            p.Close();
+                        }
+
+                        if (eh != null)
+                        {
+                            eh.Invoke(p, new EventArgs());
+                        }
+                    }
+                    finally
+                    {
+                        if (waitforexit)
+                        {
+                            try
+                            {
+                                File.Delete(tempBatchFile);
+                            }
+                            catch
+                            {
+                                // Ignore temp-file cleanup failures.
+                            }
+                        }
+                    }
+                });
+
+                if (startInNewThread)
+                {
+                    Thread th = new Thread(ths);
+                    th.Start();
+                }
+                else
+                {
+                    ths();
+                }
+            }
         }
 
     }

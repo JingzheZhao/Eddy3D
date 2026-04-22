@@ -131,7 +131,6 @@ namespace RhinoPlugin.Test.Xunit
             var startInfo = new ProcessStartInfo
             {
                 FileName = "cmd.exe",
-                Arguments = "/C \"" + batchFilePath + "\"",
                 WorkingDirectory = workingDir,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -139,6 +138,8 @@ namespace RhinoPlugin.Test.Xunit
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden
             };
+            startInfo.ArgumentList.Add("/c");
+            startInfo.ArgumentList.Add(batchFilePath);
 
             var logBuilder = new StringBuilder();
             using var process = new Process

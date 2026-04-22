@@ -28,7 +28,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public BlockMeshBox()
-          : base("Box Domain", "DomBox", 
+          : base("Box Domain", "DomBox",
 @"Rectangular Simulation Domain
 
 Defines a box-shaped computational domain for the wind simulation. Best suited for single-direction wind analysis or wind tunnel comparisons.
@@ -44,47 +44,47 @@ Defines a box-shaped computational domain for the wind simulation. Best suited f
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGeometryParameter(
-                "Buildings", "Bldg", 
-                "Building geometry (Breps or Meshes). These create wall boundary conditions in the CFD mesh.", 
+                "Buildings", "Bldg",
+                "Building geometry (Breps or Meshes). These create wall boundary conditions in the CFD mesh.",
                 GH_ParamAccess.list);
 
             pManager.AddGeometryParameter(
-                "Terrain", "Terr", 
-                "Optional: Ground surface geometry. Must extend beyond domain bounds. If omitted, a flat ground is assumed.", 
+                "Terrain", "Terr",
+                "Optional: Ground surface geometry. Must extend beyond domain bounds. If omitted, a flat ground is assumed.",
                 GH_ParamAccess.list);
             pManager[1].Optional = true;
 
             pManager.AddGenericParameter(
-                "Trees", "Tree", 
-                "Optional: Tree/vegetation objects from Tree component. Creates porous zones for wind resistance.", 
+                "Trees", "Tree",
+                "Optional: Tree/vegetation objects from Tree component. Creates porous zones for wind resistance.",
                 GH_ParamAccess.list);
             pManager[2].Optional = true;
 
             pManager.AddGenericParameter(
-                "Boundary Condition", "BC", 
-                "Wind inlet conditions from ABL Flow or Uniform Flow component. Defines wind speed, direction, and turbulence.", 
+                "Boundary Condition", "BC",
+                "Wind inlet conditions from ABL Flow or Uniform Flow component. Defines wind speed, direction, and turbulence.",
                 GH_ParamAccess.item);
             pManager[3].Optional = true;
 
             pManager.AddNumberParameter(
-                "Cell Size", "Cell", 
-                "Base mesh cell size. Units: meters. Smaller = more accurate but slower. Typical: 5-20m. Default: 20m", 
+                "Cell Size", "Cell",
+                "Base mesh cell size. Units: meters. Smaller = more accurate but slower. Typical: 5-20m. Default: 20m",
                 GH_ParamAccess.item, 20);
             pManager[4].Optional = true;
 
             pManager.AddNumberParameter(
-                "Length", "Len", 
-                "Domain length (wind direction). Units: meters. Recommend: 15-20x building height.", 
+                "Length", "Len",
+                "Domain length (wind direction). Units: meters. Recommend: 15-20x building height.",
                 GH_ParamAccess.item);
 
             pManager.AddNumberParameter(
-                "Width", "Wid", 
-                "Domain width (cross-wind). Units: meters. Recommend: 10x building width.", 
+                "Width", "Wid",
+                "Domain width (cross-wind). Units: meters. Recommend: 10x building width.",
                 GH_ParamAccess.item);
 
             pManager.AddNumberParameter(
-                "Height", "Hgt", 
-                "Domain height. Units: meters. Recommend: 5-6x tallest building height.", 
+                "Height", "Hgt",
+                "Domain height. Units: meters. Recommend: 5-6x tallest building height.",
                 GH_ParamAccess.item);
             pManager[5].Optional = true;
             pManager[6].Optional = true;
@@ -252,12 +252,11 @@ Defines a box-shaped computational domain for the wind simulation. Best suited f
             buildingGeometry.UserDictionary.Set("type", "Building");
             terrainMeshes.UserDictionary.Set("type", "Ground");
 
-            // Check if lowest point in Domain is z_low < 0, then we cannot use a ABL
+            // Check if lowest point in Domain is below zGround, then we cannot use an ABL
 
             var minZDomain = buildingGeometry.GetBoundingBox(true).Min.Z;
 
-            if (minZDomain < 0 && bCond.BCs.All(item => item is ABL))
-
+            if (bCond.BCs.All(item => item is ABL))
             {
                 foreach (BC bcond in bCond.BCs)
                 {
@@ -266,7 +265,7 @@ Defines a box-shaped computational domain for the wind simulation. Best suited f
 
                     if (minZDomain < zg)
                     {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "If your simulation domain extends below z = 0, you cannot use an ABL Boundary Condition. Please use the Constant U Boundary Condition or adjust zGround accordingly."); return;
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Your building geometry extends below zGround (" + zg + "). Please use the Constant U Boundary Condition or adjust zGround accordingly."); return;
                     }
                 }
             }

@@ -15,15 +15,14 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the Emitter class.
         /// </summary>
         public MomentumSink_Component()
-          : base("Momentum Sink", "MomSink", 
+          : base("Momentum Sink", "MomSink",
 @"Flow Resistance Zone
 
 Creates a volume that resists airflow, simulating obstacles like furniture, equipment, or dense vegetation in indoor or outdoor models. Reduces air velocity passing through it.
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorMomentumSink");
         }
 
         /// <summary>

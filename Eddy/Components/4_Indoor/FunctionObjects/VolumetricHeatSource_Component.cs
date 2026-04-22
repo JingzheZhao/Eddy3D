@@ -16,15 +16,14 @@ namespace Eddy.Components.Indoor
         /// Initializes a new instance of the Emitter class.
         /// </summary>
         public VolumetricHeatSource_Component()
-          : base("Heat Source", "HeatSrc", 
+          : base("Heat Source", "HeatSrc",
 @"Heat Source
 
 Models a heat-generating object within the indoor space, such as equipment, electronics, or a cluster of people. Can be defined by total power (W) or power density (W/m³).
 
-" + EddyVersion.toString(), 
+" + EddyVersion.toString(),
               EddyVersion.Name, "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorHeatSource");
         }
 
         /// <summary>

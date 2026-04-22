@@ -16,17 +16,16 @@ namespace Eddy.Components.Indoor
         /// </summary>
         public IndoorWall_Component()
           : base(
-              "Indoor Wall", 
+              "Indoor Wall",
               "Wall",
               @"Indoor Wall/Boundary
 
 Defines a solid boundary for indoor simulations, such as walls, floors, or ceilings. Allows specification of surface temperature for thermal analysis.
 
 " + EddyVersion.toString(),
-              EddyVersion.Name, 
+              EddyVersion.Name,
               "9 | Indoor")
         {
-            Analytics.Analytics.TrackComponentView("IndoorWall");
         }
 
         /// <summary>

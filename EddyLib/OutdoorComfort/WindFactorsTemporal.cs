@@ -220,9 +220,12 @@ namespace EddyLib.OutdoorComfort
 
             var WindFactorsTemporal = new float[numberOfHours];
 
-            // Create lookup table with plain vector magnitudes
-
-            // Console.WriteLine("Calculating: Wind reduction factors");
+            // Precompute interpolation weights per unique wind direction to avoid redundant calculations
+            Dictionary<int, (double weightedRatio, int idxBelow, int idxAbove)> interpCache = null;
+            if (interpolate)
+            {
+                interpCache = new Dictionary<int, (double, int, int)>();
+            }
 
             for (int h = 0; h < numberOfHours; h++)
             {
@@ -242,25 +245,27 @@ namespace EddyLib.OutdoorComfort
                 }
                 else
                 {
-                    #region Interpolation
+                    int dir = (int)windDirsEPW[h];
+                    if (!interpCache.TryGetValue(dir, out var cached))
+                    {
+                        var IdxBelow = WindSystem.ReturnNextLowerIndex(windDirsSim, dir);
+                        var IdxAbove = WindSystem.ReturnNextHigherIndex(windDirsSim, dir);
+                        int dirBelow = windDirsSim[IdxBelow];
+                        int dirAbove = windDirsSim[IdxAbove];
+                        var distanceToLower = WindSystem.DistanceBetweenWindDirs(windDirsEPW[h], dirBelow);
+                        var distanceToUpper = WindSystem.DistanceBetweenWindDirs(windDirsEPW[h], dirAbove);
 
-                    var IdxBelow = WindSystem.ReturnNextLowerIndex(windDirsSim, (int)windDirsEPW[h]);
-                    var IdxAbove = WindSystem.ReturnNextHigherIndex(windDirsSim, (int)windDirsEPW[h]);
-                    int dirBelow = windDirsSim[IdxBelow];
-                    int dirAbove = windDirsSim[IdxAbove];
-                    var distanceToLower = WindSystem.DistanceBetweenWindDirs(windDirsEPW[h], dirBelow);
-                    var distanceToUpper = WindSystem.DistanceBetweenWindDirs(windDirsEPW[h], dirAbove);
+                        var weightingDown = 1 - (distanceToLower / (distanceToLower + distanceToUpper));
+                        var weightingUp = 1 - (distanceToUpper / (distanceToLower + distanceToUpper));
+                        var nextVelocityDown = Probe.WindFactorsSpatial[IdxBelow];
+                        var nextVelocityUp = Probe.WindFactorsSpatial[IdxAbove];
 
-                    var weightingDown = 1 - (distanceToLower / (distanceToLower + distanceToUpper));
-                    var weightingUp = 1 - (distanceToUpper / (distanceToLower + distanceToUpper));
-                    var nextVelocityDown = Probe.WindFactorsSpatial[IdxBelow];
-                    var nextVelocityUp = Probe.WindFactorsSpatial[IdxAbove];
+                        double weightedRatio = (nextVelocityDown * weightingDown) + (nextVelocityUp * weightingUp);
+                        cached = (weightedRatio, IdxBelow, IdxAbove);
+                        interpCache[dir] = cached;
+                    }
 
-                    double weightedRatioSimProbingPoint = (nextVelocityDown * weightingDown) + (nextVelocityUp * weightingUp);
-
-                    #endregion Interpolation
-
-                    WindFactorsTemporal[h] = (float)(velEPWAtProbingHeight * weightedRatioSimProbingPoint);
+                    WindFactorsTemporal[h] = (float)(velEPWAtProbingHeight * cached.weightedRatio);
                 }
             }
 

@@ -116,11 +116,15 @@ namespace EddyLib
             int[] centroidIdx = new int[clusterCount];
             int[] clusterItemCount = new int[clusterCount];
 
+            // Hoist array allocations out of the clustering loop
+            double[] minDistances = new double[clusterCount];
+            double[][] currentCentroids = new double[clusterCount][];
+
             // If we specify initial centroid indices then let's assign clustering based on those immediately
             if (initialCentroidIndices != null && initialCentroidIndices.Length == clusterCount)
             {
                 centroidIdx = initialCentroidIndices;
-                AssignClustering(data, clustering, centroidIdx, clusterCount, calculateDistanceFunction);
+                AssignClustering(data, clustering, centroidIdx, clusterCount, calculateDistanceFunction, currentCentroids);
 
                 // Debug.WriteLine("Pre-Seeded Centroids resulted in initial clustering: " +
                 // string.Join(",", clustering.Select(x => x.ToString()).ToArray()));
@@ -129,8 +133,8 @@ namespace EddyLib
             // Perform the clustering
             while (hasChanges && iteration < maxIterations)
             {
-                clusterItemCount = new int[clusterCount];
-                totalDistance = CalculateClusteringInformation(data, clustering, ref means, ref centroidIdx, clusterCount, ref clusterItemCount, calculateDistanceFunction);
+                Array.Clear(clusterItemCount, 0, clusterCount);
+                totalDistance = CalculateClusteringInformation(data, clustering, ref means, ref centroidIdx, clusterCount, ref clusterItemCount, calculateDistanceFunction, minDistances);
 
                 // Debug.WriteLine("------------- Iter: " + iteration); Debug.WriteLine("Clustering:
                 // " + string.Join(",", clustering.Select(x => x.ToString()).ToArray()));
@@ -140,7 +144,7 @@ namespace EddyLib
                 // x.ToString()).ToArray())); Debug.WriteLine("Cluster Counts: " + string.Join(",",
                 // clusterItemCount.Select(x => x.ToString()).ToArray()));
 
-                hasChanges = AssignClustering(data, clustering, centroidIdx, clusterCount, calculateDistanceFunction);
+                hasChanges = AssignClustering(data, clustering, centroidIdx, clusterCount, calculateDistanceFunction, currentCentroids);
                 ++iteration;
             }
 
@@ -182,7 +186,7 @@ namespace EddyLib
         }
 
         private static double CalculateClusteringInformation(double[][] data, int[] clustering, ref double[][] means, ref int[] centroidIdx,
-          int clusterCount, ref int[] clusterItemCount, KMeansCalculateDistanceDelegate calculateDistanceFunction)
+          int clusterCount, ref int[] clusterItemCount, KMeansCalculateDistanceDelegate calculateDistanceFunction, double[] minDistances)
         {
             // Reset the means to zero for all clusters
             foreach (var mean in means)
@@ -214,7 +218,7 @@ namespace EddyLib
             double totalDistance = 0;
 
             // Calc the centroids
-            double[] minDistances = new double[clusterCount].Select(x => double.MaxValue).ToArray();
+            Array.Fill(minDistances, double.MaxValue);
             for (int i = 0; i < data.Length; i++)
             {
                 var clusterIdx = clustering[i]; // What cluster is data i assigned to
@@ -241,18 +245,25 @@ namespace EddyLib
         /// <returns>
         /// true if any clustering arrangement has changed, false if clustering did not change.
         /// </returns>
-        private static bool AssignClustering(double[][] data, int[] clustering, int[] centroidIdx, int clusterCount, KMeansCalculateDistanceDelegate calculateDistanceFunction)
+        private static bool AssignClustering(double[][] data, int[] clustering, int[] centroidIdx, int clusterCount, KMeansCalculateDistanceDelegate calculateDistanceFunction, double[][] currentCentroids)
         {
             bool changed = false;
+
+            // Pre-resolve centroid pointers outside the N-loop
+            for (int k = 0; k < clusterCount; k++)
+            {
+                currentCentroids[k] = data[centroidIdx[k]];
+            }
 
             for (int i = 0; i < data.Length; i++)
             {
                 double minDistance = double.MaxValue;
                 int minClusterIndex = -1;
+                double[] currentData = data[i];
 
                 for (int k = 0; k < clusterCount; k++)
                 {
-                    double distance = calculateDistanceFunction(data[i], data[centroidIdx[k]]);
+                    double distance = calculateDistanceFunction(currentData, currentCentroids[k]);
                     if (distance < minDistance)
                     {
                         minDistance = distance;
@@ -282,7 +293,10 @@ namespace EddyLib
             // For each attribute calculate the squared difference between the centroid and the point
             double sum = 0;
             for (int i = 0; i < point.Length; i++)
-                sum += Math.Pow(centroid[i] - point[i], 2);
+            {
+                double diff = centroid[i] - point[i];
+                sum += diff * diff;
+            }
 
             return Math.Sqrt(sum);
 

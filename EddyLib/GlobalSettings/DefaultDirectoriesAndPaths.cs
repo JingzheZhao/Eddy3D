@@ -18,7 +18,8 @@ namespace EddyLib
         private static readonly string LocalEddy3DDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Eddy3D");
         private static string _baseDir = IsWindows ? LocalEddy3DDir : RoamingEddy3DDir;
-        private static readonly string WindowsCasesRootDir = LocalEddy3DDir;
+        private static readonly string CasesRootDir =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Eddy3D");
         private static readonly string _radianceDirDefault = IsWindows
             ? Path.Combine(_baseDir, "Radiance_012cb178_Windows")
             : Path.Combine(_baseDir, "Radiance_012cb178_OSX", "radiance");
@@ -41,11 +42,9 @@ namespace EddyLib
         /// <summary>
         /// Default directory for simulation cases.
         /// On macOS: ~/Eddy3D/Cases (avoids spaces in path — Docker volume mounts break with spaces).
-        /// On Windows: %LocalAppData%\Eddy3D\Cases.
+        /// On Windows: %USERPROFILE%\Eddy3D\Cases.
         /// </summary>
-        public static string CasesDir => IsWindows
-            ? Path.Combine(WindowsCasesRootDir, "Cases")
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Eddy3D", "Cases");
+        public static string CasesDir => Path.Combine(CasesRootDir, "Cases");
 
         /// <summary>
         /// Resolves a working directory path. If the input is a simple name (no path separators),
@@ -127,7 +126,7 @@ namespace EddyLib
         private static string NormalizeEnginePath(string path, string defaultPath)
         {
             if (string.IsNullOrWhiteSpace(path)) return defaultPath;
-            
+
             // Clean up basic formatting
             string normalized = TrimWrappingQuotes(path.Trim()).TrimEnd('\\', '/');
 
@@ -138,14 +137,14 @@ namespace EddyLib
             }
 
             // Handle Grasshopper boolean strings ("True"/"False") from legacy template wire crossings
-            if (normalized.Equals("true", StringComparison.OrdinalIgnoreCase) || 
+            if (normalized.Equals("true", StringComparison.OrdinalIgnoreCase) ||
                 normalized.Equals("false", StringComparison.OrdinalIgnoreCase))
             {
                 return defaultPath;
             }
 
             // If user accidentally pointed to the bin folder, go up one level
-            if (normalized.EndsWith(@"\bin", StringComparison.OrdinalIgnoreCase) || 
+            if (normalized.EndsWith(@"\bin", StringComparison.OrdinalIgnoreCase) ||
                 normalized.EndsWith(@"/bin", StringComparison.OrdinalIgnoreCase) ||
                 normalized.Equals("bin", StringComparison.OrdinalIgnoreCase))
             {

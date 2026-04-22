@@ -25,7 +25,7 @@ namespace Eddy
         /// be created.
         /// </summary>
         public CompCullPoints()
-          : base("Cull Ground Mesh", "CullMesh", 
+          : base("Cull Ground Mesh", "CullMesh",
 @"Remove ground mesh faces that intersect buildings.
 
 Creates analysis ground mesh with building footprints cut out.

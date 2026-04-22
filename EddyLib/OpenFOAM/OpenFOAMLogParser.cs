@@ -19,12 +19,15 @@ namespace EddyLib.OpenFOAM
                 return status;
 
             status.HasLog = true;
+            options = options ?? new OpenFOAMLogParseOptions();
 
             try
             {
-                var lines = ReadAllLinesShared(logPath);
-                var segment = GetMostRecentRun(lines);
-                AnalyzeSimulation(segment, status, options ?? new OpenFOAMLogParseOptions());
+                using (var stream = new FileStream(logPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(stream))
+                {
+                    ParseSimulationStream(reader, status, options);
+                }
             }
             catch (Exception ex)
             {
@@ -35,31 +38,7 @@ namespace EddyLib.OpenFOAM
             return status;
         }
 
-        public static OpenFOAMLogStatus ParseMeshingLog(string logPath, OpenFOAMLogParseOptions options = null)
-        {
-            var status = new OpenFOAMLogStatus { LogPath = logPath };
-
-            if (string.IsNullOrWhiteSpace(logPath) || !File.Exists(logPath))
-                return status;
-
-            status.HasLog = true;
-
-            try
-            {
-                var lines = ReadAllLinesShared(logPath);
-                var segment = GetMostRecentRun(lines);
-                AnalyzeMeshing(segment, status, options ?? new OpenFOAMLogParseOptions());
-            }
-            catch (Exception ex)
-            {
-                status.HasError = true;
-                status.ErrorMessage = ex.Message;
-            }
-
-            return status;
-        }
-
-        private static void AnalyzeSimulation(IReadOnlyList<string> lines, OpenFOAMLogStatus status, OpenFOAMLogParseOptions options)
+        private static void ParseSimulationStream(StreamReader reader, OpenFOAMLogStatus status, OpenFOAMLogParseOptions options)
         {
             bool hasError = false;
             bool finished = false;
@@ -69,28 +48,40 @@ namespace EddyLib.OpenFOAM
 
             var records = new List<(double Time, double Exec)>();
 
-            foreach (var raw in lines)
+            string rawLine;
+            while ((rawLine = reader.ReadLine()) != null)
             {
-                var line = raw?.Trim();
-                if (string.IsNullOrEmpty(line))
+                var lineSpan = rawLine.AsSpan().Trim();
+                if (lineSpan.IsEmpty)
                     continue;
 
-                lastNonEmpty = line;
+                lastNonEmpty = rawLine.Trim();
 
-                if (IsErrorLine(line))
+                // Reset state on new run
+                if (lineSpan.IndexOf("Create time".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    hasError = false;
+                    finished = false;
+                    currentTime = null;
+                    executionTime = null;
+                    status.ErrorMessage = null;
+                    records.Clear();
+                }
+
+                if (IsErrorLine(lineSpan))
                 {
                     hasError = true;
                     if (string.IsNullOrWhiteSpace(status.ErrorMessage))
-                        status.ErrorMessage = line;
+                        status.ErrorMessage = lastNonEmpty;
                 }
 
-                if (IsEndLine(line))
+                if (IsEndLine(lineSpan))
                     finished = true;
 
-                if (TryParseTimeLine(line, out var timeVal))
+                if (TryParseTimeLine(lineSpan, out var timeVal))
                     currentTime = timeVal;
 
-                if (TryParseExecutionTime(line, out var execVal))
+                if (TryParseExecutionTime(lineSpan, out var execVal))
                 {
                     executionTime = execVal;
                     if (currentTime.HasValue)
@@ -122,11 +113,252 @@ namespace EddyLib.OpenFOAM
             }
         }
 
-        private static void AnalyzeMeshing(IReadOnlyList<string> lines, OpenFOAMLogStatus status, OpenFOAMLogParseOptions options)
+        public static OpenFOAMLogStatus ParseMeshingLog(string logPath, OpenFOAMLogParseOptions options = null)
+        {
+            var status = new OpenFOAMLogStatus { LogPath = logPath };
+
+            if (string.IsNullOrWhiteSpace(logPath) || !File.Exists(logPath))
+                return status;
+
+            status.HasLog = true;
+            options = options ?? new OpenFOAMLogParseOptions();
+
+            try
+            {
+                using (var stream = new FileStream(logPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(stream))
+                {
+                    ParseMeshingStream(reader, status, options);
+                }
+            }
+            catch (Exception ex)
+            {
+                status.HasError = true;
+                status.ErrorMessage = ex.Message;
+            }
+
+            return status;
+        }
+
+        public static OpenFOAMLogStatus ParseMeshingWorkflow(string meshDir, OpenFOAMLogParseOptions options = null)
+        {
+            if (string.IsNullOrWhiteSpace(meshDir) || !Directory.Exists(meshDir))
+                return new OpenFOAMLogStatus();
+
+            return ParseMeshingWorkflowLogs(
+                OpenFOAMLogLocator.FindLatestBlockMeshLog(meshDir),
+                OpenFOAMLogLocator.FindLatestSurfaceFeaturesLog(meshDir),
+                OpenFOAMLogLocator.FindLatestMeshingLog(meshDir),
+                options);
+        }
+
+        public static OpenFOAMLogStatus ParseMeshingWorkflowLogs(
+            string blockMeshLogPath,
+            string surfaceFeaturesLogPath,
+            string snappyHexMeshLogPath,
+            OpenFOAMLogParseOptions options = null)
+        {
+            options = options ?? new OpenFOAMLogParseOptions();
+
+            var blockMesh = ParseMeshingUtilityLog(blockMeshLogPath, "blockMesh");
+            var surfaceFeatures = ParseMeshingUtilityLog(surfaceFeaturesLogPath, "surfaceFeatures");
+            var snappyHexMesh = ParseMeshingLog(snappyHexMeshLogPath, options);
+
+            if (IsLogOlderThan(surfaceFeaturesLogPath, blockMeshLogPath))
+                surfaceFeatures = EmptyStep(surfaceFeaturesLogPath, "surfaceFeatures");
+
+            string latestPreSnappyLog = LatestLogPath(blockMeshLogPath, surfaceFeaturesLogPath);
+            if (IsLogOlderThan(snappyHexMeshLogPath, latestPreSnappyLog))
+                snappyHexMesh = EmptyStep(snappyHexMeshLogPath, "snappyHexMesh");
+
+            bool hasAnyLog = blockMesh.HasLog || surfaceFeatures.HasLog || snappyHexMesh.HasLog;
+            var active = snappyHexMesh.HasLog
+                ? snappyHexMesh
+                : surfaceFeatures.HasLog
+                    ? surfaceFeatures
+                    : blockMesh;
+
+            var status = new OpenFOAMLogStatus
+            {
+                LogPath = active?.LogPath,
+                HasLog = hasAnyLog,
+                HasError = blockMesh.HasError || surfaceFeatures.HasError || snappyHexMesh.HasError,
+                ErrorMessage = FirstNonEmpty(blockMesh.ErrorMessage, surfaceFeatures.ErrorMessage, snappyHexMesh.ErrorMessage),
+                IsFinished = snappyHexMesh.HasLog && snappyHexMesh.IsFinished
+                    && !blockMesh.HasError && !surfaceFeatures.HasError && !snappyHexMesh.HasError,
+                Phase = active?.Phase,
+                StepName = active?.StepName,
+                StepIndex = snappyHexMesh.HasLog ? 3 : surfaceFeatures.HasLog ? 2 : blockMesh.HasLog ? 1 : (int?)null,
+                StepCount = 3,
+                MorphIteration = snappyHexMesh.MorphIteration,
+                MorphIterationsTotal = snappyHexMesh.MorphIterationsTotal,
+                EstimatedRemaining = snappyHexMesh.EstimatedRemaining,
+                LastLogLine = active?.LastLogLine,
+                WarningCount = blockMesh.WarningCount + surfaceFeatures.WarningCount + snappyHexMesh.WarningCount,
+                LastWarningLine = LastNonEmpty(blockMesh.LastWarningLine, surfaceFeatures.LastWarningLine, snappyHexMesh.LastWarningLine),
+                BlockMeshLogPath = blockMeshLogPath,
+                SurfaceFeaturesLogPath = surfaceFeaturesLogPath,
+                SnappyHexMeshLogPath = snappyHexMeshLogPath
+            };
+
+            double blockProgress = StepProgress(blockMesh, surfaceFeatures.HasLog || snappyHexMesh.HasLog);
+            double surfaceProgress = StepProgress(surfaceFeatures, snappyHexMesh.HasLog);
+            double snappyProgress = snappyHexMesh.HasLog ? Clamp01(snappyHexMesh.Progress ?? 0.0) : 0.0;
+
+            status.Progress = Clamp01((0.15 * blockProgress) + (0.10 * surfaceProgress) + (0.75 * snappyProgress));
+
+            if (status.IsFinished)
+                status.Progress = 1.0;
+
+            return status;
+        }
+
+        private static OpenFOAMLogStatus EmptyStep(string logPath, string stepName)
+        {
+            return new OpenFOAMLogStatus
+            {
+                LogPath = logPath,
+                StepName = stepName,
+                Phase = stepName
+            };
+        }
+
+        private static OpenFOAMLogStatus ParseMeshingUtilityLog(string logPath, string stepName)
+        {
+            var status = new OpenFOAMLogStatus
+            {
+                LogPath = logPath,
+                StepName = stepName,
+                Phase = stepName
+            };
+
+            if (string.IsNullOrWhiteSpace(logPath) || !File.Exists(logPath))
+                return status;
+
+            status.HasLog = true;
+            bool hasError = false;
+            bool finished = false;
+            int warningCount = 0;
+            string lastWarning = null;
+            string lastNonEmpty = null;
+            double progress = 0.2;
+
+            try
+            {
+                using (var stream = new FileStream(logPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(stream))
+                {
+                    string rawLine;
+                    while ((rawLine = reader.ReadLine()) != null)
+                    {
+                        var lineSpan = rawLine.AsSpan().Trim();
+                        if (lineSpan.IsEmpty)
+                            continue;
+
+                        lastNonEmpty = rawLine.Trim();
+
+                        if (lineSpan.IndexOf("Create time".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            hasError = false;
+                            finished = false;
+                            status.ErrorMessage = null;
+                            warningCount = 0;
+                            lastWarning = null;
+                            progress = 0.2;
+                        }
+
+                        if (IsWarningLine(lineSpan))
+                        {
+                            warningCount++;
+                            lastWarning = lastNonEmpty;
+                        }
+
+                        if (IsErrorLine(lineSpan))
+                        {
+                            hasError = true;
+                            if (string.IsNullOrWhiteSpace(status.ErrorMessage))
+                                status.ErrorMessage = lastNonEmpty;
+                        }
+
+                        if (lineSpan.IndexOf("Writing".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                            progress = Math.Max(progress, 0.8);
+
+                        if (IsEndLine(lineSpan))
+                        {
+                            finished = true;
+                            progress = 1.0;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                hasError = true;
+                status.ErrorMessage = ex.Message;
+            }
+
+            status.HasError = hasError;
+            status.IsFinished = finished && !hasError;
+            status.LastLogLine = lastNonEmpty;
+            status.WarningCount = warningCount;
+            status.LastWarningLine = lastWarning;
+            status.Progress = Clamp01(progress);
+            return status;
+        }
+
+        private static bool IsLogOlderThan(string candidatePath, string newerPath)
+        {
+            if (!TryGetWriteTimeUtc(candidatePath, out var candidateTime))
+                return false;
+
+            if (!TryGetWriteTimeUtc(newerPath, out var newerTime))
+                return false;
+
+            return candidateTime < newerTime;
+        }
+
+        private static string LatestLogPath(params string[] paths)
+        {
+            string latestPath = null;
+            DateTime latestTime = DateTime.MinValue;
+
+            if (paths == null)
+                return null;
+
+            foreach (var path in paths)
+            {
+                if (!TryGetWriteTimeUtc(path, out var time))
+                    continue;
+
+                if (time >= latestTime)
+                {
+                    latestTime = time;
+                    latestPath = path;
+                }
+            }
+
+            return latestPath;
+        }
+
+        private static bool TryGetWriteTimeUtc(string path, out DateTime writeTimeUtc)
+        {
+            writeTimeUtc = default;
+
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                return false;
+
+            writeTimeUtc = File.GetLastWriteTimeUtc(path);
+            return true;
+        }
+
+        private static void ParseMeshingStream(StreamReader reader, OpenFOAMLogStatus status, OpenFOAMLogParseOptions options)
         {
             bool hasError = false;
             bool finished = false;
             string lastNonEmpty = null;
+            int warningCount = 0;
+            string lastWarning = null;
+            double progress = 0.02;
 
             string phase = null;
             int? currentMorphIteration = null;
@@ -134,36 +366,87 @@ namespace EddyLib.OpenFOAM
             double currentMorphDuration = 0;
             var morphDurations = new List<double>();
 
-            foreach (var raw in lines)
+            string rawLine;
+            while ((rawLine = reader.ReadLine()) != null)
             {
-                var line = raw?.Trim();
-                if (string.IsNullOrEmpty(line))
+                var lineSpan = rawLine.AsSpan().Trim();
+                if (lineSpan.IsEmpty)
                     continue;
 
-                lastNonEmpty = line;
+                lastNonEmpty = rawLine.Trim();
 
-                if (IsErrorLine(line))
+                // Reset state on new run
+                if (lineSpan.IndexOf("Create time".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    hasError = false;
+                    finished = false;
+                    status.ErrorMessage = null;
+                    phase = null;
+                    currentMorphIteration = null;
+                    totalMorphIterations = null;
+                    currentMorphDuration = 0;
+                    warningCount = 0;
+                    lastWarning = null;
+                    progress = 0.02;
+                    morphDurations.Clear();
+                }
+
+                if (IsWarningLine(lineSpan))
+                {
+                    warningCount++;
+                    lastWarning = lastNonEmpty;
+                }
+
+                if (IsErrorLine(lineSpan))
                 {
                     hasError = true;
                     if (string.IsNullOrWhiteSpace(status.ErrorMessage))
-                        status.ErrorMessage = line;
+                        status.ErrorMessage = lastNonEmpty;
                 }
 
-                if (line.StartsWith("Finished meshing", StringComparison.OrdinalIgnoreCase))
+                if (lineSpan.StartsWith("Finished meshing".AsSpan(), StringComparison.OrdinalIgnoreCase))
+                {
                     finished = true;
+                    progress = 1.0;
+                }
 
-                if (IsEndLine(line))
+                if (IsEndLine(lineSpan))
+                {
                     finished = true;
+                    progress = 1.0;
+                }
 
-                if (line.IndexOf("Morphing phase", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (lineSpan.IndexOf("Read mesh".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.06);
+
+                if (lineSpan.IndexOf("Morphing phase".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                {
                     phase = "Morphing";
-                else if (line.IndexOf("Refinement phase", StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.58);
+                }
+                else if (lineSpan.IndexOf("Refinement phase".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                {
                     phase = "Refinement";
+                    progress = Math.Max(progress, 0.12);
+                }
 
-                if (TryParseMorphIterationsTotal(line, out var totalMorph))
+                if (lineSpan.IndexOf("Feature refinement iteration".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.16);
+                else if (lineSpan.IndexOf("Surface refinement iteration".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.27);
+                else if (lineSpan.IndexOf("Shell refinement iteration".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.39);
+                else if (lineSpan.IndexOf("Splitting mesh at surface intersections".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.50);
+                else if (lineSpan.IndexOf("Repatching faces".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.93);
+                else if (lineSpan.IndexOf("Checking final mesh".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                    progress = Math.Max(progress, 0.96);
+
+                if (TryParseMorphIterationsTotal(lineSpan, out var totalMorph))
                     totalMorphIterations = totalMorph;
 
-                if (TryParseMorphIteration(line, out var morphIter))
+                if (TryParseMorphIteration(lineSpan, out var morphIter))
                 {
                     if (currentMorphIteration.HasValue && currentMorphDuration > 0)
                         morphDurations.Add(currentMorphDuration);
@@ -171,13 +454,23 @@ namespace EddyLib.OpenFOAM
                     currentMorphIteration = morphIter;
                     currentMorphDuration = 0;
                     phase = "Morphing";
+
+                    if (totalMorphIterations.HasValue && totalMorphIterations.Value > 0)
+                    {
+                        double fraction = Math.Min(1.0, Math.Max(0.0, (morphIter + 1.0) / totalMorphIterations.Value));
+                        progress = Math.Max(progress, 0.60 + (0.30 * fraction));
+                    }
+                    else
+                    {
+                        progress = Math.Max(progress, 0.60);
+                    }
                 }
 
                 if (currentMorphIteration.HasValue)
                 {
-                    if (TryParseDurationLine(line, "Calculated surface displacement in", out var seconds) ||
-                        TryParseDurationLine(line, "Displacement smoothed in", out seconds) ||
-                        TryParseDurationLine(line, "Moved mesh in", out seconds))
+                    if (TryParseDurationLine(lineSpan, "Calculated surface displacement in", out var seconds) ||
+                        TryParseDurationLine(lineSpan, "Displacement smoothed in", out seconds) ||
+                        TryParseDurationLine(lineSpan, "Moved mesh in", out seconds))
                     {
                         currentMorphDuration += seconds;
                     }
@@ -191,8 +484,14 @@ namespace EddyLib.OpenFOAM
             status.HasError = hasError;
             status.IsFinished = finished && !hasError;
             status.Phase = phase;
+            status.StepName = "snappyHexMesh";
+            status.StepIndex = 3;
+            status.StepCount = 3;
             status.MorphIteration = currentMorphIteration;
             status.MorphIterationsTotal = totalMorphIterations;
+            status.WarningCount = warningCount;
+            status.LastWarningLine = lastWarning;
+            status.Progress = Clamp01(progress);
 
             if (!status.IsFinished
                 && string.Equals(phase, "Morphing", StringComparison.OrdinalIgnoreCase)
@@ -208,56 +507,91 @@ namespace EddyLib.OpenFOAM
             }
         }
 
-        private static string[] ReadAllLinesShared(string path)
-        {
-            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (var reader = new StreamReader(stream))
-            {
-                var text = reader.ReadToEnd();
-                text = text.Replace("\r\n", "\n").Replace("\r", "\n");
-                return text.Split('\n');
-            }
-        }
-
-        private static IReadOnlyList<string> GetMostRecentRun(string[] lines)
-        {
-            if (lines == null || lines.Length == 0)
-                return Array.Empty<string>();
-
-            int startIndex = 0;
-            for (int i = lines.Length - 1; i >= 0; i--)
-            {
-                if (lines[i]?.IndexOf("Create time", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    startIndex = i;
-                    break;
-                }
-            }
-
-            if (startIndex <= 0)
-                return lines;
-
-            return lines.Skip(startIndex).ToArray();
-        }
-
-        private static bool IsEndLine(string line) =>
+        private static bool IsEndLine(ReadOnlySpan<char> line) =>
             line.Equals("End", StringComparison.OrdinalIgnoreCase);
 
-        private static bool IsErrorLine(string line)
+        private static bool IsWarningLine(ReadOnlySpan<char> line)
         {
-            if (line.IndexOf("FOAM FATAL", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (line.IndexOf("FOAM Warning".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
                 return true;
 
-            if (line.StartsWith("Aborting", StringComparison.OrdinalIgnoreCase))
-                return true;
-
-            if (line.IndexOf("Segmentation fault", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (line.StartsWith("Warning".AsSpan(), StringComparison.OrdinalIgnoreCase))
                 return true;
 
             return false;
         }
 
-        private static bool TryParseTimeLine(string line, out double time)
+        private static bool IsErrorLine(ReadOnlySpan<char> line)
+        {
+            if (line.IndexOf("FOAM FATAL".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+
+            if (line.StartsWith("Aborting", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            if (line.IndexOf("Segmentation fault".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+
+            return false;
+        }
+
+        private static string FirstNonEmpty(params string[] values)
+        {
+            if (values == null)
+                return null;
+
+            foreach (var value in values)
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                    return value;
+            }
+
+            return null;
+        }
+
+        private static string LastNonEmpty(params string[] values)
+        {
+            if (values == null)
+                return null;
+
+            for (int i = values.Length - 1; i >= 0; i--)
+            {
+                if (!string.IsNullOrWhiteSpace(values[i]))
+                    return values[i];
+            }
+
+            return null;
+        }
+
+        private static double StepProgress(OpenFOAMLogStatus step, bool inferFinished)
+        {
+            if (step == null)
+                return inferFinished ? 1.0 : 0.0;
+
+            if (!step.HasLog)
+                return inferFinished ? 1.0 : 0.0;
+
+            if (step.IsFinished)
+                return 1.0;
+
+            return Clamp01(step.Progress ?? 0.0);
+        }
+
+        private static double Clamp01(double value)
+        {
+            if (double.IsNaN(value) || double.IsInfinity(value))
+                return 0.0;
+
+            if (value < 0.0)
+                return 0.0;
+
+            if (value > 1.0)
+                return 1.0;
+
+            return value;
+        }
+
+        private static bool TryParseTimeLine(ReadOnlySpan<char> line, out double time)
         {
             time = 0;
             if (!line.StartsWith("Time", StringComparison.OrdinalIgnoreCase))
@@ -266,62 +600,83 @@ namespace EddyLib.OpenFOAM
             return TryParseAfterEquals(line, out time);
         }
 
-        private static bool TryParseExecutionTime(string line, out double execTime)
+        private static bool TryParseExecutionTime(ReadOnlySpan<char> line, out double execTime)
         {
             execTime = 0;
-            if (line.IndexOf("ExecutionTime", StringComparison.OrdinalIgnoreCase) < 0)
+            if (line.IndexOf("ExecutionTime".AsSpan(), StringComparison.OrdinalIgnoreCase) < 0)
                 return false;
 
             return TryParseAfterEquals(line, out execTime);
         }
 
-        private static bool TryParseMorphIterationsTotal(string line, out int total)
+        private static bool TryParseMorphIterationsTotal(ReadOnlySpan<char> line, out int total)
         {
             total = 0;
             const string marker = "Snapping to features in";
-            int idx = line.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            int idx = line.IndexOf(marker.AsSpan(), StringComparison.OrdinalIgnoreCase);
             if (idx < 0)
                 return false;
 
-            var tail = line.Substring(idx + marker.Length).Trim();
-            var token = tail.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-            return int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out total);
+            var tail = line.Slice(idx + marker.Length).Trim();
+            return TryParseFirstIntegerToken(tail, out total);
         }
 
-        private static bool TryParseMorphIteration(string line, out int iteration)
+        private static bool TryParseMorphIteration(ReadOnlySpan<char> line, out int iteration)
         {
             iteration = 0;
             const string marker = "Morph iteration";
-            if (line.IndexOf(marker, StringComparison.OrdinalIgnoreCase) < 0)
+            int idx = line.IndexOf(marker.AsSpan(), StringComparison.OrdinalIgnoreCase);
+            if (idx < 0)
                 return false;
 
-            var tail = line.Substring(line.IndexOf(marker, StringComparison.OrdinalIgnoreCase) + marker.Length).Trim();
-            var token = tail.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-            return int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out iteration);
+            var tail = line.Slice(idx + marker.Length).Trim();
+            return TryParseFirstIntegerToken(tail, out iteration);
         }
 
-        private static bool TryParseDurationLine(string line, string marker, out double seconds)
+        private static bool TryParseDurationLine(ReadOnlySpan<char> line, string marker, out double seconds)
         {
             seconds = 0;
-            if (line.IndexOf(marker, StringComparison.OrdinalIgnoreCase) < 0)
+            if (line.IndexOf(marker.AsSpan(), StringComparison.OrdinalIgnoreCase) < 0)
                 return false;
 
             return TryParseAfterEquals(line, out seconds);
         }
 
-        private static bool TryParseAfterEquals(string line, out double value)
+        private static bool TryParseAfterEquals(ReadOnlySpan<char> line, out double value)
         {
             value = 0;
             var idx = line.IndexOf('=');
             if (idx < 0 || idx + 1 >= line.Length)
                 return false;
 
-            var tail = line.Substring(idx + 1).Trim();
-            var token = tail.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(token))
-                return false;
+            var tail = line.Slice(idx + 1).Trim();
+            return TryParseFirstDoubleToken(tail, out value);
+        }
 
+        private static bool TryParseFirstDoubleToken(ReadOnlySpan<char> span, out double value)
+        {
+            value = 0;
+            var token = GetFirstToken(span);
+            if (token.IsEmpty) return false;
             return double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+        }
+
+        private static bool TryParseFirstIntegerToken(ReadOnlySpan<char> span, out int value)
+        {
+            value = 0;
+            var token = GetFirstToken(span);
+            if (token.IsEmpty) return false;
+            return int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+        }
+
+        private static ReadOnlySpan<char> GetFirstToken(ReadOnlySpan<char> span)
+        {
+            int end = 0;
+            while (end < span.Length && !char.IsWhiteSpace(span[end]))
+            {
+                end++;
+            }
+            return span.Slice(0, end);
         }
 
         private static double? RollingAverageDuration(List<(double Time, double Exec)> records, int window)

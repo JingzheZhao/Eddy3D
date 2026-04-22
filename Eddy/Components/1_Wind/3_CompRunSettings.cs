@@ -19,10 +19,10 @@ namespace Eddy
         /// </summary>
         public RunSettings_Component()
           : base(
-              GH_Strings.RunSettings.Name, 
-              GH_Strings.RunSettings.Nick, 
+              GH_Strings.RunSettings.Name,
+              GH_Strings.RunSettings.Nick,
               GH_Strings.RunSettings.Desc + EddyVersion.toString(),
-              EddyVersion.Name, 
+              EddyVersion.Name,
               "1 | Wind")
         {
         }
@@ -45,23 +45,23 @@ namespace Eddy
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddIntegerParameter(
-                GH_Strings.RunSettings.Iterations, GH_Strings.RunSettings.IterationsNick, 
-                GH_Strings.RunSettings.IterationsDesc, 
+                GH_Strings.RunSettings.Iterations, GH_Strings.RunSettings.IterationsNick,
+                GH_Strings.RunSettings.IterationsDesc,
                 GH_ParamAccess.item, 1000);
 
             pManager.AddIntegerParameter(
-                GH_Strings.RunSettings.WriteInterval, GH_Strings.RunSettings.WriteIntervalNick, 
-                GH_Strings.RunSettings.WriteIntervalDesc, 
+                GH_Strings.RunSettings.WriteInterval, GH_Strings.RunSettings.WriteIntervalNick,
+                GH_Strings.RunSettings.WriteIntervalDesc,
                 GH_ParamAccess.item, 20);
 
             pManager.AddIntegerParameter(
-                GH_Strings.RunSettings.Keep, GH_Strings.RunSettings.KeepNick, 
-                GH_Strings.RunSettings.KeepDesc, 
+                GH_Strings.RunSettings.Keep, GH_Strings.RunSettings.KeepNick,
+                GH_Strings.RunSettings.KeepDesc,
                 GH_ParamAccess.item, 3);
 
             pManager.AddIntegerParameter(
-                GH_Strings.RunSettings.Turb, GH_Strings.RunSettings.TurbNick, 
-                GH_Strings.RunSettings.TurbDesc, 
+                GH_Strings.RunSettings.Turb, GH_Strings.RunSettings.TurbNick,
+                GH_Strings.RunSettings.TurbDesc,
                 GH_ParamAccess.item, 2);
             if (pManager[3] is Param_Integer turb)
             {
@@ -73,8 +73,8 @@ namespace Eddy
             }
 
             pManager.AddIntegerParameter(
-                GH_Strings.RunSettings.Relax, GH_Strings.RunSettings.RelaxNick, 
-                GH_Strings.RunSettings.RelaxDesc, 
+                GH_Strings.RunSettings.Relax, GH_Strings.RunSettings.RelaxNick,
+                GH_Strings.RunSettings.RelaxDesc,
                 GH_ParamAccess.item, 3);
             if (pManager[4] is Param_Integer relaxationFactors)
             {
@@ -85,8 +85,8 @@ namespace Eddy
             }
 
             pManager.AddIntegerParameter(
-                GH_Strings.RunSettings.Schemes, GH_Strings.RunSettings.SchemesNick, 
-                GH_Strings.RunSettings.SchemesDesc, 
+                GH_Strings.RunSettings.Schemes, GH_Strings.RunSettings.SchemesNick,
+                GH_Strings.RunSettings.SchemesDesc,
                 GH_ParamAccess.item, 1);
             if (pManager[5] is Param_Integer simulationMode)
             {
@@ -95,18 +95,18 @@ namespace Eddy
             }
 
             pManager.AddBooleanParameter(
-                GH_Strings.RunSettings.PotInit, GH_Strings.RunSettings.PotInitNick, 
-                GH_Strings.RunSettings.PotInitDesc, 
+                GH_Strings.RunSettings.PotInit, GH_Strings.RunSettings.PotInitNick,
+                GH_Strings.RunSettings.PotInitDesc,
                 GH_ParamAccess.item, false);
 
             pManager.AddBooleanParameter(
-                GH_Strings.RunSettings.AoA, GH_Strings.RunSettings.AoANick, 
-                GH_Strings.RunSettings.AoADesc, 
+                GH_Strings.RunSettings.AoA, GH_Strings.RunSettings.AoANick,
+                GH_Strings.RunSettings.AoADesc,
                 GH_ParamAccess.item, false);
 
             pManager.AddIntegerParameter(
-                GH_Strings.RunSettings.CPUs, GH_Strings.RunSettings.CPUsNick, 
-                GH_Strings.RunSettings.CPUsDesc, 
+                GH_Strings.RunSettings.CPUs, GH_Strings.RunSettings.CPUsNick,
+                GH_Strings.RunSettings.CPUsDesc,
                 GH_ParamAccess.item, -1);
             if (pManager[8] is Param_Integer cpusParam)
             {
@@ -152,7 +152,7 @@ namespace Eddy
         {
             pManager.AddGenericParameter(
                 GH_Strings.Common.RunSettings, "RSet",
-                GH_Strings.Common.RunSettingsDesc, 
+                GH_Strings.Common.RunSettingsDesc,
                 GH_ParamAccess.item);
         }
 

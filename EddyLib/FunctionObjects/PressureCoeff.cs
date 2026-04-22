@@ -16,13 +16,13 @@ namespace EddyLib
 
         /// <summary>Dynamic pressure at infinity for each wind direction.</summary>
         public List<double> Pinf { get; } = new List<double>();
-        
+
         /// <summary>Dynamic pressure at infinity (lowercase alias for backward compatibility).</summary>
         public List<double> pinf => Pinf;
 
         /// <summary>Reference dynamic pressure for each wind direction.</summary>
         public List<double> Pref { get; } = new List<double>();
-        
+
         /// <summary>Reference dynamic pressure (lowercase alias for backward compatibility).</summary>
         public List<double> pref => Pref;
 
@@ -95,7 +95,7 @@ namespace EddyLib
         {
             // u* (friction velocity) from reference: u* = kappa * Uref / ln((zref + z0) / z0)
             double frictionVelocity = abl.Kappa * abl.URef / Math.Log((abl.zref + abl.z0) / abl.z0);
-            
+
             // U(z) = (u* / kappa) * ln((z + z0) / z0)
             return (frictionVelocity / abl.Kappa) * Math.Log((height + abl.z0) / abl.z0);
         }

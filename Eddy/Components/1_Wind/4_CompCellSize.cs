@@ -29,31 +29,31 @@ refinement levels (halving) are needed to reach your target resolution.
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter(
-                "Domain", "Dom", 
-                "CFD Simulation Domain (Cylindrical or Box).", 
+                "Domain", "Dom",
+                "CFD Simulation Domain (Cylindrical or Box).",
                 GH_ParamAccess.item);
 
             pManager.AddNumberParameter(
-                "Base Cell Size", "Base", 
-                "Base mesh cell size from Domain component. Units: meters.", 
+                "Base Cell Size", "Base",
+                "Base mesh cell size from Domain component. Units: meters.",
                 GH_ParamAccess.item);
 
             pManager.AddNumberParameter(
-                "Target Cell Size", "Target", 
-                "Desired final cell size at highest refinement level. Units: meters.", 
+                "Target Cell Size", "Target",
+                "Desired final cell size at highest refinement level. Units: meters.",
                 GH_ParamAccess.item);
         }
 
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddIntegerParameter(
-                "Refinement Level", "Lvl", 
-                "Refinement level (n) required to reach target cell size.", 
+                "Refinement Level", "Lvl",
+                "Refinement level (n) required to reach target cell size.",
                 GH_ParamAccess.item);
 
             pManager.AddIntegerParameter(
-                "Refinement Level + 1", "Lvl+1", 
-                "One level higher than required (finer resolution).", 
+                "Refinement Level + 1", "Lvl+1",
+                "One level higher than required (finer resolution).",
                 GH_ParamAccess.item);
         }
 

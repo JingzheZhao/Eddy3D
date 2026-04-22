@@ -56,12 +56,12 @@ namespace EddyLib.Radiation
         /// Creates sky temperature model from weather data.
         /// </summary>
         public SkyTemperatureModel(
-            double[] dewPointTemp, 
-            double[] dryBulbTemp, 
-            double[] opaqueSkyCover, 
-            double[] relativeHumidity, 
-            bool run, 
-            CalculationType calculationType, 
+            double[] dewPointTemp,
+            double[] dryBulbTemp,
+            double[] opaqueSkyCover,
+            double[] relativeHumidity,
+            bool run,
+            CalculationType calculationType,
             double[] horizontalIR_EPW = null)
         {
             if (!run) return;
@@ -90,10 +90,10 @@ namespace EddyLib.Radiation
                         : calculationType;
 
                     Emissivity[h] = CalculateEmissivity(
-                        opaqueSkyCover[h], 
-                        dryBulbTemp[h], 
-                        dewPointTemp[h], 
-                        relativeHumidity[h], 
+                        opaqueSkyCover[h],
+                        dryBulbTemp[h],
+                        dewPointTemp[h],
+                        relativeHumidity[h],
                         effectiveType);
 
                     Temperature[h] = CalculateSkyTemp(dryBulbTemp[h], Emissivity[h]);
@@ -109,7 +109,8 @@ namespace EddyLib.Radiation
         private double CalculateHorizontalIR(double emissivity, double dryBulbC)
         {
             double tempK = dryBulbC + KelvinOffset;
-            return emissivity * StefanBoltzmann * Math.Pow(tempK, 4);
+            double tempK2 = tempK * tempK;
+            return emissivity * StefanBoltzmann * (tempK2 * tempK2);
         }
 
         /// <summary>
@@ -136,10 +137,17 @@ namespace EddyLib.Radiation
             double tempK = tempC + KelvinOffset;
             double es = g[7] * Math.Log(tempK);
 
-            for (int i = 0; i <= 6; i++)
-            {
-                es += g[i] * Math.Pow(tempK, i - 2);
-            }
+            double tempK_inv = 1.0 / tempK;
+            double tempK_inv2 = tempK_inv * tempK_inv;
+
+            es += g[0] * tempK_inv2;           // i=0: tempK^-2
+            es += g[1] * tempK_inv;            // i=1: tempK^-1
+            es += g[2];                        // i=2: tempK^0 = 1
+            es += g[3] * tempK;                // i=3: tempK^1
+            double tempK2 = tempK * tempK;
+            es += g[4] * tempK2;               // i=4: tempK^2
+            es += g[5] * (tempK2 * tempK);     // i=5: tempK^3
+            es += g[6] * (tempK2 * tempK2);    // i=6: tempK^4
 
             // Convert Pa to hPa
             return Math.Exp(es) * 0.01;
@@ -150,10 +158,10 @@ namespace EddyLib.Radiation
         /// Based on EnergyPlus WeatherManager.cc Line 3353.
         /// </summary>
         private double CalculateEmissivity(
-            double skyCover, 
-            double dryBulbC, 
-            double dewPointC, 
-            double relHumidity, 
+            double skyCover,
+            double dryBulbC,
+            double dewPointC,
+            double relHumidity,
             CalculationType type)
         {
             double emissivity = type switch
@@ -165,7 +173,8 @@ namespace EddyLib.Radiation
             };
 
             // Apply cloud correction factor
-            return emissivity * (1 + 0.0224 * skyCover - 0.0035 * Math.Pow(skyCover, 2) + 0.00028 * Math.Pow(skyCover, 3));
+            double skyCover2 = skyCover * skyCover;
+            return emissivity * (1 + 0.0224 * skyCover - 0.0035 * skyCover2 + 0.00028 * (skyCover2 * skyCover));
         }
 
         private double CalculateBruntEmissivity(double dryBulbC, double relHumidity)
@@ -199,7 +208,7 @@ namespace EddyLib.Radiation
         /// </summary>
         private double CalculateTempFromIR(double horizontalIR)
         {
-            return Math.Pow(horizontalIR / StefanBoltzmann, 0.25) - KelvinOffset;
+            return Math.Sqrt(Math.Sqrt(horizontalIR / StefanBoltzmann)) - KelvinOffset;
         }
 
         /// <summary>
@@ -208,7 +217,7 @@ namespace EddyLib.Radiation
         private static double CalculateSkyTemp(double dryBulbC, double emissivity)
         {
             double tempK = dryBulbC + KelvinOffset;
-            return tempK * Math.Pow(emissivity, 0.25) - KelvinOffset;
+            return tempK * Math.Sqrt(Math.Sqrt(emissivity)) - KelvinOffset;
         }
 
         #endregion
