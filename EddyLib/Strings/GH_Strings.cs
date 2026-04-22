@@ -276,5 +276,50 @@ namespace EddyLib
             public const string OutputNick = "Paths";
             public const string OutputDesc = "Full paths to discovered template files (.gh/.ghx)";
         }
+
+        public static class GanPredict
+        {
+            public const string Name = "GAN Wind Prediction";
+            public const string Nick = "GANPredict";
+            public const string Desc = "Predict pedestrian-level wind speeds using a GAN surrogate model.\n\n"
+                + "Generates a normalised input array from building geometry and sends it "
+                + "to the Eddy3D cloud API for real-time inference.\n\n";
+
+            public const string Building = "Building Geometry";
+            public const string BuildingNick = "Bldg";
+            public const string BuildingDesc = "Joined mesh of all buildings to include in the prediction.";
+
+            public const string AnalysisPlane = "Analysis Plane";
+            public const string AnalysisPlaneNick = "Plane";
+            public const string AnalysisPlaneDesc = "Square Rectangle3d defining the analysis area. Must be square.";
+
+            public const string WindDir = "Wind Direction";
+            public const string WindDirNick = "WDir";
+            public const string WindDirDesc = "Wind direction in degrees clockwise from north (0 = north).";
+
+            public const string Run = "Run";
+            public const string RunNick = "Run";
+            public const string RunDesc = "Set to true to trigger the prediction.";
+
+            public const string ApiUrl = "API URL";
+            public const string ApiUrlNick = "URL";
+            public const string ApiUrlDesc = "GAN API endpoint URL. Uses default Eddy3D cloud API if empty.";
+
+            public const string VSize = "Height Scale";
+            public const string VSizeNick = "vSize";
+            public const string VSizeDesc = "Height coloring scale factor for the input image.";
+
+            public const string ColorSize = "Distance Scale";
+            public const string ColorSizeNick = "cSize";
+            public const string ColorSizeDesc = "Distance coloring scale factor for the input image.";
+
+            public const string WindSpeed = "Wind Speed";
+            public const string WindSpeedNick = "UMag";
+            public const string WindSpeedDesc = "Predicted wind speed magnitude at each pixel (m/s).";
+
+            public const string ResultMesh = "Result Mesh";
+            public const string ResultMeshNick = "Mesh";
+            public const string ResultMeshDesc = "Coloured mesh showing predicted wind speed distribution, previewed on a horizontal plane at z = 2.0 m.";
+        }
     }
 }
