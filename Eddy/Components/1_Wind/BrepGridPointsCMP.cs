@@ -1,6 +1,5 @@
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using Rhino.Geometry.Intersect;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -111,48 +110,33 @@ Works with Breps, surfaces, or meshes.
 
         /// <summary>
         ///     Create regular grid on Brep surfaces.
-        ///     Shoots rays along all three axes to capture horizontal AND vertical faces.
+        ///     Builds the grid in each face's own local plane so spacing is even on
+        ///     horizontal, vertical, and arbitrarily-rotated faces alike.
         /// </summary>
         private List<Point3d> CreateGridOnBreps(List<Brep> brepList, double spacing)
         {
             if (brepList == null || brepList.Count == 0 || spacing <= 0)
                 return new List<Point3d>();
 
-            BoundingBox bbox = BoundingBox.Unset;
-            foreach (var brep in brepList)
-            {
-                if (brep != null && brep.IsValid)
-                {
-                    var brepBbox = brep.GetBoundingBox(true);
-                    if (bbox.IsValid)
-                        bbox.Union(brepBbox);
-                    else
-                        bbox = brepBbox;
-                }
-            }
-
-            if (!bbox.IsValid)
-                return new List<Point3d>();
-
             const double tolerance = 0.1;
-            // Key precision for deduplication: one cell per tolerance voxel
             double keyScale = 1.0 / tolerance;
 
             var pointSet = new HashSet<long>();
             var points = new List<Point3d>();
 
-            // Shoot rays along X, Y, and Z to handle faces of any orientation.
-            // axis 0 = X rays (grid on Y-Z plane) — catches Y/Z-normal vertical faces
-            // axis 1 = Y rays (grid on X-Z plane) — catches X/Z-normal vertical faces
-            // axis 2 = Z rays (grid on X-Y plane) — catches horizontal faces
-            for (int axis = 0; axis < 3; axis++)
+            foreach (var brep in brepList)
             {
-                var newPts = ShootRaysAlongAxis(brepList, bbox, spacing, axis, tolerance);
-                foreach (var pt in newPts)
+                if (brep == null || !brep.IsValid) continue;
+
+                foreach (BrepFace face in brep.Faces)
                 {
-                    long key = PointKey(pt, keyScale);
-                    if (pointSet.Add(key))
-                        points.Add(pt);
+                    var facePts = CreateGridOnFace(face, spacing, tolerance);
+                    foreach (var pt in facePts)
+                    {
+                        long key = PointKey(pt, keyScale);
+                        if (pointSet.Add(key))
+                            points.Add(pt);
+                    }
                 }
             }
 
@@ -167,6 +151,76 @@ Works with Breps, surfaces, or meshes.
             return points;
         }
 
+        /// <summary>
+        ///     Generates evenly-spaced points on a single BrepFace by building a grid
+        ///     inside the face's local plane, then projecting each candidate back onto
+        ///     the face and discarding those outside its boundary.
+        /// </summary>
+        private static List<Point3d> CreateGridOnFace(BrepFace face, double spacing, double tolerance)
+        {
+            var output = new List<Point3d>();
+
+            // Build a plane aligned to the face at its parametric center.
+            var dom0 = face.Domain(0);
+            var dom1 = face.Domain(1);
+            double midU = dom0.ParameterAt(0.5);
+            double midV = dom1.ParameterAt(0.5);
+
+            Plane facePlane;
+            if (!face.FrameAt(midU, midV, out facePlane))
+                return output;
+
+            // Project the face's world bounding box corners onto the plane to find
+            // the extent of the grid in local (s, t) coordinates.
+            var bbox = face.GetBoundingBox(true);
+            if (!bbox.IsValid) return output;
+
+            double sMin = double.MaxValue, sMax = double.MinValue;
+            double tMin = double.MaxValue, tMax = double.MinValue;
+
+            foreach (var corner in bbox.GetCorners())
+            {
+                Vector3d v = corner - facePlane.Origin;
+                double s = v * facePlane.XAxis;
+                double t = v * facePlane.YAxis;
+                if (s < sMin) sMin = s;
+                if (s > sMax) sMax = s;
+                if (t < tMin) tMin = t;
+                if (t > tMax) tMax = t;
+            }
+
+            var sValues = BuildAxisValues(sMin, sMax, spacing);
+            var tValues = BuildAxisValues(tMin, tMax, spacing);
+            if (sValues.Count == 0 || tValues.Count == 0) return output;
+
+            foreach (var s in sValues)
+            {
+                foreach (var t in tValues)
+                {
+                    // Candidate point in the face's local plane.
+                    Point3d candidate = facePlane.Origin
+                        + s * facePlane.XAxis
+                        + t * facePlane.YAxis;
+
+                    // Project candidate onto the actual face surface.
+                    double u, v2;
+                    if (!face.ClosestPoint(candidate, out u, out v2))
+                        continue;
+
+                    Point3d onFace = face.PointAt(u, v2);
+
+                    // Reject if the projection moved too far (e.g. curved face edge).
+                    if (candidate.DistanceTo(onFace) >= tolerance)
+                        continue;
+
+                    if (face.IsPointOnFace(u, v2) != PointFaceRelation.Exterior)
+                        output.Add(onFace);
+                }
+            }
+
+            return output;
+        }
+
         private static long PointKey(Point3d pt, double keyScale)
         {
             // Pack rounded coords into a single long for fast deduplication.
@@ -177,110 +231,14 @@ Works with Breps, surfaces, or meshes.
             return (ix & 0x1FFFFF) | ((iy & 0x1FFFFF) << 21) | ((iz & 0x1FFFFF) << 42);
         }
 
-        /// <summary>
-        ///     Shoots rays along the specified axis (0=X, 1=Y, 2=Z) across the bbox grid
-        ///     and returns all surface intersection points that lie on a brep face.
-        ///     Sequential (no parallelism) to keep RhinoCommon thread-safe on all platforms.
-        /// </summary>
-        private static List<Point3d> ShootRaysAlongAxis(
-            IReadOnlyList<Brep> brepList,
-            BoundingBox bbox,
-            double spacing,
-            int axis,
-            double tolerance)
-        {
-            // a0, a1 are the two grid axes; a2 is the ray direction axis.
-            int a0 = (axis + 1) % 3;
-            int a1 = (axis + 2) % 3;
-            int a2 = axis;
-
-            double a0Min = bbox.Min[a0];
-            double a0Max = bbox.Max[a0];
-            double a1Min = bbox.Min[a1];
-            double a1Max = bbox.Max[a1];
-            double a2Min = bbox.Min[a2] - spacing;
-            double a2Max = bbox.Max[a2] + spacing;
-
-            var a0Values = BuildAxisValues(a0Min, a0Max, spacing);
-            var a1Values = BuildAxisValues(a1Min, a1Max, spacing);
-            if (a0Values.Count == 0 || a1Values.Count == 0)
-                return new List<Point3d>();
-
-            var output = new List<Point3d>();
-
-            for (int i = 0; i < a0Values.Count; i++)
-            {
-                for (int j = 0; j < a1Values.Count; j++)
-                {
-                    var startCoords = new double[3];
-                    var endCoords = new double[3];
-                    startCoords[a0] = a0Values[i];
-                    startCoords[a1] = a1Values[j];
-                    startCoords[a2] = a2Min;
-                    endCoords[a0] = a0Values[i];
-                    endCoords[a1] = a1Values[j];
-                    endCoords[a2] = a2Max;
-
-                    var rayStart = new Point3d(startCoords[0], startCoords[1], startCoords[2]);
-                    var rayEnd   = new Point3d(endCoords[0],   endCoords[1],   endCoords[2]);
-                    var ray = new Ray3d(rayStart, rayEnd - rayStart);
-
-                    foreach (var brep in brepList)
-                    {
-                        if (brep == null) continue;
-
-                        var hits = Intersection.RayShoot(ray, new[] { brep }, 10);
-                        if (hits == null || hits.Length == 0) continue;
-
-                        foreach (var pt in hits)
-                        {
-                            Point3d closest = brep.ClosestPoint(pt);
-                            if (closest == Point3d.Unset || pt.DistanceTo(closest) >= tolerance)
-                                continue;
-
-                            if (IsPointOnBrepFace(brep, pt, tolerance))
-                                output.Add(pt);
-                        }
-                    }
-                }
-            }
-
-            return output;
-        }
-
         private static List<double> BuildAxisValues(double min, double max, double spacing)
         {
             var values = new List<double>();
-            if (spacing <= 0)
-                return values;
-
-            double epsilon = Math.Abs(spacing) * 1e-9;
+            if (spacing <= 0) return values;
+            double epsilon = spacing * 1e-9;
             for (double value = min; value <= max + epsilon; value += spacing)
-            {
                 values.Add(value);
-            }
             return values;
-        }
-
-        private static bool IsPointOnBrepFace(Brep brep, Point3d pt, double tolerance)
-        {
-            for (int i = 0; i < brep.Faces.Count; i++)
-            {
-                var face = brep.Faces[i];
-                double u, v;
-                if (!face.ClosestPoint(pt, out u, out v))
-                    continue;
-
-                Point3d facePt = face.PointAt(u, v);
-                if (pt.DistanceTo(facePt) >= tolerance)
-                    continue;
-
-                var relation = face.IsPointOnFace(u, v);
-                if (relation != PointFaceRelation.Exterior)
-                    return true;
-            }
-
-            return false;
         }
 
         /// <summary>
