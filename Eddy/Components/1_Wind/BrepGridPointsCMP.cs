@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Eddy.Properties;
 using EddyLib;
 
@@ -111,14 +110,14 @@ Works with Breps, surfaces, or meshes.
         }
 
         /// <summary>
-        ///     Create regular grid on Brep surfaces - matches Python implementation exactly
+        ///     Create regular grid on Brep surfaces.
+        ///     Shoots rays along all three axes to capture horizontal AND vertical faces.
         /// </summary>
         private List<Point3d> CreateGridOnBreps(List<Brep> brepList, double spacing)
         {
             if (brepList == null || brepList.Count == 0 || spacing <= 0)
                 return new List<Point3d>();
 
-            // Get combined bounding box of all breps
             BoundingBox bbox = BoundingBox.Unset;
             foreach (var brep in brepList)
             {
@@ -135,75 +134,25 @@ Works with Breps, surfaces, or meshes.
             if (!bbox.IsValid)
                 return new List<Point3d>();
 
-            // Grid bounds
-            double xMin = bbox.Min.X;
-            double xMax = bbox.Max.X;
-            double yMin = bbox.Min.Y;
-            double yMax = bbox.Max.Y;
-            double zMin = bbox.Min.Z - spacing;
-            double zMax = bbox.Max.Z + spacing;
-
-            var xValues = BuildAxisValues(xMin, xMax, spacing);
-            var yValues = BuildAxisValues(yMin, yMax, spacing);
-            if (xValues.Count == 0 || yValues.Count == 0)
-                return new List<Point3d>();
-
-            // Fixed tolerance like Python version
             const double tolerance = 0.1;
+            // Key precision for deduplication: one cell per tolerance voxel
+            double keyScale = 1.0 / tolerance;
+
+            var pointSet = new HashSet<long>();
             var points = new List<Point3d>();
-            var rayTargets = new Brep[brepList.Count][];
-            for (int i = 0; i < brepList.Count; i++)
-            {
-                rayTargets[i] = new[] { brepList[i] };
-            }
 
-            // Parallelize by x-columns to speed up large grids.
-            if (xValues.Count > 1 && yValues.Count > 1 && Environment.ProcessorCount > 1)
+            // Shoot rays along X, Y, and Z to handle faces of any orientation.
+            // axis 0 = X rays (grid on Y-Z plane) — catches Y/Z-normal vertical faces
+            // axis 1 = Y rays (grid on X-Z plane) — catches X/Z-normal vertical faces
+            // axis 2 = Z rays (grid on X-Y plane) — catches horizontal faces
+            for (int axis = 0; axis < 3; axis++)
             {
-                var mergeLock = new object();
-                Parallel.For(
-                    0,
-                    xValues.Count,
-                    () => new List<Point3d>(),
-                    (xIndex, _, localPoints) =>
-                    {
-                        ProcessGridColumn(
-                            xIndex,
-                            xValues,
-                            yValues,
-                            zMin,
-                            zMax,
-                            brepList,
-                            rayTargets,
-                            tolerance,
-                            localPoints);
-                        return localPoints;
-                    },
-                    localPoints =>
-                    {
-                        if (localPoints.Count == 0)
-                            return;
-
-                        lock (mergeLock)
-                        {
-                            points.AddRange(localPoints);
-                        }
-                    });
-            }
-            else
-            {
-                for (int xIndex = 0; xIndex < xValues.Count; xIndex++)
+                var newPts = ShootRaysAlongAxis(brepList, bbox, spacing, axis, tolerance);
+                foreach (var pt in newPts)
                 {
-                    ProcessGridColumn(
-                        xIndex,
-                        xValues,
-                        yValues,
-                        zMin,
-                        zMax,
-                        brepList,
-                        rayTargets,
-                        tolerance,
-                        points);
+                    long key = PointKey(pt, keyScale);
+                    if (pointSet.Add(key))
+                        points.Add(pt);
                 }
             }
 
@@ -218,6 +167,87 @@ Works with Breps, surfaces, or meshes.
             return points;
         }
 
+        private static long PointKey(Point3d pt, double keyScale)
+        {
+            // Pack rounded coords into a single long for fast deduplication.
+            // Assumes coordinates fit in ~21-bit range each (±1 048 576 units).
+            long ix = (long)Math.Round(pt.X * keyScale) + (1 << 20);
+            long iy = (long)Math.Round(pt.Y * keyScale) + (1 << 20);
+            long iz = (long)Math.Round(pt.Z * keyScale) + (1 << 20);
+            return (ix & 0x1FFFFF) | ((iy & 0x1FFFFF) << 21) | ((iz & 0x1FFFFF) << 42);
+        }
+
+        /// <summary>
+        ///     Shoots rays along the specified axis (0=X, 1=Y, 2=Z) across the bbox grid
+        ///     and returns all surface intersection points that lie on a brep face.
+        ///     Sequential (no parallelism) to keep RhinoCommon thread-safe on all platforms.
+        /// </summary>
+        private static List<Point3d> ShootRaysAlongAxis(
+            IReadOnlyList<Brep> brepList,
+            BoundingBox bbox,
+            double spacing,
+            int axis,
+            double tolerance)
+        {
+            // a0, a1 are the two grid axes; a2 is the ray direction axis.
+            int a0 = (axis + 1) % 3;
+            int a1 = (axis + 2) % 3;
+            int a2 = axis;
+
+            double a0Min = bbox.Min[a0];
+            double a0Max = bbox.Max[a0];
+            double a1Min = bbox.Min[a1];
+            double a1Max = bbox.Max[a1];
+            double a2Min = bbox.Min[a2] - spacing;
+            double a2Max = bbox.Max[a2] + spacing;
+
+            var a0Values = BuildAxisValues(a0Min, a0Max, spacing);
+            var a1Values = BuildAxisValues(a1Min, a1Max, spacing);
+            if (a0Values.Count == 0 || a1Values.Count == 0)
+                return new List<Point3d>();
+
+            var output = new List<Point3d>();
+
+            for (int i = 0; i < a0Values.Count; i++)
+            {
+                for (int j = 0; j < a1Values.Count; j++)
+                {
+                    var startCoords = new double[3];
+                    var endCoords = new double[3];
+                    startCoords[a0] = a0Values[i];
+                    startCoords[a1] = a1Values[j];
+                    startCoords[a2] = a2Min;
+                    endCoords[a0] = a0Values[i];
+                    endCoords[a1] = a1Values[j];
+                    endCoords[a2] = a2Max;
+
+                    var rayStart = new Point3d(startCoords[0], startCoords[1], startCoords[2]);
+                    var rayEnd   = new Point3d(endCoords[0],   endCoords[1],   endCoords[2]);
+                    var ray = new Ray3d(rayStart, rayEnd - rayStart);
+
+                    foreach (var brep in brepList)
+                    {
+                        if (brep == null) continue;
+
+                        var hits = Intersection.RayShoot(ray, new[] { brep }, 10);
+                        if (hits == null || hits.Length == 0) continue;
+
+                        foreach (var pt in hits)
+                        {
+                            Point3d closest = brep.ClosestPoint(pt);
+                            if (closest == Point3d.Unset || pt.DistanceTo(closest) >= tolerance)
+                                continue;
+
+                            if (IsPointOnBrepFace(brep, pt, tolerance))
+                                output.Add(pt);
+                        }
+                    }
+                }
+            }
+
+            return output;
+        }
+
         private static List<double> BuildAxisValues(double min, double max, double spacing)
         {
             var values = new List<double>();
@@ -230,54 +260,6 @@ Works with Breps, surfaces, or meshes.
                 values.Add(value);
             }
             return values;
-        }
-
-        private static void ProcessGridColumn(
-            int xIndex,
-            IReadOnlyList<double> xValues,
-            IReadOnlyList<double> yValues,
-            double zMin,
-            double zMax,
-            IReadOnlyList<Brep> brepList,
-            IReadOnlyList<Brep[]> rayTargets,
-            double tolerance,
-            List<Point3d> output)
-        {
-            double x = xValues[xIndex];
-            for (int yIndex = 0; yIndex < yValues.Count; yIndex++)
-            {
-                double y = yValues[yIndex];
-
-                Point3d rayStart = new Point3d(x, y, zMin);
-                Point3d rayEnd = new Point3d(x, y, zMax);
-                Vector3d rayDir = rayEnd - rayStart;
-                Ray3d ray = new Ray3d(rayStart, rayDir);
-
-                for (int b = 0; b < brepList.Count; b++)
-                {
-                    var brep = brepList[b];
-                    if (brep == null)
-                        continue;
-
-                    var intersections = Intersection.RayShoot(ray, rayTargets[b], 1);
-                    if (intersections == null || intersections.Length == 0)
-                        continue;
-
-                    for (int i = 0; i < intersections.Length; i++)
-                    {
-                        var pt = intersections[i];
-                        Point3d closest = brep.ClosestPoint(pt);
-
-                        if (closest == Point3d.Unset || pt.DistanceTo(closest) >= tolerance)
-                            continue;
-
-                        if (IsPointOnBrepFace(brep, pt, tolerance))
-                        {
-                            output.Add(pt);
-                        }
-                    }
-                }
-            }
         }
 
         private static bool IsPointOnBrepFace(Brep brep, Point3d pt, double tolerance)
