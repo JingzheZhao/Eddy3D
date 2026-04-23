@@ -133,8 +133,18 @@ GH_Strings.ABL.Desc + EddyVersion.toString(),
 
                     if (!File.Exists(localPath))
                     {
-                        Task.Run(async () => await FileDownloader.DownloadFileAsync(epwFilePath, localPath)).Wait();
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Downloaded weather file to: {localPath}");
+                        this.Message = "Downloading...";
+                        Grasshopper.Instances.ActiveCanvas?.Refresh();
+                        try
+                        {
+                            Task.Run(async () => await FileDownloader.DownloadFileAsync(epwFilePath, localPath)).Wait();
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Downloaded weather file to: {localPath}");
+                        }
+                        finally
+                        {
+                            this.Message = null;
+                            Grasshopper.Instances.ActiveCanvas?.Refresh();
+                        }
                     }
                     else
                     {
