@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0-windows</TargetFrameworks>
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <EnableWindowsTargeting Condition="'$(OS)' == 'Windows_NT'">true</EnableWindowsTargeting>
+    <UseWindowsForms Condition="'$(OS)' == 'Windows_NT'">true</UseWindowsForms>
     <LangVersion>12</LangVersion>
     <RootNamespace>Eddy</RootNamespace>
     <AssemblyName>Eddy</AssemblyName>
@@ -54,7 +54,8 @@
     <PackageReference Include="Grasshopper" Version="8.27.26019.16021" IncludeAssets="compile;build" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="MedallionShell" Version="1.6.2" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.24.4" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.24.4" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.24.4" Condition="'$(OS)' == 'Windows_NT'" />
     <PackageReference Include="morelinq" Version="4.4.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Management" Version="9.0.0" />
