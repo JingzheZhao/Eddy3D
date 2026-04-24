@@ -110,8 +110,8 @@ namespace Eddy
                 "Full file path to the exported .onnx model.",
                 GH_ParamAccess.item);
             pManager.AddNumberParameter("U_ref", "U_ref",
-                "Reference wind speed (m/s). Default = 3.0",
-                GH_ParamAccess.item, 3.0);
+                "Reference wind speed (m/s). Default = 5.0",
+                GH_ParamAccess.item, 5.0);
             pManager.AddNumberParameter("z_ref", "z_ref",
                 "Reference height for log-law (m). Default = 10.0",
                 GH_ParamAccess.item, 10.0);
@@ -136,6 +136,9 @@ namespace Eddy
             pManager.AddBooleanParameter("Interpolate", "Interpolate",
                 "If true, generates a smooth, continuous interpolated mesh. If false, generates a pixelated blocky mesh.",
                 GH_ParamAccess.item, true);
+            pManager.AddBooleanParameter("Show TKE", "ShowK",
+                "Toggle visualization between wind speed (false) and turbulent kinetic energy (true). Affects M, LM, LP, LV outputs. Default = false.",
+                GH_ParamAccess.item, false);
 
             pManager[0].Optional = false;
             pManager[1].Optional = false;
@@ -149,6 +152,7 @@ namespace Eddy
             pManager[9].Optional = true;
             pManager[10].Optional = true;
             pManager[11].Optional = true;
+            pManager[12].Optional = true;
         }
 
         // ──────────────────────────────────────────────
@@ -177,6 +181,9 @@ namespace Eddy
             pManager.AddTextParameter("Legend Values", "LV",
                 "Text values corresponding to the generated legend.",
                 GH_ParamAccess.list);
+            pManager.AddNumberParameter("Turbulent Kinetic Energy", "k",
+                "Predicted turbulent kinetic energy (m²/s²) at each valid input point. Branches represent different wind directions. Empty if model has only 1 output channel.",
+                GH_ParamAccess.tree);
             pManager.AddGenericParameter("Boundary Conditions", "BC",
                 "Automated simulation boundary conditions metadata.",
                 GH_ParamAccess.item);
@@ -467,6 +474,8 @@ namespace Eddy
             DA.GetData(9, ref paletteName);
             bool domainProvided = DA.GetData(10, ref customDomain) && customDomain.IsValid;
             DA.GetData(11, ref interpolate);
+            bool showK = false;
+            DA.GetData(12, ref showK);
 
             var customColors = GetPalette(paletteName);
 
@@ -714,6 +723,7 @@ namespace Eddy
             // 3. Loop over directions and run ONNX inference
             // ──────────────────────────────────────────
             var speedTree = new GH_Structure<GH_Number>();
+            var kTree = new GH_Structure<GH_Number>();
             var previewMesh = new Mesh();
             var legendMesh = new Mesh();
             var legendPts = new List<Point3d>();
@@ -768,22 +778,32 @@ namespace Eddy
                     using (results)
                     {
                         var outputTensor = results.First().AsTensor<float>();
+                        int outChannels = outputTensor.Dimensions[1]; // (B, C, H, W)
 
                         var path = new GH_Path(d);
                         var branchSpeeds = new List<GH_Number>();
-                        
+                        var branchK = outChannels >= 2 ? new List<GH_Number>() : null;
+
                         // Extract predictions in parallel for maximum speed
                         var rawResults = new double[count];
+                        var rawK = outChannels >= 2 ? new double[count] : null;
                         System.Threading.Tasks.Parallel.For(0, count, i =>
                         {
                             if (!validMask[i] || isCulledArr[i])
                             {
                                 rawResults[i] = double.NaN;
+                                if (rawK != null) rawK[i] = double.NaN;
                                 return;
                             }
 
                             float raw = outputTensor[0, 0, idxYArr[i], idxXArr[i]];
                             rawResults[i] = Math.Max(raw * locURef, 0.0);
+
+                            if (rawK != null)
+                            {
+                                float rawKVal = outputTensor[0, 1, idxYArr[i], idxXArr[i]];
+                                rawK[i] = Math.Max(rawKVal, 0.0);
+                            }
                         });
 
                         for (int i = 0; i < count; i++)
@@ -797,26 +817,36 @@ namespace Eddy
                                 outOriginalIndex.Add(i);
                             }
                             branchSpeeds.Add(new GH_Number(Math.Round(rawResults[i], 4)));
+                            if (branchK != null)
+                                branchK.Add(new GH_Number(Math.Round(rawK[i], 6)));
                         }
-                        
+
                         speedTree.AppendRange(branchSpeeds, path);
+                        if (branchK != null)
+                            kTree.AppendRange(branchK, path);
                         coordsCollected = true;
                     }
                 }
                 sw.Stop();
-                
+
+                    if (kTree.PathCount == 0)
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "ONNX model has a single output channel (U only). For turbulent kinetic energy (k) output, use the advanced U+k model.");
 
                     // ── Preview Mesh & Outputs ──
                     // For the preview mesh, we use the results from the FIRST direction to avoid clutter
                     // and keep logic manageable.
-                    
+                    // When ShowK is true and k data is available, visualize TKE instead of wind speed.
+                    bool vizK = showK && kTree.PathCount > 0 && kTree.Branches[0].Count > 0;
+                    var vizTree = vizK ? kTree : speedTree;
+                    string vizUnit = vizK ? "m²/s²" : "m/s";
+
                     if (windDirs.Count == 1)
                     {
                         double validMin = double.MaxValue, validMax = double.MinValue;
                         if (domainProvided) { validMin = customDomain.Min; validMax = customDomain.Max; }
-                        else if (speedTree.PathCount > 0)
+                        else if (vizTree.PathCount > 0)
                         {
-                            foreach (var val in speedTree.Branches[0])
+                            foreach (var val in vizTree.Branches[0])
                             {
                                 if (val.Value < validMin) validMin = val.Value;
                                 if (val.Value > validMax) validMax = val.Value;
@@ -830,17 +860,17 @@ namespace Eddy
                                 for (int ix = 0; ix < IMG_W; ix++)
                                     gridToIdx[iy, ix] = -1;
 
-                            var firstSpeeds = speedTree.Branches[0];
+                            var firstVals = vizTree.Branches[0];
                             for (int j = 0; j < outX.Count; j++)
                             {
-                                double w = firstSpeeds[j].Value;
+                                double w = firstVals[j].Value;
                                 double t = validMax > validMin ? (w - validMin) / (validMax - validMin) : 0.0;
                                 Color c = GetColorFromPalette(t, customColors);
-                                
+
                                 int origIdx = outOriginalIndex[j];
                                 int ix = idxXArr[origIdx];
                                 int iy = idxYArr[origIdx];
-                                
+
                                 gridToIdx[iy, ix] = previewMesh.Vertices.Count;
                                 previewMesh.Vertices.Add(points[origIdx]);
                                 previewMesh.VertexColors.Add(c);
@@ -870,12 +900,12 @@ namespace Eddy
                         }
                         else
                         {
-                            var firstSpeeds = speedTree.Branches[0];
+                            var firstVals2 = vizTree.Branches[0];
                             double halfX = X_STEP / 2.0;
                             double halfY = Y_STEP / 2.0;
                             for (int j = 0; j < outX.Count; j++)
                             {
-                                double w = firstSpeeds[j].Value;
+                                double w = firstVals2[j].Value;
                                 double t = validMax > validMin ? (w - validMin) / (validMax - validMin) : 0.0;
                                 Color c = GetColorFromPalette(t, customColors);
 
@@ -930,7 +960,7 @@ namespace Eddy
                                 if (i % 5 == 0)
                                 {
                                     double val = validMin + t * (validMax - validMin);
-                                    legendVals.Add($"{val:F2} m/s");
+                                    legendVals.Add($"{val:F2} {vizUnit}");
                                     legendPts.Add(new Point3d(x, startY - legHeight * 1.5, zLevel));
                                 }
                             }
@@ -944,11 +974,12 @@ namespace Eddy
                     DA.SetData(4, legendMesh);
                     DA.SetDataList(5, legendPts);
                     DA.SetDataList(6, legendVals);
-                    
+                    DA.SetDataTree(7, kTree);
+
                     // Output automated boundary conditions for downstream components
                     var bcMetadata = new EddyLib.BCs.ABL(0, uRef, zRef, 1.0, 0.0);
                     bcMetadata.SimulatedDirections = new System.Collections.Generic.List<double>(windDirs);
-                    DA.SetData(7, bcMetadata);
+                    DA.SetData(8, bcMetadata);
 
                     Message = $"Dirs: {windDirs.Count} | {sw.ElapsedMilliseconds} ms";
 

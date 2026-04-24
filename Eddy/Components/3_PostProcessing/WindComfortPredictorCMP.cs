@@ -49,11 +49,13 @@ namespace Eddy
             pManager.AddBooleanParameter("Interpolate", "Interp", "Interpolate between wind directions. Default = true", GH_ParamAccess.item, true);
             pManager.AddBooleanParameter("Fast Mode (MoM)", "Fast", "Use Method of Moments for ultra-fast Weibull estimation. Default = true", GH_ParamAccess.item, true);
             pManager.AddGenericParameter("Boundary Conditions", "BC", "Optional simulation metadata to automate z_ref, z_0, and U_ref_sim.", GH_ParamAccess.item);
- 
+            pManager.AddNumberParameter("TKE", "k", "Turbulent kinetic energy (m²/s²) as a DataTree from WindPredictor. When provided, GEM (Gust Equivalent Mean) is used: GEM = U + g × √(2k/3). Peak factor g is auto-set per metric.", GH_ParamAccess.tree);
+
             var types = Enum.GetNames(typeof(WindComfortHelper.PedCmftMetric));
             Param_Integer param = pManager[6] as Param_Integer;
             for (int i = 0; i < types.Length; i++) param.AddNamedValue(types[i], i);
             pManager[9].Optional = true;
+            pManager[10].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -82,12 +84,18 @@ namespace Eddy
             bool interpolate = true;
             bool useMoM = true;
 
+            GH_Structure<GH_Number> kTree = null;
+
             if (!DA.GetDataList(0, points)) return;
             if (!DA.GetDataTree(1, out speedTree)) return;
             if (!DA.GetData(2, ref epwPath)) return;
             DA.GetData(6, ref metricInt);
             DA.GetData(7, ref interpolate);
             DA.GetData(8, ref useMoM);
+            DA.GetDataTree(10, out kTree);
+
+            bool hasK = kTree != null && kTree.PathCount > 0 && kTree.Branches[0].Count > 0;
+            double peakFactor = GetPeakFactor((WindComfortHelper.PedCmftMetric)metricInt);
 
             // ── Automated Scenario Link ───────────────────────────────────────────
             EddyLib.BCs.ABL linkedBC = null;
@@ -133,7 +141,8 @@ namespace Eddy
             // Sample a few speed values so we don't hash 128k numbers every solve.
             double s0 = speedTree.Branches[0].Count > 0 ? speedTree.Branches[0][0].Value : 0;
             double sN = speedTree.Branches[0].Count > 0 ? speedTree.Branches[0][numProbes - 1].Value : 0;
-            string newCacheKey = $"{numProbes}|{numDirs}|{epwPath}|{zRef}|{z0}|{uRefSim}|{interpolate}|{useMoM}|{s0:R}|{sN:R}";
+            double k0 = hasK && kTree.Branches[0].Count > 0 ? kTree.Branches[0][0].Value : -1;
+            string newCacheKey = $"{numProbes}|{numDirs}|{epwPath}|{zRef}|{z0}|{uRefSim}|{interpolate}|{useMoM}|{s0:R}|{sN:R}|{hasK}|{peakFactor:R}|{k0:R}";
  
             // ── Instant return when only metric changed ───────────────────────────
             if (newCacheKey == _cacheKey && _metricCache.TryGetValue(metricInt, out var hit))
@@ -148,7 +157,7 @@ namespace Eddy
                 DA.SetData(7, hit.metricName);
                 DA.SetDataList(8, hit.classExps);
 
-                Message = $"v0.7.1-Optimized\nMetric: {hit.metricName} (cached)";
+                Message = $"v0.8.0\nMetric: {hit.metricName} (cached)";
                 return;
             }
 
@@ -177,16 +186,27 @@ namespace Eddy
             double ablFactor = logProbe / logRef; // Pre-calculated constant factor
 
             var spatialFactors = new double[numProbes, numDirs];
+            var kValues = hasK ? new double[numProbes, numDirs] : null;
             Parallel.For(0, numDirs, d =>
             {
                 var branch = d < speedTree.PathCount ? speedTree.Branches[d] : null;
+                var kBranch = hasK && d < kTree.PathCount ? kTree.Branches[d] : null;
                 if (branch != null)
                 {
                     int n = Math.Min(numProbes, branch.Count);
                     for (int p = 0; p < n; p++)
+                    {
                         spatialFactors[p, d] = branch[p].Value / (uRefSim * ablFactor);
+                        if (kBranch != null && p < kBranch.Count)
+                            kValues[p, d] = Math.Max(kBranch[p].Value, 0.0);
+                    }
                 }
             });
+
+            if (hasK)
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"GEM mode: g={peakFactor:F1} (auto-set for {(WindComfortHelper.PedCmftMetric)metricInt}), TKE branches={kTree.PathCount}");
+            else
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No TKE (k) input connected — using mean wind speed only. Comfort results assume spatially uniform turbulence intensity (~20%). For GEM-based gust-accurate assessment, use the advanced ONNX model that outputs both U and k.");
 
             // 3. Pre-scale EPW speeds once
             var epwScaled = new double[numHours];
@@ -276,9 +296,27 @@ namespace Eddy
                         double[] work = tlWork.Value;
                         for (int h = 0; h < numHours; h++)
                         {
-                            double ratio = spatialFactors[p, hourLowIdx[h]] * hourLowWt[h]
-                                         + spatialFactors[p, hourHighIdx[h]] * hourHighWt[h];
-                            buf[h] = epwScaled[h] * ratio;
+                            int iL = hourLowIdx[h];
+                            int iH = hourHighIdx[h];
+                            double wL = hourLowWt[h];
+                            double wH = hourHighWt[h];
+
+                            double ratio = spatialFactors[p, iL] * wL
+                                         + spatialFactors[p, iH] * wH;
+                            double uMean = epwScaled[h] * ratio;
+
+                            // GEM: Gust Equivalent Mean = U_mean + g * sigma_u
+                            // sigma_u = sqrt(2k/3) for isotropic turbulence
+                            if (kValues != null)
+                            {
+                                double kInterp = kValues[p, iL] * wL + kValues[p, iH] * wH;
+                                double sigmaU = Math.Sqrt(2.0 * kInterp / 3.0);
+                                buf[h] = uMean + peakFactor * sigmaU;
+                            }
+                            else
+                            {
+                                buf[h] = uMean;
+                            }
                         }
                         
                         if (useMoM)
@@ -433,9 +471,28 @@ namespace Eddy
             DA.SetData(7, mName);
             DA.SetDataList(8, explanations);
  
-            Message = $"v0.7.1-Optimized\nStep 6: {t6}ms\nStep 7: {t7}ms";
+            string gemTag = hasK ? $" (GEM, g={peakFactor:F1})" : "";
+            Message = $"v0.8.0{gemTag}\nStep 6: {t6}ms\nStep 7: {t7}ms";
             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
-                useCachedParams ? $"Metric checked {numProbes} probes in {sw.ElapsedMilliseconds} ms." : $"Weibull estimated {numProbes} probes in {sw.ElapsedMilliseconds} ms.");
+                useCachedParams ? $"Metric checked {numProbes} probes in {sw.ElapsedMilliseconds} ms." : $"Weibull estimated {numProbes} probes{gemTag} in {sw.ElapsedMilliseconds} ms.");
+        }
+
+        /// <summary>
+        /// Returns the gust peak factor (g) for GEM calculation per comfort standard.
+        /// GEM = U_mean + g × σ_u, where σ_u = √(2k/3).
+        /// </summary>
+        private static double GetPeakFactor(WindComfortHelper.PedCmftMetric metric)
+        {
+            switch (metric)
+            {
+                case WindComfortHelper.PedCmftMetric.LawsonLDDC:   return 3.5;
+                case WindComfortHelper.PedCmftMetric.Lawson2001:    return 3.5;
+                case WindComfortHelper.PedCmftMetric.LawsonGeneral: return 3.5;
+                case WindComfortHelper.PedCmftMetric.NEN8100Comfort: return 3.0;
+                case WindComfortHelper.PedCmftMetric.NEN8100Safety:  return 3.0;
+                case WindComfortHelper.PedCmftMetric.Davenport:     return 3.0;
+                default:                                            return 3.0;
+            }
         }
 
         private System.Drawing.Color GetComfortColor(string letter, WindComfortHelper.PedCmftMetric metric)
