@@ -198,7 +198,7 @@ namespace Eddy
                 }
                 else
                 {
-                    Message = "Press Run";
+                    Message = "Toggle 'Run' to predict";
                 }
                 return;
             }

@@ -213,7 +213,7 @@ namespace Eddy
             {
                 if (!run)
                 {
-                    Message = "Idle";
+                    Message = "Toggle 'Run' to probe";
                     WriteOutputsOrCached(
                         DA,
                         velocityTree,
@@ -230,7 +230,7 @@ namespace Eddy
                 if (points.Count == 0)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "At least one probe point is required.");
-                    Message = "No points";
+                    Message = "Connect probe points";
                     WriteOutputsOrCached(
                         DA,
                         velocityTree,
@@ -262,7 +262,7 @@ namespace Eddy
                     AddRuntimeMessage(
                         GH_RuntimeMessageLevel.Warning,
                         "FluidX3D RES input is required.");
-                    Message = "Missing dir";
+                    Message = "Connect a valid result";
                     WriteOutputsOrCached(
                         DA,
                         velocityTree,
