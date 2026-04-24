@@ -14,11 +14,11 @@ namespace EddyLib
         /// <summary>
         /// Replacing ValueTuple by class, intellisence didn't work in sqlproj with C# 7.0
         /// </summary>
-        private class ValueCountTuple : IComparable, IComparable<ValueCountTuple>, IEquatable<ValueCountTuple>
+        private readonly struct ValueCountTuple : IComparable, IComparable<ValueCountTuple>, IEquatable<ValueCountTuple>
         {
-            public double Value;
+            public readonly double Value;
 
-            public int Count;
+            public readonly int Count;
 
             public ValueCountTuple(double value, int count)
             {
@@ -28,17 +28,12 @@ namespace EddyLib
 
             public int CompareTo(object obj)
             {
-                if (ReferenceEquals(this, obj)) return 0;
-                if (ReferenceEquals(null, obj)) return 1;
-
-                return CompareTo(obj as ValueCountTuple);
+                if (obj is ValueCountTuple other) return CompareTo(other);
+                return 1;
             }
 
             public int CompareTo(ValueCountTuple other)
             {
-                if (ReferenceEquals(this, other)) return 0;
-                if (ReferenceEquals(null, other)) return 1;
-
                 var result = Value.CompareTo(other.Value);
                 if (result != 0)
                     return result;
@@ -58,17 +53,11 @@ namespace EddyLib
 
             public override bool Equals(object obj)
             {
-                if (ReferenceEquals(this, obj)) return true;
-                if (ReferenceEquals(null, obj)) return false;
-
-                return Equals(obj as ValueCountTuple);
+                return obj is ValueCountTuple other && Equals(other);
             }
 
             public bool Equals(ValueCountTuple other)
             {
-                if (ReferenceEquals(this, other)) return true;
-                if (ReferenceEquals(null, other)) return false;
-
                 return Value == other.Value && Count == other.Count;
             }
 
@@ -303,15 +292,20 @@ namespace EddyLib
         /// </summary>
         private static List<ValueCountTuple> BuildValueCountTuples(List<double> values)
         {
-            var valuesDict = new Dictionary<double, ValueCountTuple>();
+            var valuesDict = new Dictionary<double, int>();
             foreach (var value in values)
             {
-                if (valuesDict.TryGetValue(value, out var tuple))
-                    tuple.Count++;
+                if (valuesDict.TryGetValue(value, out var count))
+                    valuesDict[value] = count + 1;
                 else
-                    valuesDict.Add(value, new ValueCountTuple(value, 1));
+                    valuesDict.Add(value, 1);
             }
-            var result = valuesDict.Values.ToList();
+
+            var result = new List<ValueCountTuple>(valuesDict.Count);
+            foreach (var kvp in valuesDict)
+            {
+                result.Add(new ValueCountTuple(kvp.Key, kvp.Value));
+            }
             result.Sort();
             return result;
         }
