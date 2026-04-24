@@ -247,15 +247,10 @@ namespace Eddy
             opts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
 
             string activeProvider = "CPU";
-            bool directMlSupported = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            bool isMac = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
-            if (effectiveGpu && !directMlSupported)
-            {
-                _session = new InferenceSession(onnxPath, opts);
-                activeProvider = "CPU (DirectML unavailable on this platform)";
-                effectiveGpu = false;
-            }
-            else if (effectiveGpu)
+            if (effectiveGpu && isWindows)
             {
                 try
                 {
@@ -278,11 +273,40 @@ namespace Eddy
                     effectiveGpu = false;
                 }
             }
+            else if (effectiveGpu && isMac)
+            {
+                try
+                {
+                    opts.AppendExecutionProvider_CoreML(0);  // 0 = default flags; CoreML picks ANE/GPU/CPU
+                    _session = new InferenceSession(onnxPath, opts);
+                    activeProvider = "CoreML (ANE/GPU)";
+                }
+                catch (Exception ex)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                        $"CoreML initialization failed ({ex.Message}) — falling back to CPU.");
+
+                    opts.Dispose();
+                    using (var cpuOpts = new SessionOptions())
+                    {
+                        cpuOpts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+                        _session = new InferenceSession(onnxPath, cpuOpts);
+                    }
+                    activeProvider = "CPU (CoreML init failed)";
+                    effectiveGpu = false;
+                }
+            }
+            else if (effectiveGpu)
+            {
+                _session = new InferenceSession(onnxPath, opts);
+                activeProvider = "CPU (no GPU provider on this platform)";
+                effectiveGpu = false;
+            }
             else
             {
                 _session = new InferenceSession(onnxPath, opts);
                 if (_dmlRuntimeFailed)
-                    activeProvider = "CPU (DML runtime fallback)";
+                    activeProvider = "CPU (GPU runtime fallback)";
             }
 
             opts.Dispose();
