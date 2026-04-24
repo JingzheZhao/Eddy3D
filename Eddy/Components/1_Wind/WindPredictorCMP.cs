@@ -830,7 +830,7 @@ namespace Eddy
                 sw.Stop();
 
                     if (kTree.PathCount == 0)
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "ONNX model has a single output channel (U only). For turbulent kinetic energy (k) output, use the advanced U+k model.");
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "ONNX model has a single output channel (U only). For turbulent kinetic energy (k) output, use the advanced U with TKE model.");
 
                     // ── Preview Mesh & Outputs ──
                     // For the preview mesh, we use the results from the FIRST direction to avoid clutter

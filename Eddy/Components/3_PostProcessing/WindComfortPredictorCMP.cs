@@ -206,7 +206,7 @@ namespace Eddy
             if (hasK)
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"GEM mode: g={peakFactor:F1} (auto-set for {(WindComfortHelper.PedCmftMetric)metricInt}), TKE branches={kTree.PathCount}");
             else
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No TKE (k) input connected — using mean wind speed only. Comfort results assume spatially uniform turbulence intensity (~20%). For GEM-based gust-accurate assessment, use the advanced ONNX model that outputs both U and k.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No TKE (k) input connected — using mean wind speed only. Comfort results assume spatially uniform turbulence intensity (~20%). For GEM-based gust-accurate assessment, use the advanced U with TKE model.");
 
             // 3. Pre-scale EPW speeds once
             var epwScaled = new double[numHours];
