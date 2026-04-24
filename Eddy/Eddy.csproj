@@ -36,6 +36,17 @@
     <WriteLinesToFile File="$(GhLinkFile)" Lines="$(TargetDir)" Overwrite="true" />
   </Target>
 
+  <!-- Copy macOS ONNX Runtime native binary from the CPU package for cross-platform support -->
+  <Target Name="CopyMacOSRuntime" AfterTargets="AfterBuild">
+    <PropertyGroup>
+      <OrtCpuPkg>$(NuGetPackageRoot)microsoft.ml.onnxruntime/1.24.4</OrtCpuPkg>
+      <MacOsNativeSrc>$(OrtCpuPkg)\runtimes\osx-arm64\native\libonnxruntime.dylib</MacOsNativeSrc>
+      <MacOsNativeDst>$(TargetDir)runtimes\osx-arm64\native\</MacOsNativeDst>
+    </PropertyGroup>
+    <MakeDir Directories="$(MacOsNativeDst)" Condition="Exists('$(MacOsNativeSrc)')" />
+    <Copy SourceFiles="$(MacOsNativeSrc)" DestinationFolder="$(MacOsNativeDst)" Condition="Exists('$(MacOsNativeSrc)')" SkipUnchangedFiles="true" />
+  </Target>
+
   <!-- Run BuildInstaller.bat on Windows -->
   <Target Name="RunBuildInstaller" AfterTargets="AfterBuild" Condition="'$(OS)' == 'Windows_NT'">
     <Exec Command="call &quot;$(ProjectDir)..\Build\BuildInstaller.bat&quot; &quot;$(TargetDir)&quot;" IgnoreExitCode="true" />
@@ -54,7 +65,7 @@
     <PackageReference Include="Grasshopper" Version="8.27.26019.16021" IncludeAssets="compile;build" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="MedallionShell" Version="1.6.2" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.24.4" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.24.4" ExcludeAssets="native" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.24.4" />
     <PackageReference Include="morelinq" Version="4.4.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
