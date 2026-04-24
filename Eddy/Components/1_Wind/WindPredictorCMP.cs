@@ -54,32 +54,68 @@ namespace Eddy
             if (_resolverRegistered) return;
             _resolverRegistered = true;
 
-            // Find the directory where this assembly (Eddy.dll/gha) lives
             string assemblyDir = Path.GetDirectoryName(
                 Assembly.GetExecutingAssembly().Location);
 
-            // The OnnxRuntime NuGet places native DLLs under runtimes/win-x64/native/
-            string nativeDir = Path.Combine(assemblyDir, "runtimes", "win-x64", "native");
+            string rid = GetRuntimeIdentifier();
+            string nativeDir = Path.Combine(assemblyDir, "runtimes", rid, "native");
 
-            // Register a resolver so the CLR can find onnxruntime.dll
             NativeLibrary.SetDllImportResolver(
                 typeof(InferenceSession).Assembly,
                 (libraryName, assembly, searchPath) =>
                 {
-                    // Try the runtimes subfolder first
-                    string candidate = Path.Combine(nativeDir, libraryName);
-                    if (!candidate.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                        candidate += ".dll";
-
-                    if (File.Exists(candidate))
+                    foreach (string candidate in EnumerateCandidates(nativeDir, libraryName))
                     {
-                        if (NativeLibrary.TryLoad(candidate, out IntPtr handle))
+                        if (File.Exists(candidate)
+                            && NativeLibrary.TryLoad(candidate, out IntPtr handle))
+                        {
                             return handle;
+                        }
                     }
-
-                    // Fall back to default resolution
                     return IntPtr.Zero;
                 });
+        }
+
+        private static string GetRuntimeIdentifier()
+        {
+            string arch = RuntimeInformation.OSArchitecture switch
+            {
+                Architecture.Arm64 => "arm64",
+                Architecture.X64 => "x64",
+                _ => "x64",
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return $"win-{arch}";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) return $"osx-{arch}";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return $"linux-{arch}";
+            return $"win-{arch}";
+        }
+
+        private static IEnumerable<string> EnumerateCandidates(string nativeDir, string libraryName)
+        {
+            yield return Path.Combine(nativeDir, libraryName);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (!libraryName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                    yield return Path.Combine(nativeDir, libraryName + ".dll");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                if (!libraryName.EndsWith(".dylib", StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return Path.Combine(nativeDir, "lib" + libraryName + ".dylib");
+                    yield return Path.Combine(nativeDir, libraryName + ".dylib");
+                }
+            }
+            else
+            {
+                if (!libraryName.EndsWith(".so", StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return Path.Combine(nativeDir, "lib" + libraryName + ".so");
+                    yield return Path.Combine(nativeDir, libraryName + ".so");
+                }
+            }
         }
 
         public WindPredictorCMP()
@@ -211,8 +247,15 @@ namespace Eddy
             opts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
 
             string activeProvider = "CPU";
+            bool directMlSupported = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-            if (effectiveGpu)
+            if (effectiveGpu && !directMlSupported)
+            {
+                _session = new InferenceSession(onnxPath, opts);
+                activeProvider = "CPU (DirectML unavailable on this platform)";
+                effectiveGpu = false;
+            }
+            else if (effectiveGpu)
             {
                 try
                 {
