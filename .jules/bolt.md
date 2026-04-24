@@ -88,3 +88,7 @@
 ## 2025-05-18 - Hoist array allocations out of tight loops in iterative machine learning algorithms
 **Learning:** In highly iterative machine learning loops (such as the KMeans clustering inner loop), allocating new local arrays (like `new double[clusterCount]` and `new double[clusterCount][]`) on every iteration incurs an immense amount of Garbage Collection (GC) pressure. This degrades throughput considerably, especially given the `while` loop runs to convergence (potentially hundreds of iterations).
 **Action:** Always pre-allocate shared workspace arrays outside the main iteration loop. Refactor helper methods (like `CalculateClusteringInformation` and `AssignClustering` in KMeans) to accept these pre-allocated arrays as `ref` or standard parameters. Reuse them by clearing/resetting via `Array.Fill()` or resetting specific indexes, avoiding dynamic object instantiation.
+
+## 2024-05-18 - [Avoid class allocations for small data tuples]
+**Learning:** Legacy C# 7.0 tooling issues (like in sqlproj) previously required using `class` instead of `struct` for small tuple types (e.g., `ValueCountTuple` in JenksFisher calculation). This forced unnecessary heap allocations on every element in memory-sensitive clustering paths.
+**Action:** Refactor these legacy class wrappers into `readonly struct` in .NET 8 and use primitive collections (like `Dictionary<double, int>`) during intermediate counting phases to eliminate unnecessary heap allocations and GC pressure.
