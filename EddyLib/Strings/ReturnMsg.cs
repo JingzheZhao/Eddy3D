@@ -26,7 +26,7 @@ namespace EddyLib.Strings
 
         public static string ParsingFailed()
         {
-            return @"Parsing of the probes failed. This data does not exist yet. Please run the probing component.";
+            return $"Failed to parse residuals. They might be corrupted or in an incompatible format.";
         }
 
         public static string SelectionOutsideWindDirs(int dir)
