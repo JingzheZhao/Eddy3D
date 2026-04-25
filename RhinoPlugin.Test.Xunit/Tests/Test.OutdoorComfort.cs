@@ -616,18 +616,17 @@ namespace RhinoPlugin.Test.Xunit
 
         /// <summary>
         /// Tests the UTCI calculation for known reference conditions.
-        /// TODO: These expected values need to be verified against reference implementation.
         /// </summary>
-        //[RhinoRequiredTheory]
-        //[InlineData(20.0, 50.0, 0.5, 20.0, 19.1)]  // Neutral conditions
-        //[InlineData(30.0, 50.0, 0.5, 30.0, 29.4)]  // Warm conditions
-        //[InlineData(10.0, 50.0, 0.5, 10.0, 7.7)]   // Cool conditions
-        //[InlineData(35.0, 80.0, 1.0, 40.0, 40.6)]  // Hot humid with higher MRT
-        //public void UTCI_CalcUTCI_SingleValue(double ta, double rh, double windSpeed10m, double mrt, double expectedUTCI)
-        //{
-        //    double result = EddyLib.UTCI.CalcUTCI(ta, rh, windSpeed10m, mrt);
-        //    Assert.Equal(expectedUTCI, Math.Round(result, 1));
-        //}
+        [RhinoRequiredTheory]
+        [InlineData(20.0, 50.0, 0.5, 20.0, 19.8)]  // Neutral conditions
+        [InlineData(30.0, 50.0, 0.5, 30.0, 30.4)]  // Warm conditions
+        [InlineData(10.0, 50.0, 0.5, 10.0, 10.6)]   // Cool conditions
+        [InlineData(35.0, 80.0, 1.0, 40.0, 43.8)]  // Hot humid with higher MRT
+        public void UTCI_CalcUTCI_SingleValue(double ta, double rh, double windSpeed10m, double mrt, double expectedUTCI)
+        {
+            double result = EddyLib.UTCI.CalcUTCI(ta, rh, windSpeed10m, mrt);
+            Assert.Equal(expectedUTCI, Math.Round(result, 1));
+        }
 
         /// <summary>
         /// Tests the Binning method that categorizes UTCI values into stress categories.
