@@ -113,7 +113,7 @@ namespace EddyLib.Docker
                 {
                     if (!process.WaitForExit(timeoutMs))
                     {
-                        try { process.Kill(); } catch { }
+                        try { process.Kill(); } catch (Exception ex) { Debug.WriteLine(ex.Message); }
                         return new DockerCommandResult(-1, stdout.ToString(),
                             "Docker command timed out after " + timeoutMs + "ms");
                     }

@@ -96,7 +96,7 @@ namespace EddyLib.Docker
                     process.Start();
                     if (!process.WaitForExit(10000))
                     {
-                        try { process.Kill(); } catch { }
+                        try { process.Kill(); } catch (Exception ex) { Debug.WriteLine(ex.Message); }
                         return false;
                     }
                     return process.ExitCode == 0;
