@@ -145,7 +145,7 @@ namespace EddyLib
 
                     if (!process.WaitForExit(5000))
                     {
-                        try { process.Kill(); } catch { }
+                        try { process.Kill(); } catch (Exception ex) { Debug.WriteLine(ex.Message); }
                         return string.Empty;
                     }
 
