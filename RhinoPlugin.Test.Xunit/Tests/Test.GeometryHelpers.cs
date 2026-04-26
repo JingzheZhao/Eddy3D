@@ -82,5 +82,62 @@ namespace RhinoPlugin.Test.Xunit.Tests
             // 2 points
             Assert.Equal(0, EddyLib.GeometryHelpers.CalculatePolygonArea(new List<Point3d> { new Point3d(0, 0, 0), new Point3d(10, 0, 0) }), 1e-6);
         }
+
+        [RhinoRequiredFact]
+        public void GetDimensionsArray_NullMesh_ThrowsNullReferenceException()
+        {
+            Assert.Throws<NullReferenceException>(() => EddyLib.GeometryHelpers.GetDimensionsArray(null));
+        }
+
+        [RhinoRequiredFact]
+        public void GetDimensionsArray_ValidMesh_ReturnsCorrectDimensions()
+        {
+            // Cube 10x10x10
+            Mesh mesh = new Mesh();
+            mesh.Vertices.Add(0, 0, 0);
+            mesh.Vertices.Add(10, 0, 0);
+            mesh.Vertices.Add(10, 10, 0);
+            mesh.Vertices.Add(0, 10, 0);
+            mesh.Vertices.Add(0, 0, 10);
+            mesh.Vertices.Add(10, 0, 10);
+            mesh.Vertices.Add(10, 10, 10);
+            mesh.Vertices.Add(0, 10, 10);
+
+            // Just need bounding box, no need for faces, but we add them to make it valid
+            mesh.Faces.AddFace(0, 1, 5, 4);
+            mesh.Faces.AddFace(1, 2, 6, 5);
+            mesh.Faces.AddFace(2, 3, 7, 6);
+            mesh.Faces.AddFace(3, 0, 4, 7);
+            mesh.Faces.AddFace(4, 5, 6, 7);
+            mesh.Faces.AddFace(0, 3, 2, 1);
+
+            double[] dims = EddyLib.GeometryHelpers.GetDimensionsArray(mesh);
+
+            Assert.NotNull(dims);
+            Assert.Equal(3, dims.Length);
+            Assert.Equal(10.0, dims[0], 1e-6);
+            Assert.Equal(10.0, dims[1], 1e-6);
+            Assert.Equal(10.0, dims[2], 1e-6);
+        }
+
+        [RhinoRequiredFact]
+        public void GetDimensionsArray_FlatMesh_ReturnsZeroThickness()
+        {
+            // Flat square 10x10 in XY plane
+            Mesh mesh = new Mesh();
+            mesh.Vertices.Add(0, 0, 0);
+            mesh.Vertices.Add(10, 0, 0);
+            mesh.Vertices.Add(10, 10, 0);
+            mesh.Vertices.Add(0, 10, 0);
+            mesh.Faces.AddFace(0, 1, 2, 3);
+
+            double[] dims = EddyLib.GeometryHelpers.GetDimensionsArray(mesh);
+
+            Assert.NotNull(dims);
+            Assert.Equal(3, dims.Length);
+            Assert.Equal(10.0, dims[0], 1e-6);
+            Assert.Equal(10.0, dims[1], 1e-6);
+            Assert.Equal(0.0, dims[2], 1e-6);
+        }
     }
 }
