@@ -50,12 +50,25 @@ namespace Eddy
             pManager.AddBooleanParameter("Fast Mode (MoM)", "Fast", "Use Method of Moments for ultra-fast Weibull estimation. Default = true", GH_ParamAccess.item, true);
             pManager.AddGenericParameter("Boundary Conditions", "BC", "Optional simulation metadata to automate z_ref, z_0, and U_ref_sim.", GH_ParamAccess.item);
             pManager.AddNumberParameter("TKE", "k", "Turbulent kinetic energy (m²/s²) as a DataTree from WindPredictor. When provided, GEM (Gust Equivalent Mean) is used: GEM = U + g × √(2k/3). Peak factor g is auto-set per metric.", GH_ParamAccess.tree);
+            pManager.AddBooleanParameter("Use Roof Level", "UseRoof",
+                "If true, run comfort analysis on roof-level fields (W_roof / k_roof from a 4-channel model) instead of pedestrian-level. " +
+                "Connect W_roof to W and k_roof to k for this to work, OR connect them via the new optional W_roof / k_roof inputs. Default = false.",
+                GH_ParamAccess.item, false);
+            pManager.AddNumberParameter("Wind Speeds (Roof)", "W_roof",
+                "Optional roof-level wind speeds (m/s) DataTree. If provided AND UseRoof=true, these override the W input.",
+                GH_ParamAccess.tree);
+            pManager.AddNumberParameter("TKE (Roof)", "k_roof",
+                "Optional roof-level TKE (m²/s²) DataTree. If provided AND UseRoof=true, these override the k input.",
+                GH_ParamAccess.tree);
 
             var types = Enum.GetNames(typeof(WindComfortHelper.PedCmftMetric));
             Param_Integer param = pManager[6] as Param_Integer;
             for (int i = 0; i < types.Length; i++) param.AddNamedValue(types[i], i);
-            pManager[9].Optional = true;
+            pManager[9].Optional  = true;
             pManager[10].Optional = true;
+            pManager[11].Optional = true;
+            pManager[12].Optional = true;
+            pManager[13].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -85,6 +98,9 @@ namespace Eddy
             bool useMoM = true;
 
             GH_Structure<GH_Number> kTree = null;
+            GH_Structure<GH_Number> wRoofTree = null;
+            GH_Structure<GH_Number> kRoofTree = null;
+            bool useRoof = false;
 
             if (!DA.GetDataList(0, points)) return;
             if (!DA.GetDataTree(1, out speedTree)) return;
@@ -93,6 +109,24 @@ namespace Eddy
             DA.GetData(7, ref interpolate);
             DA.GetData(8, ref useMoM);
             DA.GetDataTree(10, out kTree);
+            DA.GetData(11, ref useRoof);
+            DA.GetDataTree(12, out wRoofTree);
+            DA.GetDataTree(13, out kRoofTree);
+
+            // If user opted into roof-level comfort, swap in roof trees when supplied
+            if (useRoof)
+            {
+                if (wRoofTree != null && wRoofTree.PathCount > 0 && wRoofTree.Branches[0].Count > 0)
+                {
+                    speedTree = wRoofTree;
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Using W_roof input for comfort analysis.");
+                }
+                if (kRoofTree != null && kRoofTree.PathCount > 0 && kRoofTree.Branches[0].Count > 0)
+                {
+                    kTree = kRoofTree;
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Using k_roof input for comfort analysis.");
+                }
+            }
 
             bool hasK = kTree != null && kTree.PathCount > 0 && kTree.Branches[0].Count > 0;
             double peakFactor = GetPeakFactor((WindComfortHelper.PedCmftMetric)metricInt);
@@ -142,7 +176,7 @@ namespace Eddy
             double s0 = speedTree.Branches[0].Count > 0 ? speedTree.Branches[0][0].Value : 0;
             double sN = speedTree.Branches[0].Count > 0 ? speedTree.Branches[0][numProbes - 1].Value : 0;
             double k0 = hasK && kTree.Branches[0].Count > 0 ? kTree.Branches[0][0].Value : -1;
-            string newCacheKey = $"{numProbes}|{numDirs}|{epwPath}|{zRef}|{z0}|{uRefSim}|{interpolate}|{useMoM}|{s0:R}|{sN:R}|{hasK}|{peakFactor:R}|{k0:R}";
+            string newCacheKey = $"{numProbes}|{numDirs}|{epwPath}|{zRef}|{z0}|{uRefSim}|{interpolate}|{useMoM}|{s0:R}|{sN:R}|{hasK}|{peakFactor:R}|{k0:R}|{useRoof}";
  
             // ── Instant return when only metric changed ───────────────────────────
             if (newCacheKey == _cacheKey && _metricCache.TryGetValue(metricInt, out var hit))

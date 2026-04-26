@@ -86,7 +86,8 @@ namespace Eddy
             : base("Wind Predictor", "WindPredict",
                 "Run ONNX wind-field prediction end-to-end.\n" +
                 "Computes SDF, building height, Z_relative, U/Uref, direction features from geometry,\n" +
-                "assembles the 8-channel input tensor, runs ONNX inference, and outputs predicted wind speeds.",
+                "assembles the 8-channel input tensor, runs ONNX inference, and outputs predicted wind speeds.\n" +
+                "Supports legacy 1ch (U), 2ch (U + k) and new 4ch (U + k + U_roof + k_roof) models.",
                 "Eddy3D", "4 | ML")
         {
         }
@@ -139,6 +140,11 @@ namespace Eddy
             pManager.AddBooleanParameter("Show TKE", "ShowK",
                 "Toggle visualization between wind speed (false) and turbulent kinetic energy (true). Affects M, LM, LP, LV outputs. Default = false.",
                 GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Show Roof", "ShowRoof",
+                "Visualize roof-level field instead of pedestrian-level. " +
+                "Only applies when a 4-channel model (U + k + U_roof + k_roof) is loaded. " +
+                "Combine with ShowK: false+false=U, true+false=k, false+true=U_roof, true+true=k_roof. Default = false.",
+                GH_ParamAccess.item, false);
 
             pManager[0].Optional = false;
             pManager[1].Optional = false;
@@ -153,6 +159,7 @@ namespace Eddy
             pManager[10].Optional = true;
             pManager[11].Optional = true;
             pManager[12].Optional = true;
+            pManager[13].Optional = true;
         }
 
         // ──────────────────────────────────────────────
@@ -187,6 +194,14 @@ namespace Eddy
             pManager.AddGenericParameter("Boundary Conditions", "BC",
                 "Automated simulation boundary conditions metadata.",
                 GH_ParamAccess.item);
+            pManager.AddNumberParameter("Wind Speed (Roof)", "W_roof",
+                "Predicted roof-level wind speed (m/s) at each valid input point. " +
+                "Branches represent different wind directions. Empty unless a 4-channel model is used.",
+                GH_ParamAccess.tree);
+            pManager.AddNumberParameter("Turbulent Kinetic Energy (Roof)", "k_roof",
+                "Predicted roof-level turbulent kinetic energy (m²/s²) at each valid input point. " +
+                "Branches represent different wind directions. Empty unless a 4-channel model is used.",
+                GH_ParamAccess.tree);
         }
 
         // ──────────────────────────────────────────────
@@ -476,6 +491,8 @@ namespace Eddy
             DA.GetData(11, ref interpolate);
             bool showK = false;
             DA.GetData(12, ref showK);
+            bool showRoof = false;
+            DA.GetData(13, ref showRoof);
 
             var customColors = GetPalette(paletteName);
 
@@ -724,6 +741,8 @@ namespace Eddy
             // ──────────────────────────────────────────
             var speedTree = new GH_Structure<GH_Number>();
             var kTree = new GH_Structure<GH_Number>();
+            var uRoofTree = new GH_Structure<GH_Number>();
+            var kRoofTree = new GH_Structure<GH_Number>();
             var previewMesh = new Mesh();
             var legendMesh = new Mesh();
             var legendPts = new List<Point3d>();
@@ -780,29 +799,50 @@ namespace Eddy
                         var outputTensor = results.First().AsTensor<float>();
                         int outChannels = outputTensor.Dimensions[1]; // (B, C, H, W)
 
+                        // Output convention (verified against stats.pt for all model variants):
+                        //   U channels (0, 2): trained on U/Uref (Uref-normalized, dimensionless).
+                        //                       Multiply by user-supplied Uref to get m/s.
+                        //   k channels (1, 3): trained on physical k in m²/s². Use as-is.
+
                         var path = new GH_Path(d);
                         var branchSpeeds = new List<GH_Number>();
-                        var branchK = outChannels >= 2 ? new List<GH_Number>() : null;
+                        var branchK     = outChannels >= 2 ? new List<GH_Number>() : null;
+                        var branchURoof = outChannels >= 4 ? new List<GH_Number>() : null;
+                        var branchKRoof = outChannels >= 4 ? new List<GH_Number>() : null;
 
                         // Extract predictions in parallel for maximum speed
                         var rawResults = new double[count];
-                        var rawK = outChannels >= 2 ? new double[count] : null;
+                        var rawK       = outChannels >= 2 ? new double[count] : null;
+                        var rawURoof   = outChannels >= 4 ? new double[count] : null;
+                        var rawKRoof   = outChannels >= 4 ? new double[count] : null;
                         System.Threading.Tasks.Parallel.For(0, count, i =>
                         {
                             if (!validMask[i] || isCulledArr[i])
                             {
                                 rawResults[i] = double.NaN;
-                                if (rawK != null) rawK[i] = double.NaN;
+                                if (rawK     != null) rawK[i]     = double.NaN;
+                                if (rawURoof != null) rawURoof[i] = double.NaN;
+                                if (rawKRoof != null) rawKRoof[i] = double.NaN;
                                 return;
                             }
 
                             float raw = outputTensor[0, 0, idxYArr[i], idxXArr[i]];
-                            rawResults[i] = Math.Max(raw * locURef, 0.0);
+                            rawResults[i] = Math.Max(raw * locURef, 0.0);   // U/Uref → m/s
 
                             if (rawK != null)
                             {
                                 float rawKVal = outputTensor[0, 1, idxYArr[i], idxXArr[i]];
-                                rawK[i] = Math.Max(rawKVal, 0.0);
+                                rawK[i] = Math.Max(rawKVal, 0.0);            // already m²/s²
+                            }
+                            if (rawURoof != null)
+                            {
+                                float rawUR = outputTensor[0, 2, idxYArr[i], idxXArr[i]];
+                                rawURoof[i] = Math.Max(rawUR * locURef, 0.0); // U_roof/Uref → m/s
+                            }
+                            if (rawKRoof != null)
+                            {
+                                float rawKR = outputTensor[0, 3, idxYArr[i], idxXArr[i]];
+                                rawKRoof[i] = Math.Max(rawKR, 0.0);          // already m²/s²
                             }
                         });
 
@@ -817,13 +857,15 @@ namespace Eddy
                                 outOriginalIndex.Add(i);
                             }
                             branchSpeeds.Add(new GH_Number(Math.Round(rawResults[i], 4)));
-                            if (branchK != null)
-                                branchK.Add(new GH_Number(Math.Round(rawK[i], 6)));
+                            if (branchK     != null) branchK.Add(new GH_Number(Math.Round(rawK[i], 6)));
+                            if (branchURoof != null) branchURoof.Add(new GH_Number(Math.Round(rawURoof[i], 4)));
+                            if (branchKRoof != null) branchKRoof.Add(new GH_Number(Math.Round(rawKRoof[i], 6)));
                         }
 
                         speedTree.AppendRange(branchSpeeds, path);
-                        if (branchK != null)
-                            kTree.AppendRange(branchK, path);
+                        if (branchK     != null) kTree.AppendRange(branchK, path);
+                        if (branchURoof != null) uRoofTree.AppendRange(branchURoof, path);
+                        if (branchKRoof != null) kRoofTree.AppendRange(branchKRoof, path);
                         coordsCollected = true;
                     }
                 }
@@ -831,25 +873,53 @@ namespace Eddy
 
                     if (kTree.PathCount == 0)
                         AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "ONNX model has a single output channel (U only). For turbulent kinetic energy (k) output, use the advanced U with TKE model.");
+                    if (showRoof && uRoofTree.PathCount == 0)
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Show Roof requested but the ONNX model is not 4-channel — falling back to pedestrian-level visualization.");
 
                     // ── Preview Mesh & Outputs ──
-                    // For the preview mesh, we use the results from the FIRST direction to avoid clutter
-                    // and keep logic manageable.
-                    // When ShowK is true and k data is available, visualize TKE instead of wind speed.
-                    bool vizK = showK && kTree.PathCount > 0 && kTree.Branches[0].Count > 0;
-                    var vizTree = vizK ? kTree : speedTree;
+                    // Pedestrian-level mesh is ALWAYS shown (driven by ShowK).
+                    // ShowRoof adds an *additional* mesh at the actual building rooftop heights,
+                    // only on building footprints. It does not replace or hide the pedestrian mesh.
+                    bool roofAvailable = uRoofTree.PathCount > 0 && uRoofTree.Branches[0].Count > 0;
+                    bool kAvailable    = kTree.PathCount > 0 && kTree.Branches[0].Count > 0;
+                    bool vizK    = showK && kAvailable;
+
+                    GH_Structure<GH_Number> vizTree = vizK ? kTree : speedTree;
                     string vizUnit = vizK ? "m²/s²" : "m/s";
 
-                    if (windDirs.Count == 1)
+                    // Optional roof overlay (added on top of pedestrian mesh at correct world-Z)
+                    GH_Structure<GH_Number> roofVizTree = null;
+                    if (showRoof && roofAvailable)
+                        roofVizTree = vizK ? kRoofTree : uRoofTree;
+
+                    // If user requested TKE but the model has no k output, skip visualization entirely.
+                    bool skipViz = showK && !kAvailable;
+                    if (skipViz)
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                            "Show TKE is enabled but this ONNX model does not output TKE — visualization mesh skipped. Use a U+k or U+k+roof model for TKE visualization.");
+
+                    if (windDirs.Count == 1 && !skipViz)
                     {
                         double validMin = double.MaxValue, validMax = double.MinValue;
                         if (domainProvided) { validMin = customDomain.Min; validMax = customDomain.Max; }
-                        else if (vizTree.PathCount > 0)
+                        else
                         {
-                            foreach (var val in vizTree.Branches[0])
+                            if (vizTree.PathCount > 0)
                             {
-                                if (val.Value < validMin) validMin = val.Value;
-                                if (val.Value > validMax) validMax = val.Value;
+                                foreach (var val in vizTree.Branches[0])
+                                {
+                                    if (val.Value < validMin) validMin = val.Value;
+                                    if (val.Value > validMax) validMax = val.Value;
+                                }
+                            }
+                            // Include roof values in the range so colors stay consistent across both meshes
+                            if (roofVizTree != null && roofVizTree.PathCount > 0)
+                            {
+                                foreach (var val in roofVizTree.Branches[0])
+                                {
+                                    if (val.Value < validMin) validMin = val.Value;
+                                    if (val.Value > validMax) validMax = val.Value;
+                                }
                             }
                         }
 
@@ -917,14 +987,51 @@ namespace Eddy
                                 previewMesh.Vertices.Add(pt.X + halfX, pt.Y - halfY, pt.Z);
                                 previewMesh.Vertices.Add(pt.X + halfX, pt.Y + halfY, pt.Z);
                                 previewMesh.Vertices.Add(pt.X - halfX, pt.Y + halfY, pt.Z);
-                                
+
                                 previewMesh.Faces.AddFace(vc, vc + 1, vc + 2, vc + 3);
-                                
+
                                 previewMesh.VertexColors.Add(c);
                                 previewMesh.VertexColors.Add(c);
                                 previewMesh.VertexColors.Add(c);
                                 previewMesh.VertexColors.Add(c);
                             }
+                        }
+
+                        // ── Optional roof-level overlay ──
+                        // Append small tiles at each building's actual rooftop world-Z, only where
+                        // a building footprint exists. Pedestrian mesh below stays untouched.
+                        if (roofVizTree != null && roofVizTree.PathCount > 0)
+                        {
+                            var roofVals = roofVizTree.Branches[0];
+                            double halfXr = X_STEP / 2.0;
+                            double halfYr = Y_STEP / 2.0;
+                            int nRoofTiles = 0;
+                            for (int j = 0; j < outX.Count && j < roofVals.Count; j++)
+                            {
+                                int origIdx = outOriginalIndex[j];
+                                double rawRoofZ = bldgHeightArr[origIdx];     // absolute world Z of the roof
+                                if (rawRoofZ <= 0.0) continue;                  // not on a building footprint
+                                double zRoof = rawRoofZ + locPedestrianLevel;   // lift by the same pedestrian-level offset (1.8 m default)
+
+                                double w = roofVals[j].Value;
+                                double t = validMax > validMin ? (w - validMin) / (validMax - validMin) : 0.0;
+                                Color cr = GetColorFromPalette(t, customColors);
+
+                                Point3d ptR = points[origIdx];
+                                int vcR = previewMesh.Vertices.Count;
+                                previewMesh.Vertices.Add(ptR.X - halfXr, ptR.Y - halfYr, zRoof);
+                                previewMesh.Vertices.Add(ptR.X + halfXr, ptR.Y - halfYr, zRoof);
+                                previewMesh.Vertices.Add(ptR.X + halfXr, ptR.Y + halfYr, zRoof);
+                                previewMesh.Vertices.Add(ptR.X - halfXr, ptR.Y + halfYr, zRoof);
+                                previewMesh.Faces.AddFace(vcR, vcR + 1, vcR + 2, vcR + 3);
+                                previewMesh.VertexColors.Add(cr);
+                                previewMesh.VertexColors.Add(cr);
+                                previewMesh.VertexColors.Add(cr);
+                                previewMesh.VertexColors.Add(cr);
+                                nRoofTiles++;
+                            }
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                                $"Roof overlay: {nRoofTiles} tiles at building roof heights ({(vizK ? "k_roof" : "U_roof")}).");
                         }
 
                         if (validMax > validMin && outX.Count > 0)
@@ -981,10 +1088,15 @@ namespace Eddy
                     bcMetadata.SimulatedDirections = new System.Collections.Generic.List<double>(windDirs);
                     DA.SetData(8, bcMetadata);
 
-                    Message = $"Dirs: {windDirs.Count} | {sw.ElapsedMilliseconds} ms";
+                    // New roof-level outputs (4-channel models only — empty trees otherwise)
+                    DA.SetDataTree(9,  uRoofTree);
+                    DA.SetDataTree(10, kRoofTree);
+
+                    int activeChannels = uRoofTree.PathCount > 0 ? 4 : (kTree.PathCount > 0 ? 2 : 1);
+                    Message = $"Dirs: {windDirs.Count} | {activeChannels}ch | {sw.ElapsedMilliseconds} ms";
 
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
-                        $"Inference complete for {windDirs.Count} directions in {sw.ElapsedMilliseconds} ms.");
+                        $"Inference complete for {windDirs.Count} directions ({activeChannels}-channel model) in {sw.ElapsedMilliseconds} ms.");
             }
             catch (Exception ex)
             {
