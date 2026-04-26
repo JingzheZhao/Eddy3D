@@ -64,7 +64,14 @@ namespace EddyLib.UI
                 else
                 {
                     // Fallback using dynamic to bypass compilation dependency on System.Windows.Forms.Control
-                    try { ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(sender, "GH_Hand"); } catch { }
+                    try
+                    {
+                        ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(sender, "GH_Hand");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Failed to attach cursor via dynamic fallback: {ex.Message}");
+                    }
                 }
                 return GH_ObjectResponse.Handled;
             }
