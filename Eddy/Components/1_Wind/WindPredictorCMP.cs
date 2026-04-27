@@ -813,8 +813,134 @@ namespace Eddy
             {
                 var session = GetSession(onnxPath, useGpu);
                 string inputName = session.InputMetadata.Keys.First();
+                var inputMeta = session.InputMetadata[inputName];
+                int modelBatchDim = inputMeta.Dimensions.Length > 0 ? inputMeta.Dimensions[0] : 1;
+                bool batchSupported = windDirs.Count > 1
+                    && (modelBatchDim == -1 || modelBatchDim >= windDirs.Count);
+
                 var sw = System.Diagnostics.Stopwatch.StartNew();
-                
+
+                bool batchedRan = false;
+                int batchOutChannels = 1;
+                double[][] batchRaw = null;
+                double[][] batchK = null;
+
+                if (batchSupported)
+                {
+                    try
+                    {
+                        int N = windDirs.Count;
+                        var batchTensor = new DenseTensor<float>(new[] { N, X_CH, IMG_H, IMG_W });
+
+                        // Copy channels 0-5 from the per-point feature tensor into every batch slice
+                        // (cheap bulk copy via Span); then write per-direction sin/cos into channels 6, 7.
+                        int channelSize = IMG_H * IMG_W;
+                        int featureBlock = 6 * channelSize;
+                        int frameSize = X_CH * channelSize;
+                        var baseFeatures = tensor.Buffer.Span.Slice(0, featureBlock);
+                        var batchSpan = batchTensor.Buffer.Span;
+
+                        for (int d = 0; d < N; d++)
+                        {
+                            baseFeatures.CopyTo(batchSpan.Slice(d * frameSize, featureBlock));
+
+                            double rad = windDirs[d] * Math.PI / 180.0;
+                            float dSin = SafeFloat(Math.Round(Clamp(-Math.Sin(rad), -1.0, 1.0), 6));
+                            float dCos = SafeFloat(Math.Round(Clamp(-Math.Cos(rad), -1.0, 1.0), 6));
+
+                            int ch6Off = d * frameSize + 6 * channelSize;
+                            int ch7Off = d * frameSize + 7 * channelSize;
+
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (!validMask[i]) continue;
+                                int p = idxYArr[i] * IMG_W + idxXArr[i];
+                                batchSpan[ch6Off + p] = dSin;
+                                batchSpan[ch7Off + p] = dCos;
+                            }
+                        }
+
+                        var batchedInputs = new List<NamedOnnxValue>
+                        {
+                            NamedOnnxValue.CreateFromTensor(inputName, batchTensor),
+                        };
+
+                        using var results = session.Run(batchedInputs);
+                        var outputTensor = results.First().AsTensor<float>();
+                        batchOutChannels = outputTensor.Dimensions[1];
+
+                        batchRaw = new double[N][];
+                        batchK = batchOutChannels >= 2 ? new double[N][] : null;
+
+                        for (int d = 0; d < N; d++)
+                        {
+                            batchRaw[d] = new double[count];
+                            if (batchK != null) batchK[d] = new double[count];
+                        }
+
+                        // Extract every (direction, point) prediction in parallel
+                        System.Threading.Tasks.Parallel.For(0, N, d =>
+                        {
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (!validMask[i] || isCulledArr[i])
+                                {
+                                    batchRaw[d][i] = double.NaN;
+                                    if (batchK != null) batchK[d][i] = double.NaN;
+                                    continue;
+                                }
+                                float raw = outputTensor[d, 0, idxYArr[i], idxXArr[i]];
+                                batchRaw[d][i] = Math.Max(raw * locURef, 0.0);
+                                if (batchK != null)
+                                {
+                                    float rawKVal = outputTensor[d, 1, idxYArr[i], idxXArr[i]];
+                                    batchK[d][i] = Math.Max(rawKVal, 0.0);
+                                }
+                            }
+                        });
+
+                        batchedRan = true;
+                    }
+                    catch (Exception batchEx)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                            $"Batched inference unavailable for this model ({batchEx.Message}); using per-direction calls.");
+                    }
+                }
+
+                if (batchedRan)
+                {
+                    int outChannels = batchOutChannels;
+                    for (int d = 0; d < windDirs.Count; d++)
+                    {
+                        var path = new GH_Path(d);
+                        var branchSpeeds = new List<GH_Number>();
+                        var branchK = batchK != null ? new List<GH_Number>() : null;
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            if (double.IsNaN(batchRaw[d][i])) continue;
+
+                            if (!coordsCollected)
+                            {
+                                outX.Add(xCoordsArr[i]);
+                                outY.Add(yCoordsArr[i]);
+                                outOriginalIndex.Add(i);
+                            }
+                            branchSpeeds.Add(new GH_Number(Math.Round(batchRaw[d][i], 4)));
+                            if (branchK != null)
+                                branchK.Add(new GH_Number(Math.Round(batchK[d][i], 6)));
+                        }
+
+                        speedTree.AppendRange(branchSpeeds, path);
+                        if (branchK != null)
+                            kTree.AppendRange(branchK, path);
+                        coordsCollected = true;
+                    }
+                }
+                else
+                {
+
                 var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(inputName, tensor) };
 
                 for (int d = 0; d < windDirs.Count; d++)
@@ -903,6 +1029,7 @@ namespace Eddy
                         coordsCollected = true;
                     }
                 }
+                } // end of else (per-direction sequential path)
                 sw.Stop();
 
                     if (kTree.PathCount == 0)
