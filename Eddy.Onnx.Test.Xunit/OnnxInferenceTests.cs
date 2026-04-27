@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -121,7 +122,11 @@ public class OnnxInferenceTests
 
         if (useCoreML)
         {
-            opts.AppendExecutionProvider_CoreML(CoreMLFlags.COREML_FLAG_CREATE_MLPROGRAM);
+            opts.AppendExecutionProvider("CoreML", new Dictionary<string, string>
+            {
+                { "ModelFormat", "MLProgram" },
+                { "MLComputeUnits", "CPUAndGPU" },
+            });
         }
 
         using var session = new InferenceSession(modelPath, opts);

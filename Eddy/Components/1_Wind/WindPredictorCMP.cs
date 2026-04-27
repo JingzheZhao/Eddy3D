@@ -277,12 +277,18 @@ namespace Eddy
             {
                 try
                 {
-                    // COREML_FLAG_CREATE_MLPROGRAM — newer ML Program format
-                    // (better op coverage on macOS 12+; first run for a given model
-                    // pays a one-time compile cost cached under ~/Library/Caches/)
-                    opts.AppendExecutionProvider_CoreML(CoreMLFlags.COREML_FLAG_CREATE_MLPROGRAM);
+                    // ML Program format (better op coverage on macOS 12+; first run
+                    // for a given model pays a one-time compile cost cached under
+                    // ~/Library/Caches/). MLComputeUnits=CPUAndGPU forces the work
+                    // off the Neural Engine and onto CPU+GPU.
+                    var coreMlOptions = new Dictionary<string, string>
+                    {
+                        { "ModelFormat", "MLProgram" },
+                        { "MLComputeUnits", "CPUAndGPU" },
+                    };
+                    opts.AppendExecutionProvider("CoreML", coreMlOptions);
                     _session = new InferenceSession(onnxPath, opts);
-                    activeProvider = "CoreML (ML Program, ANE/GPU)";
+                    activeProvider = "CoreML (ML Program, GPU)";
                 }
                 catch (Exception ex)
                 {
