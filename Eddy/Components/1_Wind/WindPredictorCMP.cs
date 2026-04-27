@@ -54,32 +54,68 @@ namespace Eddy
             if (_resolverRegistered) return;
             _resolverRegistered = true;
 
-            // Find the directory where this assembly (Eddy.dll/gha) lives
             string assemblyDir = Path.GetDirectoryName(
                 Assembly.GetExecutingAssembly().Location);
 
-            // The OnnxRuntime NuGet places native DLLs under runtimes/win-x64/native/
-            string nativeDir = Path.Combine(assemblyDir, "runtimes", "win-x64", "native");
+            string rid = GetRuntimeIdentifier();
+            string nativeDir = Path.Combine(assemblyDir, "runtimes", rid, "native");
 
-            // Register a resolver so the CLR can find onnxruntime.dll
             NativeLibrary.SetDllImportResolver(
                 typeof(InferenceSession).Assembly,
                 (libraryName, assembly, searchPath) =>
                 {
-                    // Try the runtimes subfolder first
-                    string candidate = Path.Combine(nativeDir, libraryName);
-                    if (!candidate.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                        candidate += ".dll";
-
-                    if (File.Exists(candidate))
+                    foreach (string candidate in EnumerateCandidates(nativeDir, libraryName))
                     {
-                        if (NativeLibrary.TryLoad(candidate, out IntPtr handle))
+                        if (File.Exists(candidate)
+                            && NativeLibrary.TryLoad(candidate, out IntPtr handle))
+                        {
                             return handle;
+                        }
                     }
-
-                    // Fall back to default resolution
                     return IntPtr.Zero;
                 });
+        }
+
+        private static string GetRuntimeIdentifier()
+        {
+            string arch = RuntimeInformation.OSArchitecture switch
+            {
+                Architecture.Arm64 => "arm64",
+                Architecture.X64 => "x64",
+                _ => "x64",
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return $"win-{arch}";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) return $"osx-{arch}";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return $"linux-{arch}";
+            return $"win-{arch}";
+        }
+
+        private static IEnumerable<string> EnumerateCandidates(string nativeDir, string libraryName)
+        {
+            yield return Path.Combine(nativeDir, libraryName);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (!libraryName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                    yield return Path.Combine(nativeDir, libraryName + ".dll");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                if (!libraryName.EndsWith(".dylib", StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return Path.Combine(nativeDir, "lib" + libraryName + ".dylib");
+                    yield return Path.Combine(nativeDir, libraryName + ".dylib");
+                }
+            }
+            else
+            {
+                if (!libraryName.EndsWith(".so", StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return Path.Combine(nativeDir, "lib" + libraryName + ".so");
+                    yield return Path.Combine(nativeDir, libraryName + ".so");
+                }
+            }
         }
 
         public WindPredictorCMP()
@@ -226,8 +262,10 @@ namespace Eddy
             opts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
 
             string activeProvider = "CPU";
+            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            bool isMac = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
-            if (effectiveGpu)
+            if (effectiveGpu && isWindows)
             {
                 try
                 {
@@ -250,11 +288,49 @@ namespace Eddy
                     effectiveGpu = false;
                 }
             }
+            else if (effectiveGpu && isMac)
+            {
+                try
+                {
+                    // ML Program format (better op coverage on macOS 12+; first run
+                    // for a given model pays a one-time compile cost cached under
+                    // ~/Library/Caches/). MLComputeUnits=CPUAndGPU forces the work
+                    // off the Neural Engine and onto CPU+GPU.
+                    var coreMlOptions = new Dictionary<string, string>
+                    {
+                        { "ModelFormat", "MLProgram" },
+                        { "MLComputeUnits", "CPUAndGPU" },
+                    };
+                    opts.AppendExecutionProvider("CoreML", coreMlOptions);
+                    _session = new InferenceSession(onnxPath, opts);
+                    activeProvider = "CoreML (ML Program, GPU)";
+                }
+                catch (Exception ex)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                        $"CoreML initialization failed ({ex.Message}) — falling back to CPU.");
+
+                    opts.Dispose();
+                    using (var cpuOpts = new SessionOptions())
+                    {
+                        cpuOpts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+                        _session = new InferenceSession(onnxPath, cpuOpts);
+                    }
+                    activeProvider = "CPU (CoreML init failed)";
+                    effectiveGpu = false;
+                }
+            }
+            else if (effectiveGpu)
+            {
+                _session = new InferenceSession(onnxPath, opts);
+                activeProvider = "CPU (no GPU provider on this platform)";
+                effectiveGpu = false;
+            }
             else
             {
                 _session = new InferenceSession(onnxPath, opts);
                 if (_dmlRuntimeFailed)
-                    activeProvider = "CPU (DML runtime fallback)";
+                    activeProvider = "CPU (GPU runtime fallback)";
             }
 
             opts.Dispose();
@@ -752,123 +828,147 @@ namespace Eddy
             var outOriginalIndex = new List<int>();
             bool coordsCollected = false;
 
+            string inferenceMode = "?";
+            long inferenceOnlyMs = 0;
+            int inferenceThreads = 1;
+
             try
             {
                 var session = GetSession(onnxPath, useGpu);
                 string inputName = session.InputMetadata.Keys.First();
-                var sw = System.Diagnostics.Stopwatch.StartNew();
-                
-                var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(inputName, tensor) };
 
-                for (int d = 0; d < windDirs.Count; d++)
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+
+                int N = windDirs.Count;
+                int channelSize = IMG_H * IMG_W;
+                int featureBlock = 6 * channelSize;
+                var baseFeatures = tensor.Buffer.Span.Slice(0, featureBlock);
+
+                // Pre-build one input tensor per direction (sin/cos pre-baked into channels 6, 7).
+                // This lets multiple threads call session.Run() concurrently without sharing tensor state.
+                var perDirInputs = new List<NamedOnnxValue>[N];
+                for (int d = 0; d < N; d++)
                 {
-                    double currentDir = windDirs[d];
-                    double rad = currentDir * Math.PI / 180.0;
+                    var t = new DenseTensor<float>(new[] { 1, X_CH, IMG_H, IMG_W });
+                    var span = t.Buffer.Span;
+                    baseFeatures.CopyTo(span.Slice(0, featureBlock));
+
+                    double rad = windDirs[d] * Math.PI / 180.0;
                     float dSin = SafeFloat(Math.Round(Clamp(-Math.Sin(rad), -1.0, 1.0), 6));
                     float dCos = SafeFloat(Math.Round(Clamp(-Math.Cos(rad), -1.0, 1.0), 6));
 
+                    int ch6Off = 6 * channelSize;
+                    int ch7Off = 7 * channelSize;
                     for (int i = 0; i < count; i++)
                     {
                         if (!validMask[i]) continue;
-                        tensor[0, 6, idxYArr[i], idxXArr[i]] = dSin;
-                        tensor[0, 7, idxYArr[i], idxXArr[i]] = dCos;
+                        int p = idxYArr[i] * IMG_W + idxXArr[i];
+                        span[ch6Off + p] = dSin;
+                        span[ch7Off + p] = dCos;
                     }
-                        
-                    Microsoft.ML.OnnxRuntime.IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results;
-                    try
+
+                    perDirInputs[d] = new List<NamedOnnxValue>
                     {
-                        results = session.Run(inputs);
-                    }
-                    catch (Exception runEx) when (_cachedUseGpu && !_dmlRuntimeFailed)
+                        NamedOnnxValue.CreateFromTensor(inputName, t),
+                    };
+                }
+
+                // Run inference for all directions in parallel. InferenceSession.Run is thread-safe.
+                var perDirRaw   = new double[N][];
+                var perDirK     = new double[N][];
+                var perDirURoof = new double[N][];
+                var perDirKRoof = new double[N][];
+                int outChannels = 1;
+                int dop = Math.Min(N, Math.Max(1, Environment.ProcessorCount));
+                inferenceThreads = dop;
+                inferenceMode = N > 1 ? $"parallel-per-direction × {dop}" : "single-direction";
+
+                var inferSw = System.Diagnostics.Stopwatch.StartNew();
+                System.Threading.Tasks.Parallel.For(0, N,
+                    new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = dop },
+                    d =>
                     {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
-                            $"DirectML runtime error — retrying with CPU: {runEx.Message}");
-                        _dmlRuntimeFailed = true;
-                        _session?.Dispose();
-                        _session = null;
-                        session = GetSession(onnxPath, useGpu);
-                        inputName = session.InputMetadata.Keys.First();
-                        
-                        var newTensor = NamedOnnxValue.CreateFromTensor(inputName, tensor);
-                        inputs[0] = newTensor;
-                        results = session.Run(inputs);
-                    }
-                    
-                    using (results)
-                    {
+                        using var results = session.Run(perDirInputs[d]);
                         var outputTensor = results.First().AsTensor<float>();
-                        int outChannels = outputTensor.Dimensions[1]; // (B, C, H, W)
+                        int oc = outputTensor.Dimensions[1];
+                        if (d == 0) outChannels = oc;
 
                         // Output convention (verified against stats.pt for all model variants):
                         //   U channels (0, 2): trained on U/Uref (Uref-normalized, dimensionless).
                         //                       Multiply by user-supplied Uref to get m/s.
                         //   k channels (1, 3): trained on physical k in m²/s². Use as-is.
-
-                        var path = new GH_Path(d);
-                        var branchSpeeds = new List<GH_Number>();
-                        var branchK     = outChannels >= 2 ? new List<GH_Number>() : null;
-                        var branchURoof = outChannels >= 4 ? new List<GH_Number>() : null;
-                        var branchKRoof = outChannels >= 4 ? new List<GH_Number>() : null;
-
-                        // Extract predictions in parallel for maximum speed
-                        var rawResults = new double[count];
-                        var rawK       = outChannels >= 2 ? new double[count] : null;
-                        var rawURoof   = outChannels >= 4 ? new double[count] : null;
-                        var rawKRoof   = outChannels >= 4 ? new double[count] : null;
-                        System.Threading.Tasks.Parallel.For(0, count, i =>
+                        var raw      = new double[count];
+                        var rawK     = oc >= 2 ? new double[count] : null;
+                        var rawURoof = oc >= 4 ? new double[count] : null;
+                        var rawKRoof = oc >= 4 ? new double[count] : null;
+                        for (int i = 0; i < count; i++)
                         {
                             if (!validMask[i] || isCulledArr[i])
                             {
-                                rawResults[i] = double.NaN;
+                                raw[i] = double.NaN;
                                 if (rawK     != null) rawK[i]     = double.NaN;
                                 if (rawURoof != null) rawURoof[i] = double.NaN;
                                 if (rawKRoof != null) rawKRoof[i] = double.NaN;
-                                return;
+                                continue;
                             }
-
-                            float raw = outputTensor[0, 0, idxYArr[i], idxXArr[i]];
-                            rawResults[i] = Math.Max(raw * locURef, 0.0);   // U/Uref → m/s
-
+                            float r = outputTensor[0, 0, idxYArr[i], idxXArr[i]];
+                            raw[i] = Math.Max(r * locURef, 0.0);   // U/Uref → m/s
                             if (rawK != null)
                             {
-                                float rawKVal = outputTensor[0, 1, idxYArr[i], idxXArr[i]];
-                                rawK[i] = Math.Max(rawKVal, 0.0);            // already m²/s²
+                                float rK = outputTensor[0, 1, idxYArr[i], idxXArr[i]];
+                                rawK[i] = Math.Max(rK, 0.0);        // already m²/s²
                             }
                             if (rawURoof != null)
                             {
-                                float rawUR = outputTensor[0, 2, idxYArr[i], idxXArr[i]];
-                                rawURoof[i] = Math.Max(rawUR * locURef, 0.0); // U_roof/Uref → m/s
+                                float rUR = outputTensor[0, 2, idxYArr[i], idxXArr[i]];
+                                rawURoof[i] = Math.Max(rUR * locURef, 0.0); // U_roof/Uref → m/s
                             }
                             if (rawKRoof != null)
                             {
-                                float rawKR = outputTensor[0, 3, idxYArr[i], idxXArr[i]];
-                                rawKRoof[i] = Math.Max(rawKR, 0.0);          // already m²/s²
+                                float rKR = outputTensor[0, 3, idxYArr[i], idxXArr[i]];
+                                rawKRoof[i] = Math.Max(rKR, 0.0);   // already m²/s²
                             }
-                        });
-
-                        for (int i = 0; i < count; i++)
-                        {
-                            if (double.IsNaN(rawResults[i])) continue;
-
-                            if (!coordsCollected)
-                            {
-                                outX.Add(xCoordsArr[i]);
-                                outY.Add(yCoordsArr[i]);
-                                outOriginalIndex.Add(i);
-                            }
-                            branchSpeeds.Add(new GH_Number(Math.Round(rawResults[i], 4)));
-                            if (branchK     != null) branchK.Add(new GH_Number(Math.Round(rawK[i], 6)));
-                            if (branchURoof != null) branchURoof.Add(new GH_Number(Math.Round(rawURoof[i], 4)));
-                            if (branchKRoof != null) branchKRoof.Add(new GH_Number(Math.Round(rawKRoof[i], 6)));
                         }
+                        perDirRaw[d]   = raw;
+                        perDirK[d]     = rawK;
+                        perDirURoof[d] = rawURoof;
+                        perDirKRoof[d] = rawKRoof;
+                    });
+                inferSw.Stop();
+                inferenceOnlyMs = inferSw.ElapsedMilliseconds;
 
-                        speedTree.AppendRange(branchSpeeds, path);
-                        if (branchK     != null) kTree.AppendRange(branchK, path);
-                        if (branchURoof != null) uRoofTree.AppendRange(branchURoof, path);
-                        if (branchKRoof != null) kRoofTree.AppendRange(branchKRoof, path);
-                        coordsCollected = true;
+                // Sequentially build the GH trees (GH_Structure mutation is not thread-safe).
+                for (int d = 0; d < N; d++)
+                {
+                    var path = new GH_Path(d);
+                    var branchSpeeds = new List<GH_Number>();
+                    var branchK     = perDirK[d]     != null ? new List<GH_Number>() : null;
+                    var branchURoof = perDirURoof[d] != null ? new List<GH_Number>() : null;
+                    var branchKRoof = perDirKRoof[d] != null ? new List<GH_Number>() : null;
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (double.IsNaN(perDirRaw[d][i])) continue;
+
+                        if (!coordsCollected)
+                        {
+                            outX.Add(xCoordsArr[i]);
+                            outY.Add(yCoordsArr[i]);
+                            outOriginalIndex.Add(i);
+                        }
+                        branchSpeeds.Add(new GH_Number(Math.Round(perDirRaw[d][i], 4)));
+                        if (branchK     != null) branchK.Add(new GH_Number(Math.Round(perDirK[d][i], 6)));
+                        if (branchURoof != null) branchURoof.Add(new GH_Number(Math.Round(perDirURoof[d][i], 4)));
+                        if (branchKRoof != null) branchKRoof.Add(new GH_Number(Math.Round(perDirKRoof[d][i], 6)));
                     }
+
+                    speedTree.AppendRange(branchSpeeds, path);
+                    if (branchK     != null) kTree.AppendRange(branchK, path);
+                    if (branchURoof != null) uRoofTree.AppendRange(branchURoof, path);
+                    if (branchKRoof != null) kRoofTree.AppendRange(branchKRoof, path);
+                    coordsCollected = true;
                 }
+
                 sw.Stop();
 
                     if (kTree.PathCount == 0)
@@ -1095,8 +1195,11 @@ namespace Eddy
                     int activeChannels = uRoofTree.PathCount > 0 ? 4 : (kTree.PathCount > 0 ? 2 : 1);
                     Message = $"Dirs: {windDirs.Count} | {activeChannels}ch | {sw.ElapsedMilliseconds} ms";
 
+                    long avgPerDir = sw.ElapsedMilliseconds / Math.Max(1, windDirs.Count);
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
-                        $"Inference complete for {windDirs.Count} directions ({activeChannels}-channel model) in {sw.ElapsedMilliseconds} ms.");
+                        $"Inference complete for {windDirs.Count} directions ({activeChannels}-channel model) " +
+                        $"in {sw.ElapsedMilliseconds} ms (mode: {inferenceMode}, inference-only: {inferenceOnlyMs} ms, " +
+                        $"avg: {avgPerDir} ms/dir, threads: {inferenceThreads}).");
             }
             catch (Exception ex)
             {
