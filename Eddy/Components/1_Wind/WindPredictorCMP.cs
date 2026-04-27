@@ -35,11 +35,12 @@ namespace Eddy
         private const double Y_STEP = 2.0;
 
         // ── Cached ONNX session ──
-        private InferenceSession _session;
+        private InferenceSession[] _sessions;
         private string _cachedOnnxPath;
         private bool _cachedUseGpu;
         // Set to true when DML fails at inference time so future runs skip DML for this model
         private bool _dmlRuntimeFailed = false;
+        private bool _isDirectMLActive = false;
 
         // ── Native library resolver (registered once) ──
         private static bool _resolverRegistered;
@@ -243,111 +244,154 @@ namespace Eddy
         // ──────────────────────────────────────────────
         // ONNX session management
         // ──────────────────────────────────────────────
-        private InferenceSession GetSession(string onnxPath, bool useGpu)
+        private InferenceSession[] GetSessions(string onnxPath, bool useGpu, int dop)
         {
             // If DML failed at runtime for this model, treat as CPU-only
             bool effectiveGpu = useGpu && !_dmlRuntimeFailed;
-
-            if (_session != null && _cachedOnnxPath == onnxPath && _cachedUseGpu == effectiveGpu)
-                return _session;
-
-            _session?.Dispose();
-            _session = null;
-
-            // Reset DML-failed flag when a new model is loaded
-            if (_cachedOnnxPath != onnxPath)
-                _dmlRuntimeFailed = false;
-
-            var opts = new SessionOptions();
-            opts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-
-            string activeProvider = "CPU";
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isMac = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+            
+            // DirectML: the GPU serializes inference regardless of session count, so
+            // more sessions just add graph-compilation overhead (~0.5 s each).
+            // Cap at 2 for light pipelining (one submits while the other runs).
+            int requiredSessions = (effectiveGpu && isWindows) ? Math.Min(dop, 2) : 1;
 
-            if (effectiveGpu && isWindows)
-            {
-                try
-                {
-                    opts.AppendExecutionProvider_DML(0);  // device 0 = default GPU
-                    _session = new InferenceSession(onnxPath, opts);
-                    activeProvider = "DirectML (GPU)";
-                }
-                catch (Exception ex)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
-                        $"DirectML GPU initialization failed ({ex.Message}) — falling back to CPU.");
+            if (_sessions != null && _cachedOnnxPath == onnxPath && _cachedUseGpu == effectiveGpu && _sessions.Length == requiredSessions)
+                return _sessions;
 
-                    opts.Dispose();
-                    using (var cpuOpts = new SessionOptions())
-                    {
-                        cpuOpts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-                        _session = new InferenceSession(onnxPath, cpuOpts);
-                    }
-                    activeProvider = "CPU (DML init failed)";
-                    effectiveGpu = false;
-                }
-            }
-            else if (effectiveGpu && isMac)
+            if (_sessions != null)
             {
-                try
-                {
-                    // ML Program format (better op coverage on macOS 12+; first run
-                    // for a given model pays a one-time compile cost cached under
-                    // ~/Library/Caches/). MLComputeUnits=CPUAndGPU forces the work
-                    // off the Neural Engine and onto CPU+GPU.
-                    var coreMlOptions = new Dictionary<string, string>
-                    {
-                        { "ModelFormat", "MLProgram" },
-                        { "MLComputeUnits", "CPUAndGPU" },
-                    };
-                    opts.AppendExecutionProvider("CoreML", coreMlOptions);
-                    _session = new InferenceSession(onnxPath, opts);
-                    activeProvider = "CoreML (ML Program, GPU)";
-                }
-                catch (Exception ex)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
-                        $"CoreML initialization failed ({ex.Message}) — falling back to CPU.");
-
-                    opts.Dispose();
-                    using (var cpuOpts = new SessionOptions())
-                    {
-                        cpuOpts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-                        _session = new InferenceSession(onnxPath, cpuOpts);
-                    }
-                    activeProvider = "CPU (CoreML init failed)";
-                    effectiveGpu = false;
-                }
-            }
-            else if (effectiveGpu)
-            {
-                _session = new InferenceSession(onnxPath, opts);
-                activeProvider = "CPU (no GPU provider on this platform)";
-                effectiveGpu = false;
-            }
-            else
-            {
-                _session = new InferenceSession(onnxPath, opts);
-                if (_dmlRuntimeFailed)
-                    activeProvider = "CPU (GPU runtime fallback)";
+                foreach (var s in _sessions) s?.Dispose();
             }
 
-            opts.Dispose();
+            _sessions = new InferenceSession[requiredSessions];
 
             _cachedOnnxPath = onnxPath;
             _cachedUseGpu = effectiveGpu;
+            _isDirectMLActive = false;
 
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Provider: {activeProvider}");
+            string activeProvider = "CPU";
 
-            var inputMeta = _session.InputMetadata;
+            if (requiredSessions > 1 && effectiveGpu && isWindows)
+            {
+                byte[] modelBytes = null;
+                try
+                {
+                    modelBytes = File.ReadAllBytes(onnxPath);
+                }
+                catch (Exception ex)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Failed to read ONNX file: {ex.Message}");
+                    return _sessions;
+                }
+
+                _isDirectMLActive = true;
+                activeProvider = "DirectML (GPU)";
+                bool failed = false;
+                Exception firstEx = null;
+
+                System.Threading.Tasks.Parallel.For(0, requiredSessions, i =>
+                {
+                    if (failed) return;
+                    try
+                    {
+                        var opts = new SessionOptions();
+                        opts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+                        opts.AppendExecutionProvider_DML(0);
+                        _sessions[i] = new InferenceSession(modelBytes, opts);
+                    }
+                    catch (Exception ex)
+                    {
+                        failed = true;
+                        firstEx = ex;
+                    }
+                });
+
+                if (failed)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, $"DirectML GPU initialization failed ({firstEx?.Message}) — falling back to CPU.");
+                    foreach (var s in _sessions) s?.Dispose();
+                    
+                    effectiveGpu = false;
+                    _isDirectMLActive = false;
+                    requiredSessions = 1;
+                    Array.Resize(ref _sessions, 1);
+
+                    var cpuOpts = new SessionOptions();
+                    cpuOpts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+                    _sessions[0] = new InferenceSession(modelBytes, cpuOpts);
+                    activeProvider = "CPU (DML init failed)";
+                }
+            }
+            else
+            {
+                var opts = new SessionOptions();
+                opts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+
+                if (effectiveGpu && isWindows)
+                {
+                    try
+                    {
+                        opts.AppendExecutionProvider_DML(0);  // device 0 = default GPU
+                        _sessions[0] = new InferenceSession(onnxPath, opts);
+                        activeProvider = "DirectML (GPU)";
+                        _isDirectMLActive = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, $"DirectML GPU initialization failed ({ex.Message}) — falling back to CPU.");
+                        opts.Dispose();
+                        var cpuOpts = new SessionOptions();
+                        cpuOpts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+                        _sessions[0] = new InferenceSession(onnxPath, cpuOpts);
+                        activeProvider = "CPU (DML init failed)";
+                        effectiveGpu = false;
+                        _isDirectMLActive = false;
+                    }
+                }
+                else if (effectiveGpu && isMac)
+                {
+                    try
+                    {
+                        var coreMlOptions = new Dictionary<string, string>
+                        {
+                            { "ModelFormat", "MLProgram" },
+                            { "MLComputeUnits", "CPUAndGPU" },
+                        };
+                        opts.AppendExecutionProvider("CoreML", coreMlOptions);
+                        _sessions[0] = new InferenceSession(onnxPath, opts);
+                        activeProvider = "CoreML (ML Program, GPU)";
+                    }
+                    catch (Exception ex)
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, $"CoreML initialization failed ({ex.Message}) — falling back to CPU.");
+                        opts.Dispose();
+                        var cpuOpts = new SessionOptions();
+                        cpuOpts.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+                        _sessions[0] = new InferenceSession(onnxPath, cpuOpts);
+                        activeProvider = "CPU (CoreML init failed)";
+                        effectiveGpu = false;
+                    }
+                }
+                else
+                {
+                    _sessions[0] = new InferenceSession(onnxPath, opts);
+                    if (_dmlRuntimeFailed) activeProvider = "CPU (GPU runtime fallback)";
+                    else activeProvider = "CPU (no GPU provider on this platform)";
+                    effectiveGpu = false;
+                }
+            }
+
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Provider: {activeProvider} (Instances: {_sessions.Length})");
+
+            var inputMeta = _sessions[0].InputMetadata;
             foreach (var kv in inputMeta)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
                     $"ONNX input: \"{kv.Key}\" shape=[{string.Join(",", kv.Value.Dimensions)}]");
             }
 
-            return _session;
+            return _sessions;
         }
 
         // ──────────────────────────────────────────────
@@ -834,12 +878,13 @@ namespace Eddy
 
             try
             {
-                var session = GetSession(onnxPath, useGpu);
-                string inputName = session.InputMetadata.Keys.First();
+                int N = windDirs.Count;
+                int reqDop = Math.Min(N, Math.Max(1, Environment.ProcessorCount));
+                
+                var sessions = GetSessions(onnxPath, useGpu, reqDop);
+                string inputName = sessions[0].InputMetadata.Keys.First();
 
                 var sw = System.Diagnostics.Stopwatch.StartNew();
-
-                int N = windDirs.Count;
                 int channelSize = IMG_H * IMG_W;
                 int featureBlock = 6 * channelSize;
                 var baseFeatures = tensor.Buffer.Span.Slice(0, featureBlock);
@@ -879,16 +924,39 @@ namespace Eddy
                 var perDirURoof = new double[N][];
                 var perDirKRoof = new double[N][];
                 int outChannels = 1;
-                int dop = Math.Min(N, Math.Max(1, Environment.ProcessorCount));
+                // Cap parallelism to the number of available sessions — extra threads
+                // would just spin-wait on the ConcurrentQueue with no GPU benefit.
+                int dop = Math.Min(reqDop, sessions.Length);
                 inferenceThreads = dop;
-                inferenceMode = N > 1 ? $"parallel-per-direction × {dop}" : "single-direction";
+                inferenceMode = N > 1 ? $"parallel-per-direction × {dop} ({sessions.Length} DML sessions)" : "single-direction";
+
+                var sessionQueue = new System.Collections.Concurrent.ConcurrentQueue<InferenceSession>(sessions);
 
                 var inferSw = System.Diagnostics.Stopwatch.StartNew();
                 System.Threading.Tasks.Parallel.For(0, N,
                     new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = dop },
                     d =>
                     {
-                        using var results = session.Run(perDirInputs[d]);
+                        InferenceSession localSession;
+                        if (sessions.Length == 1)
+                        {
+                            localSession = sessions[0];
+                        }
+                        else
+                        {
+                            while (!sessionQueue.TryDequeue(out localSession))
+                            {
+                                System.Threading.Thread.Yield();
+                            }
+                        }
+
+                        using var results = localSession.Run(perDirInputs[d]);
+                        
+                        if (sessions.Length > 1)
+                        {
+                            sessionQueue.Enqueue(localSession);
+                        }
+
                         var outputTensor = results.First().AsTensor<float>();
                         int oc = outputTensor.Dimensions[1];
                         if (d == 0) outChannels = oc;
@@ -1210,8 +1278,11 @@ namespace Eddy
         // Clean up ONNX session when component is removed
         public override void RemovedFromDocument(GH_Document document)
         {
-            _session?.Dispose();
-            _session = null;
+            if (_sessions != null)
+            {
+                foreach (var s in _sessions) s?.Dispose();
+            }
+            _sessions = null;
             _cachedOnnxPath = null;
             base.RemovedFromDocument(document);
         }
