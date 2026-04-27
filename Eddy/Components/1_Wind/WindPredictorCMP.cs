@@ -277,9 +277,12 @@ namespace Eddy
             {
                 try
                 {
-                    opts.AppendExecutionProvider_CoreML(0);  // 0 = default flags; CoreML picks ANE/GPU/CPU
+                    // 0x10 = COREML_FLAG_CREATE_MLPROGRAM — newer ML Program format
+                    // (better op coverage on macOS 12+; first run for a given model
+                    // pays a one-time compile cost cached under ~/Library/Caches/)
+                    opts.AppendExecutionProvider_CoreML(0x10);
                     _session = new InferenceSession(onnxPath, opts);
-                    activeProvider = "CoreML (ANE/GPU)";
+                    activeProvider = "CoreML (ML Program, ANE/GPU)";
                 }
                 catch (Exception ex)
                 {

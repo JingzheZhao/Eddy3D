@@ -121,7 +121,8 @@ public class OnnxInferenceTests
 
         if (useCoreML)
         {
-            opts.AppendExecutionProvider_CoreML(0);
+            // 0x10 = COREML_FLAG_CREATE_MLPROGRAM (newer ML Program format)
+            opts.AppendExecutionProvider_CoreML(0x10);
         }
 
         using var session = new InferenceSession(modelPath, opts);
