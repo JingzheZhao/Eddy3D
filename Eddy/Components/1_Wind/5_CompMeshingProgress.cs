@@ -277,16 +277,15 @@ Monitors blockMesh, surfaceFeatures, and snappyHexMesh logs directly on the Gras
 
             private void DrawCenteredMessage(Graphics g, string statusText)
             {
-                string message = string.IsNullOrWhiteSpace(statusText) ? "No meshing logs found" : statusText;
-                if (string.Equals(message, "missing result", StringComparison.OrdinalIgnoreCase))
-                    message = "Connect a valid simulation result.";
-                else if (string.Equals(message, "log not found", StringComparison.OrdinalIgnoreCase))
-                    message = "Run meshing to generate logs.";
+                string msg = string.IsNullOrWhiteSpace(statusText) ? "No meshing logs found" : char.ToUpperInvariant(statusText[0]) + statusText.Substring(1).ToLowerInvariant();
+                if (string.Equals(statusText, "missing result", StringComparison.OrdinalIgnoreCase)) msg += "\nConnect a valid simulation result.";
+                else if (string.Equals(statusText, "idle", StringComparison.OrdinalIgnoreCase)) msg += "\nEnable 'Live' toggle to monitor.";
+                else if (string.Equals(statusText, "log not found", StringComparison.OrdinalIgnoreCase)) msg += "\nRun meshing to generate logs.";
 
                 using (var brush = new SolidBrush(Color.FromArgb(140, 140, 140)))
                 using (var format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
                 {
-                    g.DrawString(message, GH_FontServer.StandardItalic, brush, _panelBounds, format);
+                    g.DrawString(msg, GH_FontServer.StandardItalic, brush, _panelBounds, format);
                 }
             }
 
