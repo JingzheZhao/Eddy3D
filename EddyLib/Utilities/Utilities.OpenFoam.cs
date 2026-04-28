@@ -83,7 +83,7 @@ namespace EddyLib
 
             if (!File.Exists(ablConditionsFilePath)) return;
 
-            foreach (string line in File.ReadAllLines(ablConditionsFilePath))
+            foreach (string line in File.ReadLines(ablConditionsFilePath))
             {
                 if (line.Contains("Uref"))
                 {
