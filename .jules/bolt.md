@@ -100,3 +100,7 @@
 ## 2024-04-25 - Avoid LINQ .Where in foreach loops
 **Learning:** Using `.Where(predicate)` directly in a `foreach` declaration allocates a new enumerator and closure (~72 bytes) and incurs iteration overhead, running ~3.3x slower than an explicit `if` check.
 **Action:** Replaced `foreach (var x in list.Where(condition))` with `foreach (var x in list) { if (condition) { ... } }` in performance paths to achieve zero-allocation filtering and faster execution.
+
+## 2026-04-26 - O(1) Lookups for Static Membership Checks
+**Learning:** Checking string membership against static arrays (like `RadianceMaterials.Types.Contains()`) inside high-frequency loops forces O(N) linear scans and incurs LINQ extension method overhead, causing a measurable performance penalty.
+**Action:** Always wrap static membership definition arrays inside a `private static readonly HashSet<string>` (e.g. `TypesSet`) to reduce lookup times from O(N) to O(1) in parsing and validation loops.

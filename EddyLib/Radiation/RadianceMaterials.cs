@@ -20,6 +20,9 @@ namespace EddyLib.Radiation
         /// valid Radiance material types and modifiers
         public static readonly string[] Types = { "plastic", "metal", "trans", "plastic2", "metal2", "trans2", "glass" };
 
+        // ⚡ Bolt: Cache Types array in a HashSet for O(1) lookups instead of O(N) LINQ/Array.IndexOf overhead
+        private static readonly HashSet<string> TypesSet = new HashSet<string>(Types);
+
         public static string RadiancePlasticMaterial(string Name, Color Color, double Reflectance, double Specularilty = 0, double Roughness = 0)
         {
             const double LuminousEfficacyRed = 0.3;
@@ -66,7 +69,7 @@ namespace EddyLib.Radiation
                 // (if multiple materials in description, this will take the last one)
                 for (int i = 1; i < args.Count - 1; i++)
                 {
-                    if (Types.Contains(args[i])) id = args[i + 1];
+                    if (TypesSet.Contains(args[i])) id = args[i + 1];
                 }
                 if (id.Length > 0) return true;
             }
@@ -86,7 +89,7 @@ namespace EddyLib.Radiation
                 string firstline = sr.ReadLine().Split('#')[0];
                 string[] word = firstline.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                 // check for valid structure
-                if ((word.Length > 2) && (Array.IndexOf(Types, word[1]) >= 0))
+                if ((word.Length > 2) && TypesSet.Contains(word[1]))
                 {
                     type = word[1];
                     return type;
@@ -113,7 +116,7 @@ namespace EddyLib.Radiation
                 }
 
                 // check that second arg is valid type
-                if (args.Count > 1 && !Types.Contains(args[1]))
+                if (args.Count > 1 && !TypesSet.Contains(args[1]))
                 {
                     Console.Error.WriteLine("Material type " + args[1] + " not recognized.");
                     return false;
