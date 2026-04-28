@@ -104,3 +104,7 @@
 ## 2026-04-26 - O(1) Lookups for Static Membership Checks
 **Learning:** Checking string membership against static arrays (like `RadianceMaterials.Types.Contains()`) inside high-frequency loops forces O(N) linear scans and incurs LINQ extension method overhead, causing a measurable performance penalty.
 **Action:** Always wrap static membership definition arrays inside a `private static readonly HashSet<string>` (e.g. `TypesSet`) to reduce lookup times from O(N) to O(1) in parsing and validation loops.
+
+## 2025-04-25 - Avoid array resizing in list population
+**Learning:** Adding items one by one via `foreach` + `.Add()` without an initial capacity forces internal array resizes during population, generating unnecessary allocations.
+**Action:** Pre-allocate the list's capacity using known input sizes and use `.AddRange(collection.Select(...))` to bulk-add items, eliminating intermediate resizing for boundary condition list initialization in `EddyLib/Legacy/Indoor/Dictionary.cs`.

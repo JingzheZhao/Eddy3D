@@ -43,7 +43,7 @@ namespace EddyLib.Indoor
         {
             public U(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>(inlet.Count + outlet.Count + wall.Count);
 
                 this.inlet = inlet;
                 this.outlet = outlet;
@@ -58,9 +58,9 @@ namespace EddyLib.Indoor
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform (0 0 0);";
 
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetFixedValue(i)); }
+                this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
+                this.internalDict.AddRange(outlet.Select(i => GetFixedValue(i)));
+                this.internalDict.AddRange(wall.Select(i => GetFixedValue(i)));
             }
         }
 
@@ -68,7 +68,7 @@ namespace EddyLib.Indoor
         {
             public T(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>(inlet.Count + outlet.Count + wall.Count);
 
                 this.fc = fieldClass.volScalarField;
                 this.Name = "T";
@@ -79,9 +79,9 @@ namespace EddyLib.Indoor
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 300;";
 
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
+                this.internalDict.AddRange(outlet.Select(i => GetZeroGradient(i)));
+                this.internalDict.AddRange(wall.Select(i => GetZeroGradient(i)));
             }
         }
 
@@ -89,7 +89,7 @@ namespace EddyLib.Indoor
         {
             public alphat(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>(inlet.Count + outlet.Count + wall.Count);
 
                 this.fc = fieldClass.volScalarField;
                 this.Name = "alphat";
@@ -100,9 +100,9 @@ namespace EddyLib.Indoor
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
 
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
+                this.internalDict.AddRange(outlet.Select(i => GetZeroGradient(i)));
+                this.internalDict.AddRange(wall.Select(i => GetZeroGradient(i)));
             }
         }
 
@@ -110,7 +110,7 @@ namespace EddyLib.Indoor
         {
             public AoA(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>(inlet.Count + outlet.Count + wall.Count);
 
                 this.fc = fieldClass.volScalarField;
                 this.Name = "AoA";
@@ -121,9 +121,9 @@ namespace EddyLib.Indoor
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
 
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
+                this.internalDict.AddRange(outlet.Select(i => GetZeroGradient(i)));
+                this.internalDict.AddRange(wall.Select(i => GetZeroGradient(i)));
             }
         }
 
@@ -131,7 +131,7 @@ namespace EddyLib.Indoor
         {
             public k(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>(inlet.Count + outlet.Count + wall.Count);
 
                 this.fc = fieldClass.volScalarField;
                 this.Name = "k";
@@ -142,9 +142,9 @@ namespace EddyLib.Indoor
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
 
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
+                this.internalDict.AddRange(outlet.Select(i => GetZeroGradient(i)));
+                this.internalDict.AddRange(wall.Select(i => GetZeroGradient(i)));
             }
         }
 
@@ -152,7 +152,7 @@ namespace EddyLib.Indoor
         {
             public nut(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>(inlet.Count + outlet.Count + wall.Count);
 
                 this.fc = fieldClass.volScalarField;
                 this.Name = "nut";
@@ -163,9 +163,9 @@ namespace EddyLib.Indoor
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
 
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
+                this.internalDict.AddRange(outlet.Select(i => GetZeroGradient(i)));
+                this.internalDict.AddRange(wall.Select(i => GetZeroGradient(i)));
             }
         }
 
@@ -173,7 +173,7 @@ namespace EddyLib.Indoor
         {
             public p_rgh(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>(inlet.Count + outlet.Count + wall.Count);
 
                 this.fc = fieldClass.volScalarField;
                 this.Name = "p_rgh";
@@ -184,9 +184,9 @@ namespace EddyLib.Indoor
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 101325;";
 
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
+                this.internalDict.AddRange(outlet.Select(i => GetZeroGradient(i)));
+                this.internalDict.AddRange(wall.Select(i => GetZeroGradient(i)));
             }
         }
 
@@ -194,7 +194,7 @@ namespace EddyLib.Indoor
         {
             public omega(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>(inlet.Count + outlet.Count + wall.Count);
 
                 this.fc = fieldClass.volScalarField;
                 this.Name = "omega";
@@ -204,9 +204,9 @@ namespace EddyLib.Indoor
 
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
+                this.internalDict.AddRange(outlet.Select(i => GetZeroGradient(i)));
+                this.internalDict.AddRange(wall.Select(i => GetZeroGradient(i)));
             }
         }
 
@@ -214,7 +214,7 @@ namespace EddyLib.Indoor
         {
             public p(List<IndoorBCs.Inlet> inlet, List<IndoorBCs.Outlet> outlet, List<IndoorBCs.Wall> wall)
             {
-                internalDict = new List<Dictionary<string, Dictionary<string, string>>>();
+                internalDict = new List<Dictionary<string, Dictionary<string, string>>>(inlet.Count + outlet.Count + wall.Count);
 
                 this.fc = fieldClass.volScalarField;
                 this.Name = "p";
@@ -224,9 +224,9 @@ namespace EddyLib.Indoor
 
                 // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField uniform 101325;";
-                foreach (IndoorBCs.Inlet i in inlet) { this.internalDict.Add(GetFixedValue(i)); }
-                foreach (IndoorBCs.Outlet i in outlet) { this.internalDict.Add(GetZeroGradient(i)); }
-                foreach (IndoorBCs.Wall i in wall) { this.internalDict.Add(GetZeroGradient(i)); }
+                this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
+                this.internalDict.AddRange(outlet.Select(i => GetZeroGradient(i)));
+                this.internalDict.AddRange(wall.Select(i => GetZeroGradient(i)));
             }
         }
 
