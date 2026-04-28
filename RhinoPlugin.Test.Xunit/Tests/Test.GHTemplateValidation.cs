@@ -206,12 +206,15 @@ namespace RhinoPlugin.Test.Xunit
             {
                 _output.WriteLine("");
                 _output.WriteLine("Invalid Templates:");
-                foreach (var result in results.Where(r => !r.IsValid))
+                foreach (var result in results)
                 {
-                    _output.WriteLine($"\n  {Path.GetFileName(result.TemplatePath)}:");
-                    foreach (var err in result.Errors)
+                    if (!result.IsValid)
                     {
-                        _output.WriteLine($"    {err}");
+                        _output.WriteLine($"\n  {Path.GetFileName(result.TemplatePath)}:");
+                        foreach (var err in result.Errors)
+                        {
+                            _output.WriteLine($"    {err}");
+                        }
                     }
                 }
             }
