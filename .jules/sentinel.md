@@ -10,3 +10,8 @@
 **Vulnerability:** Command injection when invoking tools that use `<` and `>` to pipe input/output in `cmd.exe /c` where file paths are user-controlled.
 **Learning:** Shell redirection operators (`<`, `>`) cannot be passed via `ArgumentList` directly to the tool, and using `cmd.exe` allows command injection if the user includes `&` in their paths.
 **Prevention:** Invoke the executable directly (e.g., `rtrace`) using `ArgumentList` for parameters, and programmatically replace shell redirection with stream copying in C# (e.g., `File.OpenRead().CopyToAsync(process.StandardInput.BaseStream)`).
+
+## 2024-04-28 - Command Injection in DockerRunner
+**Vulnerability:** Command injection via string concatenation in `ProcessStartInfo.Arguments`.
+**Learning:** Concatenating user inputs into a command string for execution can allow attackers to inject malicious OS commands, even with `UseShellExecute = false`.
+**Prevention:** Use `ProcessStartInfo.ArgumentList` to securely pass arguments, preventing the host OS parser from executing injected shell metacharacters.

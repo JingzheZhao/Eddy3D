@@ -70,24 +70,29 @@ namespace EddyLib.Docker
 
             hostCasePath = SanitizeDockerPath(hostCasePath);
 
-            var args = string.Format(
-                "run --rm --platform {0} --entrypoint /bin/bash -v \"{1}:{2}\" -w {2} {3} -c \"{4}\"",
-                DockerConfig.Platform,
-                hostCasePath,
-                DockerConfig.CaseMountPoint,
-                _imageName,
-                bashCmd.Replace("\"", "\\\""));
-
             var psi = new ProcessStartInfo
             {
                 FileName = _dockerExe,
-                Arguments = args,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
                 WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
             };
+
+            psi.ArgumentList.Add("run");
+            psi.ArgumentList.Add("--rm");
+            psi.ArgumentList.Add("--platform");
+            psi.ArgumentList.Add(DockerConfig.Platform);
+            psi.ArgumentList.Add("--entrypoint");
+            psi.ArgumentList.Add("/bin/bash");
+            psi.ArgumentList.Add("-v");
+            psi.ArgumentList.Add(string.Format("{0}:{1}", hostCasePath, DockerConfig.CaseMountPoint));
+            psi.ArgumentList.Add("-w");
+            psi.ArgumentList.Add(DockerConfig.CaseMountPoint);
+            psi.ArgumentList.Add(_imageName);
+            psi.ArgumentList.Add("-c");
+            psi.ArgumentList.Add(bashCmd);
 
             DockerEnvironment.ConfigureDockerEnvironment(psi);
 
