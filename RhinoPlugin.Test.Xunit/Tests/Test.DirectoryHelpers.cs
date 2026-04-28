@@ -66,6 +66,59 @@ namespace RhinoPlugin.Test.Xunit.Tests
         }
 
         [Fact]
+        public void DeleteDirectory_HandlesNonExistentDirectory()
+        {
+            // Arrange
+            var nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            // Act & Assert (Should not throw)
+            var exception = Record.Exception(() => DirectoryHelpers.DeleteDirectory(nonExistentPath));
+            Assert.Null(exception);
+            Assert.False(Directory.Exists(nonExistentPath));
+        }
+
+        [Fact]
+        public void DeleteDirectory_DeletesEmptyDirectory()
+        {
+            // Arrange
+            var emptyDirPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(emptyDirPath);
+
+            // Act
+            DirectoryHelpers.DeleteDirectory(emptyDirPath);
+
+            // Assert
+            Assert.False(Directory.Exists(emptyDirPath));
+        }
+
+        [Fact]
+        public void DeleteDirectory_DeletesDirectoryStructureWithNestedFoldersAndFiles()
+        {
+            // Arrange
+            var baseDirPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(baseDirPath);
+
+            var nestedDirPath1 = Path.Combine(baseDirPath, "nested1");
+            var nestedDirPath2 = Path.Combine(baseDirPath, "nested2");
+            var doubleNestedDirPath = Path.Combine(nestedDirPath1, "nested1_1");
+
+            Directory.CreateDirectory(nestedDirPath1);
+            Directory.CreateDirectory(nestedDirPath2);
+            Directory.CreateDirectory(doubleNestedDirPath);
+
+            File.WriteAllText(Path.Combine(baseDirPath, "file1.txt"), "content");
+            File.WriteAllText(Path.Combine(nestedDirPath1, "file2.txt"), "content");
+            File.WriteAllText(Path.Combine(nestedDirPath2, "file3.txt"), "content");
+            File.WriteAllText(Path.Combine(doubleNestedDirPath, "file4.txt"), "content");
+
+            // Act
+            DirectoryHelpers.DeleteDirectory(baseDirPath);
+
+            // Assert
+            Assert.False(Directory.Exists(baseDirPath));
+        }
+
+        [Fact]
         public void RecursiveDelete_DeletesDirectoryContainingReadOnlyFiles()
         {
             // Arrange
