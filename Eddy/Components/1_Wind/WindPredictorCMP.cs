@@ -924,11 +924,16 @@ namespace Eddy
                 var perDirURoof = new double[N][];
                 var perDirKRoof = new double[N][];
                 int outChannels = 1;
-                // Cap parallelism to the number of available sessions — extra threads
-                // would just spin-wait on the ConcurrentQueue with no GPU benefit.
-                int dop = Math.Min(reqDop, sessions.Length);
+                // Multi-session (DirectML pipelining) → one thread per session.
+                // Single session (CoreML / CPU) → InferenceSession.Run is thread-safe,
+                // so multiple threads can share it.
+                int dop = sessions.Length > 1 ? sessions.Length : reqDop;
                 inferenceThreads = dop;
-                inferenceMode = N > 1 ? $"parallel-per-direction × {dop} ({sessions.Length} DML sessions)" : "single-direction";
+                inferenceMode = N > 1
+                    ? (sessions.Length > 1
+                        ? $"parallel-per-direction × {dop} ({sessions.Length} DML sessions)"
+                        : $"parallel-per-direction × {dop}")
+                    : "single-direction";
 
                 var sessionQueue = new System.Collections.Concurrent.ConcurrentQueue<InferenceSession>(sessions);
 
