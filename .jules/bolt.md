@@ -108,3 +108,7 @@
 ## 2025-04-25 - Avoid array resizing in list population
 **Learning:** Adding items one by one via `foreach` + `.Add()` without an initial capacity forces internal array resizes during population, generating unnecessary allocations.
 **Action:** Pre-allocate the list's capacity using known input sizes and use `.AddRange(collection.Select(...))` to bulk-add items, eliminating intermediate resizing for boundary condition list initialization in `EddyLib/Legacy/Indoor/Dictionary.cs`.
+
+## 2026-04-25 - O(N) LINQ in high-frequency CSV reading loop
+**Learning:** Re-evaluating `Dictionary.Keys.ToList()` and using `FirstOrDefault` to map keys per row causes unnecessary allocations and O(N) scaling per row inside the reading loop of `DatasetReaderCMP.cs`.
+**Action:** Lift the keys extraction out of the reading loop and reverse the column map to a `Dictionary<string, int>` mapping column names directly to indices, eliminating list creation per iteration and dropping the inner-loop lookup from O(N) to O(1).

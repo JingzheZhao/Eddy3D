@@ -84,7 +84,7 @@ namespace Eddy
                     if (string.IsNullOrEmpty(headerLine)) return;
 
                     string[] headers = headerLine.Split(',');
-                    var colMap = new Dictionary<int, string>();
+                    var colMap = new Dictionary<string, int>();
 
                     for (int i = 0; i < headers.Length; i++)
                     {
@@ -95,9 +95,11 @@ namespace Eddy
 
                         if (outputs.ContainsKey(h))
                         {
-                            colMap[i] = h;
+                            colMap[h] = i;
                         }
                     }
+
+                    var keys = outputs.Keys;
 
                     while (!reader.EndOfStream)
                     {
@@ -107,15 +109,13 @@ namespace Eddy
                         string[] values = line.Split(',');
 
                         // To ensure all outputs have the same length, we iterate over all possible keys
-                        foreach (var key in outputs.Keys.ToList())
+                        foreach (var key in keys)
                         {
-                            // Find if this key is in our column map
-                            var mapEntry = colMap.FirstOrDefault(x => x.Value == key);
                             bool found = false;
 
-                            if (mapEntry.Value != null && mapEntry.Key < values.Length)
+                            if (colMap.TryGetValue(key, out int idx) && idx < values.Length)
                             {
-                                if (double.TryParse(values[mapEntry.Key], out double val))
+                                if (double.TryParse(values[idx], out double val))
                                 {
                                     outputs[key].Add(val);
                                     found = true;
