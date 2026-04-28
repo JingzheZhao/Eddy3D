@@ -319,14 +319,14 @@ namespace Eddy.Components.Radiation
 
             ComfortSystem = new ComfortSystem(resultProto_MRT.BaseWorkingDir, resultProto_MRT.Weather, resultProto_MRT.Probes, resultProto_MRT.Polys, "", 1);
 
-            int xxx = 0;
+            int progressStep = 0;
 
             if (ComfortSystem == null) return false;
             if (cts.IsCancellationRequested) return false;
-            ComfortSystem.ComputeUTCI(true, cts.Token, 0, ref xxx);
+            ComfortSystem.ComputeUTCI(true, cts.Token, 0, ref progressStep);
 
             if (cts.IsCancellationRequested) return false;
-            var proto = ComfortSystem.SaveResults(true, cts.Token, 0, ref xxx);
+            var proto = ComfortSystem.SaveResults(true, cts.Token, 0, ref progressStep);
 
             return true;
         }
