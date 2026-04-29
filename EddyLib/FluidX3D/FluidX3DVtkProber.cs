@@ -335,10 +335,11 @@ namespace EddyLib.FluidX3D
                 return 0.0;
             }
 
-            string[] lines = File.ReadAllLines(readmePath);
-            for (int i = 0; i < lines.Length; i++)
+            // Bolt: Replaced File.ReadAllLines with File.ReadLines for lazy evaluation,
+            // significantly reducing memory allocation and allowing an early return when a match is found.
+            foreach (string line in File.ReadLines(readmePath))
             {
-                Match m = ExportIntervalRegex.Match(lines[i]);
+                Match m = ExportIntervalRegex.Match(line);
                 if (!m.Success)
                 {
                     continue;
@@ -380,10 +381,11 @@ namespace EddyLib.FluidX3D
 
             ProbeTransform transform = new ProbeTransform();
 
-            string[] lines = File.ReadAllLines(path);
-            for (int i = 0; i < lines.Length; i++)
+            // Bolt: Replaced File.ReadAllLines with File.ReadLines for lazy evaluation,
+            // preventing the entire text file from being allocated in memory as an array.
+            foreach (string rawLine in File.ReadLines(path))
             {
-                string line = lines[i].Trim();
+                string line = rawLine.Trim();
                 if (line.Length == 0 || line.StartsWith("#", StringComparison.Ordinal))
                 {
                     continue;
