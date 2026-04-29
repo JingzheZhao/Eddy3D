@@ -291,7 +291,7 @@ namespace Eddy
                             + @"\postProcessing\"
                             + probeName
                             + @"""");
-                        command.AppendLine(@"postProcess -case " + windDir + " -func " + probeName + " -time " + latestTime);
+                        command.AppendLine(@"foamPostProcess -case " + windDir + " -func " + probeName + " -time " + latestTime);
                     }
                 }
 
@@ -381,7 +381,7 @@ namespace Eddy
                 {
                     int latestTime = Probing.GetLatestTime(res.WorkingDirectory, res, currField);
                     command.AppendLine(@"if exist ""postProcessing\" + probeName + @""" rmdir /S /Q ""postProcessing\" + probeName + @"""");
-                    command.AppendLine("postProcess  -func " + probeName + " -time " + latestTime);
+                    command.AppendLine("foamPostProcess -func " + probeName + " -time " + latestTime);
                 }
 
                 if (request.Run && request.CanRun)

@@ -413,7 +413,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                         {
                             int latestTime = Probing.GetLatestTime(currCase, RES, currField);
                             command.AppendLine(@"if exist """ + RES.Domain.BCond.WindDirections[i] + @"\postProcessing\" + probeNameByUser + @""" rmdir /S /Q """ + RES.Domain.BCond.WindDirections[i] + @"\postProcessing\" + probeNameByUser + @"""");
-                            command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + latestTime);
+                            command.AppendLine(@"foamPostProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + latestTime);
                         }
                     }
 
@@ -504,7 +504,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                     {
                         int latestTime = Probing.GetLatestTime(RES.WorkingDirectory, RES, currField);
                         command.AppendLine(@"if exist ""postProcessing\" + probeNameByUser + @""" rmdir /S /Q ""postProcessing\" + probeNameByUser + @"""");
-                        command.AppendLine(@"postProcess  -func " + probeNameByUser + @" -time " + latestTime);
+                        command.AppendLine(@"foamPostProcess -func " + probeNameByUser + @" -time " + latestTime);
                     }
 
                     if (run == true && canRun == true)

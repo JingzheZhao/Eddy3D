@@ -175,7 +175,7 @@ namespace EddyLib.Strings
         "renumberMesh -overwrite",
         "checkMesh -allGeometry -allTopology -writeSets -setFormat vtk"};
 
-        private static readonly List<string> divU = new List<string> { "postProcess -func ttt -latestTime" };
+        private static readonly List<string> divU = new List<string> { "foamPostProcess -func ttt -latestTime" };
 
         public static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFExecutionMode mode)
         {
