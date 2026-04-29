@@ -28,7 +28,7 @@ namespace Eddy
     {
         public override GH_Exposure Exposure
         {
-            get { return GH_Exposure.senary | GH_Exposure.obscure; }
+            get { return GH_Exposure.hidden; }
         }
 
         //protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
@@ -80,6 +80,11 @@ Samples the wind field at specific locations. Use this to query wind speed and p
         {
         }
 
+        public override void CreateAttributes()
+        {
+            Attributes = new ProbeRunButtonAttributes(this);
+        }
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -116,7 +121,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
             //param2.AddNamedValue("Scalar", 0);
             //param2.AddNamedValue("Vector", 1);
 
-            pManager.AddBooleanParameter("Run", "Run", "Run the component.", GH_ParamAccess.item, false);
+            pManager.AddParameter(CreateRunToggleParam());
 
             pManager[2].Optional = true;
         }
@@ -220,6 +225,7 @@ Samples the wind field at specific locations. Use this to query wind speed and p
 
             //DA.GetData(4, ref fieldType);
             DA.GetData(5, ref run);
+            run = run || ConsumeToggleRun(5);
 
             if (run && RES != null
                 && RES.RunSettings.simEngine == SimEngine.Docker
@@ -328,8 +334,8 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                 else
                 {
                     meshExists = true;
-                }
             }
+        }
 
             int threshold = 100000;
             if (listOfPoints.Count > threshold)
@@ -600,6 +606,30 @@ Samples the wind field at specific locations. Use this to query wind speed and p
             }
 
             canRun = true;
+        }
+
+        private bool ConsumeToggleRun(int inputIndex)
+        {
+            if (inputIndex < 0
+                || inputIndex >= Params.Input.Count
+                || !(Params.Input[inputIndex] is GH_ToggleParam toggle)
+                || !toggle.Toggle)
+            {
+                return false;
+            }
+
+            OnPingDocument()?.ScheduleSolution(5, _ => toggle.SetToggle(false));
+            return true;
+        }
+
+        private static GH_ToggleParam CreateRunToggleParam()
+        {
+            GH_ToggleParam param = new GH_ToggleParam("Run", "Run", "Run the component.")
+            {
+                Access = GH_ParamAccess.item,
+                Optional = false
+            };
+            return param;
         }
 
         /// <summary>

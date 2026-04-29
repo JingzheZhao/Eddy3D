@@ -99,8 +99,7 @@ namespace EddyLib.Docker
             sb.AppendLine("echo.");
             sb.AppendLine("echo ----------------------------------------");
             sb.AppendLine("echo Docker execution complete.");
-            sb.AppendLine("echo Press any key to close...");
-            sb.AppendLine("pause >nul");
+            AppendWindowsSuccessCountdown(sb);
 
             return sb.ToString();
         }
@@ -159,10 +158,19 @@ namespace EddyLib.Docker
             sb.AppendLine("echo.");
             sb.AppendLine("echo ----------------------------------------");
             sb.AppendLine("echo Docker execution complete.");
-            sb.AppendLine("echo Press any key to close...");
-            sb.AppendLine("pause >nul");
+            AppendWindowsSuccessCountdown(sb);
 
             return sb.ToString();
+        }
+
+        private static void AppendWindowsSuccessCountdown(StringBuilder sb)
+        {
+            sb.AppendLine("echo Closing this window in 60 seconds...");
+            sb.AppendLine("for /l %%i in (60,-1,1) do (");
+            sb.AppendLine("  <nul set /p \"=Closing this window in %%i seconds... \"");
+            sb.AppendLine("  timeout /t 1 /nobreak >nul");
+            sb.AppendLine("  echo.");
+            sb.AppendLine(")");
         }
 
         private static string EscapeForCmd(string input)

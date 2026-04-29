@@ -140,8 +140,16 @@ namespace RhinoPlugin.Test.Xunit
 
             Assert.Contains("TERM_PROGRAM", script);
             Assert.Contains("Apple_Terminal", script);
+            Assert.Contains("_eddy_terminal_target", script);
             Assert.Contains("osascript", script);
-            Assert.Contains("close t", script);
+            Assert.Contains("mktemp", script);
+            Assert.Contains("/usr/bin/nohup /usr/bin/osascript", script);
+            Assert.Contains("disown $!", script);
+            Assert.Contains("delay 1", script);
+            Assert.Contains("close w saving no", script);
+            Assert.Contains("System Events", script);
+            Assert.Contains("Eddy3D Terminal window could not be found", script);
+            Assert.Contains("Closing Terminal window in %s seconds", script);
             Assert.Contains("Docker execution failed with exit code", script);
             Assert.Contains("read -n 1", script);
         }
@@ -156,6 +164,9 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Contains(DockerConfig.ImageName, script);
             Assert.Contains(@"C:\Users\test\case", script);
             Assert.Contains("Docker execution complete.", script);
+            Assert.Contains("Closing this window in 60 seconds", script);
+            Assert.Contains("for /l %%i in (60,-1,1)", script);
+            Assert.Contains("timeout /t 1 /nobreak", script);
         }
 
         [Fact]

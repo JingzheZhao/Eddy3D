@@ -28,7 +28,7 @@ namespace Eddy
         private int _cachedOutsideCount;
         private bool _hasCachedOutputs;
 
-        public override GH_Exposure Exposure => GH_Exposure.senary | GH_Exposure.obscure;
+        public override GH_Exposure Exposure => GH_Exposure.hidden;
 
         public FluidX3DVtkProbe_Component()
           : base(
@@ -38,6 +38,11 @@ namespace Eddy
               EddyVersion.Name,
               "1 | Wind")
         {
+        }
+
+        public override void CreateAttributes()
+        {
+            Attributes = new ProbeRunButtonAttributes(this);
         }
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
@@ -91,12 +96,7 @@ namespace Eddy
                 new Interval(0.0, 30.0));
             pManager[5].Optional = false;
 
-            pManager.AddBooleanParameter(
-                GH_Strings.FluidX3DProbe.Run,
-                GH_Strings.FluidX3DProbe.RunNick,
-                GH_Strings.FluidX3DProbe.RunDesc,
-                GH_ParamAccess.item,
-                false);
+            pManager.AddParameter(CreateRunToggleParam());
         }
 
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
@@ -183,6 +183,7 @@ namespace Eddy
             DA.GetData(4, ref targetTimeSeconds);
             DA.GetData(5, ref timeWindow);
             DA.GetData(6, ref run);
+            run = run || ConsumeToggleRun(6);
             double startTimeSeconds = timeWindow.T0;
             double endTimeSeconds = timeWindow.T1;
 
@@ -674,6 +675,33 @@ namespace Eddy
             }
 
             return Directory.GetFiles(path, "*.vtk", SearchOption.TopDirectoryOnly).Length > 0;
+        }
+
+        private bool ConsumeToggleRun(int inputIndex)
+        {
+            if (inputIndex < 0
+                || inputIndex >= Params.Input.Count
+                || !(Params.Input[inputIndex] is GH_ToggleParam toggle)
+                || !toggle.Toggle)
+            {
+                return false;
+            }
+
+            OnPingDocument()?.ScheduleSolution(5, _ => toggle.SetToggle(false));
+            return true;
+        }
+
+        private static GH_ToggleParam CreateRunToggleParam()
+        {
+            GH_ToggleParam param = new GH_ToggleParam(
+                GH_Strings.FluidX3DProbe.Run,
+                GH_Strings.FluidX3DProbe.RunNick,
+                GH_Strings.FluidX3DProbe.RunDesc)
+            {
+                Access = GH_ParamAccess.item,
+                Optional = false
+            };
+            return param;
         }
 
         protected override System.Drawing.Bitmap Icon => Resources.Eddy_visualProbs;

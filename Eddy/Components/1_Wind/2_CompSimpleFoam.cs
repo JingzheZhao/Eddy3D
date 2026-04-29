@@ -65,6 +65,7 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         private void SetEngine(SimEngine engine)
         {
             _selectedEngine = engine;
+            NormalizeSelectedEngineForCurrentPlatform();
             ExpireSolution(true);
         }
 
@@ -84,6 +85,8 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                     _selectedEngine = (SimEngine)raw;
                 }
             }
+
+            NormalizeSelectedEngineForCurrentPlatform();
             return base.Read(reader);
         }
 
@@ -169,8 +172,16 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            bool engineAutoSwitched = NormalizeSelectedEngineForCurrentPlatform();
+
             // mode to select simulation environment
             Message = _selectedEngine.ToString();
+            if (engineAutoSwitched)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Remark,
+                    "BlueCFD is not available on macOS. Switched Wind Simulation engine to Docker.");
+            }
 
             if (EddyLib.Web.UpdateChecker.IsUpdateAvailable)
             {
@@ -793,6 +804,18 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             }
 
             return true;
+        }
+
+        private bool NormalizeSelectedEngineForCurrentPlatform()
+        {
+            if (_selectedEngine == SimEngine.BlueCFD
+                && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                _selectedEngine = SimEngine.Docker;
+                return true;
+            }
+
+            return false;
         }
 
         private static string GetEngineDisplayName(SimEngine engine)

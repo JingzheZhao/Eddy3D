@@ -23,6 +23,7 @@ This file defines the working conventions for automated agents editing this repo
 ## Preferred Validation Commands
 
 Run the narrowest command that proves the change.
+Always build the affected project after making code changes before considering the work done, and report the build result.
 
 ```bash
 dotnet build EddyLib/EddyLib.csproj -v minimal
