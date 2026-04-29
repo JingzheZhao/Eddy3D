@@ -75,7 +75,7 @@ namespace RhinoPlugin.Test.Xunit
             _ = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run.bat"));
 
             // Assert: check log file contains the expected string
-            var logFile = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            var logFile = Path.Combine(caseDir, windDir.ToString(), "foamRun.log");
             Assert.True(File.Exists(logFile), $"Log file not found: {logFile}");
 
             AssertLogContainsTimeIfPresent(caseDir, windDir, expectedTime: runSettings.endTime);
@@ -114,7 +114,7 @@ namespace RhinoPlugin.Test.Xunit
             _ = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run.bat"));
 
             // Assert: check log file contains the expected string
-            var logFile = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            var logFile = Path.Combine(caseDir, windDir.ToString(), "foamRun.log");
             Assert.True(File.Exists(logFile), $"Log file not found: {logFile}");
 
             AssertLogContainsTimeIfPresent(caseDir, windDir, expectedTime: runSettings.endTime);
@@ -362,7 +362,7 @@ namespace RhinoPlugin.Test.Xunit
 
         private static void AssertLogContainsTimeIfPresent(string caseDir, int windDir, int expectedTime)
         {
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "foamRun.log");
             Assert.True(File.Exists(logPath), $"Log file not found: {logPath}. Simulation may have been cancelled or failed to start.");
 
             var logContent = File.ReadAllText(logPath);
@@ -381,8 +381,8 @@ namespace RhinoPlugin.Test.Xunit
 
         private static void AssertIndoorSimulationCompleted(string caseDir, int expectedEndTime)
         {
-            // Check for the buoyantSimpleFoam log file
-            var logPath = Path.Combine(caseDir, "buoyantSimpleFoam.log");
+            // Check for the foamRun log file
+            var logPath = Path.Combine(caseDir, "foamRun.log");
             Assert.True(File.Exists(logPath),
                 $"Log file not found: {logPath}. Simulation may have failed to start or was cancelled.");
 

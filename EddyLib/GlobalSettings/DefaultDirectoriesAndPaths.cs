@@ -27,7 +27,7 @@ namespace EddyLib
         private static string _energyPlusDir = IsWindows
             ? @"C:\EnergyPlusV9-4-0"
             : "/Applications/EnergyPlus-9-4-0";
-        private static string _blueCfdDir = @"C:\Program Files\blueCFD-Core-2020";
+        private static string _blueCfdDir = @"C:\blueCFD-Core-2024";
         private static readonly object AutoCasePathLock = new object();
         private static readonly Dictionary<string, string> AutoCasePathByInput =
             new Dictionary<string, string>(StringComparer.Ordinal);
@@ -114,13 +114,38 @@ namespace EddyLib
         }
 
         /// <summary>
-        /// Path to BlueCFD installation directory.
-        /// Default: C:\Program Files\blueCFD-Core-2020
+        /// Path to blueCFD-Core 2024 installation directory.
+        /// Default: C:\blueCFD-Core-2024
         /// </summary>
         public static string BlueCfdDir
         {
             get => _blueCfdDir;
-            set => _blueCfdDir = NormalizeEnginePath(value, @"C:\Program Files\blueCFD-Core-2020");
+            set => _blueCfdDir = NormalizeEnginePath(value, @"C:\blueCFD-Core-2024");
+        }
+
+        /// <summary>
+        /// Path to the blueCFD-Core 2024 environment setup batch file.
+        /// </summary>
+        public static string BlueCfdSetvarsBat
+        {
+            get
+            {
+                var candidates = new[]
+                {
+                    Path.Combine(BlueCfdDir, "setvars.bat"),
+                    Path.Combine(BlueCfdDir, "setvars_OF12.bat")
+                };
+
+                foreach (var candidate in candidates)
+                {
+                    if (File.Exists(candidate))
+                    {
+                        return candidate;
+                    }
+                }
+
+                return candidates[0];
+            }
         }
 
         private static string NormalizeEnginePath(string path, string defaultPath)
@@ -435,17 +460,22 @@ namespace EddyLib
             if (string.IsNullOrWhiteSpace(BlueCfdDir) || !Directory.Exists(BlueCfdDir))
             {
                 throw new FileNotFoundException(
-                    string.Format("blueCFD directory not found at: {0}. Please install blueCFD-Core 2020-1.", BlueCfdDir ?? "null"));
+                    string.Format("blueCFD directory not found at: {0}. Please install blueCFD-Core 2024-1.", BlueCfdDir ?? "null"));
             }
 
-            // Based on user feedback for blueCFD-Core 2020
-            string setvars = Path.Combine(BlueCfdDir, "setvars_OF8.bat");
-            string readme = Path.Combine(BlueCfdDir, "README.TXT");
+            if (BlueCfdDir.IndexOf(' ') >= 0)
+            {
+                throw new InvalidOperationException(
+                    string.Format("blueCFD-Core 2024 must be installed in a path without spaces. Current path: {0}", BlueCfdDir));
+            }
 
-            if (!File.Exists(setvars) && !File.Exists(readme))
+            string setvars = BlueCfdSetvarsBat;
+            string openFoam12Dir = Path.Combine(BlueCfdDir, "OpenFOAM-12");
+
+            if (!File.Exists(setvars) || !Directory.Exists(openFoam12Dir))
             {
                 throw new FileNotFoundException(
-                    string.Format("blueCFD core files not found in: {0}. Please ensure blueCFD-Core 2020-1 is correctly installed.", BlueCfdDir));
+                    string.Format("blueCFD-Core 2024 files not found in: {0}. Please ensure blueCFD-Core 2024-1 is correctly installed.", BlueCfdDir));
             }
         }
     }

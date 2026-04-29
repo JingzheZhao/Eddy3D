@@ -14,8 +14,8 @@ namespace RhinoPlugin.Test.Xunit
             var tempDir = CreateTempDir();
             try
             {
-                var candidate = Path.Combine(tempDir, "simpleFoam.log");
-                var fallback = Path.Combine(tempDir, "simpleFoam.custom.log");
+                var candidate = Path.Combine(tempDir, "foamRun.log");
+                var fallback = Path.Combine(tempDir, "foamRun.custom.log");
                 File.WriteAllText(candidate, "candidate");
                 File.WriteAllText(fallback, "fallback");
 
@@ -55,7 +55,7 @@ namespace RhinoPlugin.Test.Xunit
             var tempDir = CreateTempDir();
             try
             {
-                File.WriteAllText(Path.Combine(tempDir, "simpleFoam.command"), "not a log");
+                File.WriteAllText(Path.Combine(tempDir, "foamRun.command"), "not a log");
                 File.WriteAllText(Path.Combine(tempDir, "readme.txt"), "not a log");
 
                 var latest = OpenFOAMLogLocator.FindLatestSimulationLog(tempDir);

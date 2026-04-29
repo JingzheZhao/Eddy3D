@@ -198,6 +198,13 @@ namespace Eddy
                 DefaultDirectoriesAndPaths.BlueCfdDir = blueCfdPath;
             }
 
+            if (DefaultDirectoriesAndPaths.BlueCfdDir.IndexOf(' ') >= 0)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Warning,
+                    "blueCFD-Core 2024 should be installed in a path without spaces, for example C:\\blueCFD-Core-2024.");
+            }
+
             if (endTime < writeInterval) writeInterval = endTime;
 
             if (endTime <= 600)

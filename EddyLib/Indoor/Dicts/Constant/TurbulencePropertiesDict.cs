@@ -6,7 +6,7 @@
        (
        )
         {
-            this.DictionaryName = "turbulenceProperties";
+            this.DictionaryName = "momentumTransport";
             this.Location = DictLocation.constant;
             this.FC = FieldClass.dictionary;
 
@@ -18,14 +18,14 @@
     format          ascii;
     class           dictionary;
     location        ""constant"";
-    object          turbulenceProperties;
+    object          momentumTransport;
 }
 
 simulationType  RAS;
 
 RAS
 {
-    RASModel        kOmegaSST;
+    model           kOmegaSST;
     kOmegaSSTCoeffs
     {
         alphaK1         0.85;
@@ -45,6 +45,7 @@ RAS
 
     turbulence      on;
     printCoeffs     on;
+    viscosityModel  Newtonian;
 }";
         }
     }

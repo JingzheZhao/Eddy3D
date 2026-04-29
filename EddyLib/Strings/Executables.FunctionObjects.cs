@@ -81,8 +81,7 @@ namespace EddyLib.Strings
 
         private static string FunctionObjStabilityLimiters(OFRunSettings runSettings)
         {
-            // OpenFOAM 8 (including blueCFD 2020) does not provide "limitFields"
-            // function object. Keep this as a no-op for OF8 compatibility.
+            // Reserved for optional OpenFOAM 12 field limiter function objects.
             return string.Empty;
         }
 

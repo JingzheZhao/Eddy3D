@@ -15,7 +15,7 @@ namespace EddyLib
         private const string MeshLogFileName = "snappyHexMesh.log";
         private const string BlockMeshLogFileName = "blockMesh.log";
         private const string SurfaceFeaturesLogFileName = "surfaceFeatures.log";
-        private const string SimulationLogFileName = "simpleFoam.log";
+        private const string SimulationLogFileName = "foamRun.log";
 
         #region Batch Files
 
@@ -193,7 +193,7 @@ namespace EddyLib
                 if (runSettings.potentialFoamInit)
                     cmds.Add(string.Format("mpiexec -np {0} potentialFoam -parallel", runSettings.CPUs));
                 cmds.Add(WithDockerLog(
-                    string.Format("mpiexec -np {0} simpleFoam -parallel", runSettings.CPUs),
+                    string.Format("mpiexec -np {0} foamRun -solver incompressibleFluid -parallel", runSettings.CPUs),
                     SimulationLogFileName));
                 cmds.Add("reconstructPar -latestTime");
             }
@@ -201,7 +201,7 @@ namespace EddyLib
             {
                 if (runSettings.potentialFoamInit)
                     cmds.Add("potentialFoam");
-                cmds.Add(WithDockerLog("simpleFoam", SimulationLogFileName));
+                cmds.Add(WithDockerLog("foamRun -solver incompressibleFluid", SimulationLogFileName));
             }
         }
 

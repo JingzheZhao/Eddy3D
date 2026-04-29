@@ -13,10 +13,10 @@ namespace EddyLib
 
         private static void WriteConstantFiles(CasePaths paths, OFRunSettings runSettings)
         {
-            DictFileWriter.WriteDictToDir(paths.ConstantDir, "turbulenceProperties",
-                Strings.OFExecDicts.TurbulenceProperties(runSettings));
-            DictFileWriter.WriteDictToDir(paths.ConstantDir, "transportProperties",
-                Strings.OFExecDicts.TransportProperties());
+            DictFileWriter.WriteDictToDir(paths.ConstantDir, "momentumTransport",
+                Strings.OFExecDicts.MomentumTransport(runSettings));
+            DictFileWriter.WriteDictToDir(paths.ConstantDir, "physicalProperties",
+                Strings.OFExecDicts.PhysicalProperties());
         }
 
         #endregion

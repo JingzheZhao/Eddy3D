@@ -45,7 +45,7 @@ namespace EddyLib
                 WriteConstantFiles(paths, runSettings);
 
                 WriteBoundaryFiles(domain, i, paths);
-                WriteSystemFiles(domain, meshSettings, runSettings, paths.SystemDir);
+                WriteSystemFiles(domain, meshSettings, runSettings, paths.SystemDir, i);
             }
 
             WriteBatchFiles(workDir, domain, meshSettings, runSettings);

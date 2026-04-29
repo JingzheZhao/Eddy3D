@@ -80,14 +80,14 @@ namespace EddyLib.Strings
      "decomposePar -force",
 
      "mpiexec -np " + RunSettings.CPUs + @" potentialFoam -parallel",
-     "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
+     "mpiexec -np " + RunSettings.CPUs + @" foamRun -solver incompressibleFluid -parallel",
      "reconstructPar -latestTime"};
             }
             else
             {
                 lst = new List<string>{
                 "decomposePar -force",
-                "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
+                "mpiexec -np " + RunSettings.CPUs + @" foamRun -solver incompressibleFluid -parallel",
                 "reconstructPar -latestTime"            };
             }
             return lst;
@@ -101,13 +101,13 @@ namespace EddyLib.Strings
             {
                 lst = new List<string> {
         "potentialFoam",
-        "simpleFoam"
+        "foamRun -solver incompressibleFluid"
                 };
             }
             else
             {
                 lst = new List<string> {
-        "simpleFoam"
+        "foamRun -solver incompressibleFluid"
                 };
             }
             return lst;
@@ -115,7 +115,7 @@ namespace EddyLib.Strings
 
         private static readonly List<string> RCSimContinueSingleCPU = new List<string> {
         "foamDictionary system/controlDict -entry startFrom -set latestTime",
-        "simpleFoam"};
+        "foamRun -solver incompressibleFluid"};
 
         private static List<string> reconstructMesh()
         {
@@ -131,7 +131,7 @@ namespace EddyLib.Strings
             List<string> lst = new List<string>
             {
                 "foamDictionary system/controlDict -entry startFrom -set latestTime",
-                "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
+                "mpiexec -np " + RunSettings.CPUs + @" foamRun -solver incompressibleFluid -parallel",
                 "reconstructPar -latestTime"
             };
             return lst;
@@ -556,7 +556,7 @@ namespace EddyLib.Strings
 
                 sb.AppendLine("@echo off");
                 sb.AppendLine("setlocal enableextensions");
-                sb.AppendLine($@"call ""{installationPath}setvars_OF8.bat""");
+                sb.AppendLine($@"call ""{ResolveBlueCfdSetvarsBat(installationPath)}""");
                 sb.AppendLine(@"set PATH=%HOME%\msys64\usr\bin;%PATH%");
 
                 if (needsDriveSwitch)
@@ -592,6 +592,26 @@ namespace EddyLib.Strings
 
             private static string EnsureTrailingBackslash(string path) =>
                 string.IsNullOrEmpty(path) ? path : (path.EndsWith("\\") ? path : path + "\\");
+
+            private static string ResolveBlueCfdSetvarsBat(string installationPath)
+            {
+                var root = (installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir).TrimEnd('\\', '/');
+                var candidates = new[]
+                {
+                    Path.Combine(root, "setvars.bat"),
+                    Path.Combine(root, "setvars_OF12.bat")
+                };
+
+                foreach (var candidate in candidates)
+                {
+                    if (File.Exists(candidate))
+                    {
+                        return candidate;
+                    }
+                }
+
+                return candidates[0];
+            }
 
             private static string InferLogFileName(string command, string fallback = "log.txt")
             {

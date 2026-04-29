@@ -8,14 +8,14 @@ namespace EddyLib.Docker
     /// </summary>
     public static class DockerConfig
     {
-        /// <summary>Docker image with OpenFOAM 8 and urbanMicroclimateFoam.</summary>
-        public const string ImageName = "pkastner/openfoam:8-umcf-4856041";
+        /// <summary>Docker image with OpenFOAM 12.</summary>
+        public const string ImageName = "openfoam/openfoam12-paraview510";
 
         /// <summary>Named container for interactive runs.</summary>
         public const string ContainerName = "eddy3d-runner";
 
-        /// <summary>Path to OpenFOAM 8 bashrc inside the container.</summary>
-        public const string OpenFoamBashrc = "/home/openfoam/OpenFOAM-8/etc/bashrc";
+        /// <summary>Path to OpenFOAM 12 bashrc inside the container.</summary>
+        public const string OpenFoamBashrc = "/opt/openfoam12/etc/bashrc";
 
         /// <summary>Path to MPI binaries inside the container.</summary>
         public const string MpiPath = "/opt/amazon/openmpi/bin";

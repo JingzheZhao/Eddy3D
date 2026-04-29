@@ -35,7 +35,7 @@ topoSet 2>&1 | tee -a ""topoSet.log""
 
 renumberMesh -overwrite 2>&1 | tee -a ""renumberMesh.log""
 decomposePar -force 2>&1 | tee -a ""decomposePar.log""
-mpiexec -np {cpus} buoyantSimpleFoam -parallel 2>&1 | tee -a ""buoyantSimpleFoam.log""
+mpiexec -np {cpus} foamRun -solver fluid -parallel 2>&1 | tee -a ""foamRun.log""
 reconstructPar 2>&1 | tee -a ""reconstructPar.log""";
         }
     }

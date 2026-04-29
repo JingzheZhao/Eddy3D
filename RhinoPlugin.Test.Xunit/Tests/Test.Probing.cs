@@ -390,7 +390,7 @@ namespace RhinoPlugin.Test.Xunit
                 Environment.SetEnvironmentVariable("HOME", fakeHome);
 
                 File.WriteAllText(
-                    Path.Combine(fakeInstallDir, "setvars_OF8.bat"),
+                    Path.Combine(fakeInstallDir, "setvars.bat"),
                     "@echo off\r\n" +
                     $"set \"PATH={fakeBinDir};%PATH%\"\r\n");
 

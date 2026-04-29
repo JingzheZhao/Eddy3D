@@ -43,7 +43,7 @@ namespace Eddy.Components.Indoor
 
 Simulates buoyancy-driven airflow, temperature distribution, and contaminant transport within an indoor space.
 
-Uses OpenFOAM's 'buoyantSimpleFoam' solver.
+Uses OpenFOAM 12's 'foamRun -solver fluid' solver.
 Requires connected walls, inlets, outlets, and optional heat sources.
 
 " + EddyVersion.toString(),
@@ -448,7 +448,7 @@ Requires connected walls, inlets, outlets, and optional heat sources.
                 cmds.Add("topoSet");
                 cmds.Add("renumberMesh -overwrite");
                 cmds.Add("decomposePar -force");
-                cmds.Add(string.Format("mpiexec -np {0} buoyantSimpleFoam -parallel", cpus));
+                cmds.Add(string.Format("mpiexec -np {0} foamRun -solver fluid -parallel", cpus));
                 cmds.Add("reconstructPar");
             }
 

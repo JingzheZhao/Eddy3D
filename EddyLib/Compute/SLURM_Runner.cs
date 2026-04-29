@@ -211,7 +211,7 @@ namespace EddyLib.Compute
       #SBATCH --mail-user={4}                   # E-mail address for notifications
 
       {5}
-      srun simpleFoam -parallel | tee -a log.simpleFoam
+      srun foamRun -solver incompressibleFluid -parallel | tee -a log.foamRun
       reconstructPar -latestTime | tee -a log.reconstruct
       ", this.ChargeAccount, tasksPerNode, this.RAMperCPU, this.DurationOfJob, this.NotificationEmail, this.OFloadCommand);
 

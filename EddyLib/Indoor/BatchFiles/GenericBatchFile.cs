@@ -28,7 +28,7 @@ namespace EddyLib.Indoor.BatchFiles
         public string GetHeader()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($@"call ""{Path.Combine(DefaultDirectoriesAndPaths.BlueCfdDir, "setvars_OF8.bat")}""");
+            sb.AppendLine($@"call ""{DefaultDirectoriesAndPaths.BlueCfdSetvarsBat}""");
             sb.AppendLine(@"set PATH=%HOME%\msys64\usr\bin;%PATH%");
             sb.AppendLine(ReturnWindowsDrive(BatchLocation.ToString()));
             sb.AppendLine("cd " + "\"" + BatchLocation.ToString() + "\"");

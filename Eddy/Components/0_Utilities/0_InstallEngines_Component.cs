@@ -19,14 +19,14 @@ namespace Eddy
     {
         private static readonly bool IsMac = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         private const string EngineNameOpenFoamDocker = "OpenFOAM (Docker)";
-        private const string EngineNameOpenFoamBlueCfd = "OpenFOAM (BlueCFD)";
+        private const string EngineNameOpenFoamBlueCfd = "OpenFOAM 12 (blueCFD-Core 2024)";
         private const string EngineNameFluidX3D = "FluidX3D";
 
         public InstallEngines_Component()
           : base("Install Engines", "Install",
                 IsMac
                     ? "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, OpenFOAM (Docker), & FluidX3D source)."
-                    : "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, OpenFOAM (BlueCFD), & FluidX3D source).",
+                    : "Downloads and installs required simulation engines (EnergyPlus v9.4.0, Radiance, OpenFOAM 12 (blueCFD-Core 2024), & FluidX3D source).",
               EddyVersion.Name, "0 | Utilities")
         {
         }
@@ -36,10 +36,10 @@ namespace Eddy
             pManager.AddBooleanParameter("Install EnergyPlus", "EP", "Set to True to download and launch EnergyPlus v9.4.0 installer.", GH_ParamAccess.item, false);
             pManager.AddBooleanParameter("Install Radiance", "Rad", "Set to True to download and install Radiance.", GH_ParamAccess.item, false);
             pManager.AddBooleanParameter(
-                IsMac ? "Install OpenFOAM (Docker)" : "Install OpenFOAM (BlueCFD)",
+                IsMac ? "Install OpenFOAM (Docker)" : "Install OpenFOAM 12 (blueCFD-Core 2024)",
                 "CFD",
                 IsMac ? "Set to True to open Docker Desktop download page for OpenFOAM (Docker)."
-                      : "Set to True to download and launch blueCFD-Core 2020-1 installer for OpenFOAM (BlueCFD).",
+                      : "Set to True to download and launch the blueCFD-Core 2024-1 installer for OpenFOAM 12.",
                 GH_ParamAccess.item, false);
             pManager.AddBooleanParameter(
                 "Install FluidX3D",
@@ -362,8 +362,8 @@ namespace Eddy
 
         private string InstallBlueCfd()
         {
-            string url = "https://github.com/blueCFD/Core/releases/download/blueCFD-Core-2020-1/blueCFD-Core-2020-1-win64-setup.exe";
-            string tempFile = Path.Combine(Path.GetTempPath(), "blueCFD-Core-2020-1-Installer.exe");
+            string url = "https://github.com/blueCFD/Core/releases/download/blueCFD-Core-2024-1/blueCFD-Core-2024-1-win64-setup.exe";
+            string tempFile = Path.Combine(Path.GetTempPath(), "blueCFD-Core-2024-1-Installer.exe");
 
             try
             {
