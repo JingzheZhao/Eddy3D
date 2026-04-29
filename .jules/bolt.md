@@ -49,12 +49,15 @@
 ## 2025-05-18 - Replacing Tuples with ValueTuples inside tight loops
 **Learning:** Using `Tuple<T1, T2>` (a reference type) inside a high-frequency loop like the non-linear root finding solver `Broyden.FindRoot` forces unnecessary and massive heap allocations on every single iteration.
 **Action:** Replace `Tuple` with `ValueTuple` (e.g., `(T1, T2)`) in high-frequency methods, especially when they are called from inner loops or objective functions passed to solvers. This eliminates memory allocation overhead and reduces GC pressure. Note that this changes the method signature, but it remains source-compatible if implicit typing (`var`) is used.
+
 ## 2026-03-30 - [Optimize High-Frequency Method Calls and Array Lookups in Hot Loops]
 **Learning:** Repeatedly accessing arrays or invoking numeric inspection methods (like `double.IsNaN`) inside nested O(N*8760) simulation loops significantly degrades performance due to bounds checks, memory indirection, and method call overhead.
 **Action:** Always lift invariant array lookups out of inner loops. Replace expensive framework method calls for NaN and Infinity checks with implicit floating-point logic (e.g., `value > 0.0 && value < double.PositiveInfinity`) when filtering positive datasets in tight loops.
+
 ## 2026-04-01 - [Replace Math.Pow(x, 0.25) with Math.Sqrt(Math.Sqrt(x))]
 **Learning:** In performance-critical C# mathematical loops, `Math.Pow(x, 0.25)` relies on generic software algorithms for floating point exponentiation which can be quite slow.
 **Action:** Replace `Math.Pow(x, 0.25)` with `Math.Sqrt(Math.Sqrt(x))` to leverage fast hardware intrinsics instead of the slower, general-purpose floating-point software routines used by `Math.Pow`.
+
 ## 2025-05-18 - Avoid Math.Log inside O(N*8760) loops
 **Learning:** High-frequency 8760-hour loops inside `Parallel.For` over probes (e.g., `UTCI` calculation) were recalculating static wind profile multipliers on every iteration involving expensive `Math.Log()` calls, totaling over 17 million redundant calculations per 1000 probes.
 **Action:** When iterating over hours for a specific static probe, always hoist invariant property calculations out of the inner loop into the probe scope to eliminate massive mathematical overhead.
@@ -75,15 +78,13 @@
 **Learning:** In calculations inside algorithms like `NaturalVentilation`, `Math.Pow(x, 2)` causes performance overhead compared to explicitly doing `x * x`. When doing complex equations and calculating distances, doing `Math.Pow` twice requires multiple `Math.Pow` overheads and the internal type conversions in Math.Pow implementation. Furthermore, storing the value to a local variable and performing explicit multiplication `(val * val)` skips repeated multiplication of the terms to be squared.
 **Action:** When inspecting equations (such as Natural Ventilation calculation of `C_D_tot_A`), pull repeated terms (such as `AverageCDCPNeg * AverageAreaCpNeg`) into local variables and replace `Math.Pow(..., 2)` with `(val * val)` directly, giving considerable performance bumps especially over large datasets or iterated executions.
 
-<<<<<<< bolt/interpolate-umag-closest-point-opt-12479949240368985006
 ## 2025-05-18 - [Avoid Math.Pow and O(N^2) Array.IndexOf in LINQ distance sorting]
 **Learning:** In closest point searches, using Math.Pow combined with Array.IndexOf inside a LINQ Select/OrderBy chain creates immense overhead. Math.Pow is extremely slow compared to direct multiplication (x * x), and calling Array.IndexOf on the original array for every sorted item results in an O(N * M) complexity, dominating the execution time.
 **Action:** Replace Math.Pow with explicit multiplication, and project the original array index using LINQ Select((item, index) => ...) into a tuple or KeyValuePair before sorting. This transforms the lookup from O(M) to O(1), resulting in substantial performance improvements.
-=======
+
 ## 2026-04-21 - Replace ToHashSet().ToList() with Distinct().ToList()
 **Learning:** In .NET 8, replacing the redundant LINQ pattern `.ToHashSet().ToList()` with `.Distinct().ToList()` significantly improves performance (approx. 2x faster for small collections) by avoiding the overhead of creating and populating an explicit intermediate `HashSet<T>` object. Benchmarks confirm this optimization provides faster execution for both small (10) and large (1000) datasets while maintaining similar memory usage.
 **Action:** Use `.Distinct().ToList()` instead of `.ToHashSet().ToList()` to avoid the overhead of creating and populating an explicit intermediate `HashSet<T>` object.
->>>>>>> dev
 
 ## 2025-05-18 - Hoist array allocations out of tight loops in iterative machine learning algorithms
 **Learning:** In highly iterative machine learning loops (such as the KMeans clustering inner loop), allocating new local arrays (like `new double[clusterCount]` and `new double[clusterCount][]`) on every iteration incurs an immense amount of Garbage Collection (GC) pressure. This degrades throughput considerably, especially given the `while` loop runs to convergence (potentially hundreds of iterations).
@@ -92,6 +93,10 @@
 ## 2024-05-18 - [Avoid class allocations for small data tuples]
 **Learning:** Legacy C# 7.0 tooling issues (like in sqlproj) previously required using `class` instead of `struct` for small tuple types (e.g., `ValueCountTuple` in JenksFisher calculation). This forced unnecessary heap allocations on every element in memory-sensitive clustering paths.
 **Action:** Refactor these legacy class wrappers into `readonly struct` in .NET 8 and use primitive collections (like `Dictionary<double, int>`) during intermediate counting phases to eliminate unnecessary heap allocations and GC pressure.
+
+## 2024-05-24 - Delay Enum.ToString() until after Distinct() in view factor setup
+**Learning:** `Enum.ToString()` is slow and allocates a new string. In `MRT_Simulation_System.ViewFactors.cs`, calling `ToString()` on every element in a large list before calling `Distinct()` allocates O(N) strings unnecessarily.
+**Action:** Call `Distinct()` directly on the `Enum` type first, then call `ToString()` on the resulting unique elements. This reduces string allocations from O(N) to O(1) (at most the number of unique enums, which is 5 here).
 
 ## 2026-04-25 - Optimize ParseABLConditionsFromCaseFolder to use File.ReadLines
 **Learning:** In C#, replacing `File.ReadAllLines` with `File.ReadLines` when processing files sequentially enables lazy evaluation, returning an `IEnumerable<string>` instead of a fully loaded `string[]` array. This drastically reduces memory overhead for large files and can improve execution speed.

@@ -84,7 +84,8 @@ namespace EddyLib.Radiation
         private void BuildVFToProbesByMaterial()
         {
             // ⚡ Bolt: Replace ToHashSet().ToList() with Distinct().ToList() to avoid explicit HashSet allocation. ~2x faster for small datasets.
-            UniqueSurfaceTypesInModel = Polys.Select(s => s.Type.ToString()).Distinct().ToList();
+            // ⚡ Bolt: Additionally, perform .Distinct() on the Enum type BEFORE calling .ToString() to prevent redundant string allocations per element.
+            UniqueSurfaceTypesInModel = Polys.Select(s => s.Type).Distinct().Select(t => t.ToString()).ToList();
 
             // set up dictionary
             for (int i = 0; i < Probes.Count; i++)
