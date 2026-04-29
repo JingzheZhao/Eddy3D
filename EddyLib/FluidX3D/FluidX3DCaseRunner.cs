@@ -442,8 +442,7 @@ namespace EddyLib.FluidX3D
                 {
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = "cmd.exe",
-                        Arguments = "/k \"" + fullScriptPath + "\"",
+                        FileName = fullScriptPath,
                         WorkingDirectory = workingDirectory,
                         UseShellExecute = true
                     });
@@ -451,22 +450,26 @@ namespace EddyLib.FluidX3D
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     EnsureExecutableUnix(fullScriptPath);
-                    Process.Start(new ProcessStartInfo
+                    var psi = new ProcessStartInfo
                     {
                         FileName = "/usr/bin/open",
-                        Arguments = "-a Terminal \"" + fullScriptPath + "\"",
                         UseShellExecute = false,
                         CreateNoWindow = true
-                    });
+                    };
+                    psi.ArgumentList.Add("-a");
+                    psi.ArgumentList.Add("Terminal");
+                    psi.ArgumentList.Add(fullScriptPath);
+                    Process.Start(psi);
                 }
                 else
                 {
-                    Process.Start(new ProcessStartInfo
+                    var psi = new ProcessStartInfo
                     {
                         FileName = "xdg-open",
-                        Arguments = "\"" + fullScriptPath + "\"",
-                        UseShellExecute = true
-                    });
+                        UseShellExecute = false
+                    };
+                    psi.ArgumentList.Add(fullScriptPath);
+                    Process.Start(psi);
                 }
 
                 message = "Launched: " + fullScriptPath;
@@ -486,14 +489,17 @@ namespace EddyLib.FluidX3D
                 return;
             }
 
-            using (Process process = Process.Start(new ProcessStartInfo
+            var chmodPsi = new ProcessStartInfo
             {
                 FileName = "/bin/chmod",
-                Arguments = "+x \"" + filePath + "\"",
                 UseShellExecute = false,
                 RedirectStandardError = true,
                 CreateNoWindow = true
-            }))
+            };
+            chmodPsi.ArgumentList.Add("+x");
+            chmodPsi.ArgumentList.Add(filePath);
+
+            using (Process process = Process.Start(chmodPsi))
             {
                 if (process == null)
                 {
