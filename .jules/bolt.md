@@ -94,6 +94,10 @@
 **Learning:** Legacy C# 7.0 tooling issues (like in sqlproj) previously required using `class` instead of `struct` for small tuple types (e.g., `ValueCountTuple` in JenksFisher calculation). This forced unnecessary heap allocations on every element in memory-sensitive clustering paths.
 **Action:** Refactor these legacy class wrappers into `readonly struct` in .NET 8 and use primitive collections (like `Dictionary<double, int>`) during intermediate counting phases to eliminate unnecessary heap allocations and GC pressure.
 
+## 2026-04-28 - Optimize DirectoryHelpers.GetDirectoriesSafe
+**Learning:** To optimize recursive data collection in C# (e.g., directory searching), avoid creating intermediate `List<T>` instances at each recursion level using `.ToList()`. Instead, return `IEnumerable<T>` from helper methods, leveraging `Array.Empty<T>()` for empty returns, and consume the sequence at the top level to eliminate redundant heap allocations.
+**Action:** Replaced `.ToList()` with returning `IEnumerable<string>` and `Array.Empty<string>()` in catch block.
+
 ## 2024-05-24 - Delay Enum.ToString() until after Distinct() in view factor setup
 **Learning:** `Enum.ToString()` is slow and allocates a new string. In `MRT_Simulation_System.ViewFactors.cs`, calling `ToString()` on every element in a large list before calling `Distinct()` allocates O(N) strings unnecessarily.
 **Action:** Call `Distinct()` directly on the `Enum` type first, then call `ToString()` on the resulting unique elements. This reduces string allocations from O(N) to O(1) (at most the number of unique enums, which is 5 here).

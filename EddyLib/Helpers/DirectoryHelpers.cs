@@ -126,15 +126,15 @@ namespace EddyLib.Helpers
             return directories;
         }
 
-        private static List<string> GetDirectoriesSafe(string path, string searchPattern)
+        private static IEnumerable<string> GetDirectoriesSafe(string path, string searchPattern)
         {
             try
             {
-                return Directory.GetDirectories(path, searchPattern).ToList();
+                return Directory.GetDirectories(path, searchPattern);
             }
             catch (UnauthorizedAccessException)
             {
-                return new List<string>();
+                return Array.Empty<string>();
             }
         }
 
