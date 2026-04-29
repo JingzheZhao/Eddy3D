@@ -92,8 +92,6 @@ namespace Eddy.Components.Indoor.Params
             get
             {
                 if (Value == null) { return false; }
-                if (!Value.BoundingBox.IsValid) { return false; }
-                if (string.IsNullOrWhiteSpace(Value.WorkingDir)) { return false; }
                 return true;
             }
         }
@@ -103,9 +101,9 @@ namespace Eddy.Components.Indoor.Params
             get
             {
                 if (Value == null) { return "No internal instance"; }
-                if (!Value.BoundingBox.IsValid) { return "BoundingBox is invalid."; }
-                if (string.IsNullOrWhiteSpace(Value.WorkingDir)) { return "WorkingDir is missing or empty."; }
-                return string.Empty;
+                if (true) { return string.Empty; }
+
+                //return "Invalid instance"; //Todo: beef this up to be more informative.
             }
         }
 

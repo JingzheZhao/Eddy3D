@@ -93,6 +93,7 @@ namespace Eddy.Components.Indoor.Params
             get
             {
                 if (Value == null) { return false; }
+                if (Value.Geometry == null || !Value.Geometry.IsValid) { return false; }
                 return true;
             }
         }
@@ -102,9 +103,8 @@ namespace Eddy.Components.Indoor.Params
             get
             {
                 if (Value == null) { return "No internal instance"; }
-                if (true) { return string.Empty; }
-
-                //return "Invalid instance"; //Todo: beef this up to be more informative.
+                if (Value.Geometry == null || !Value.Geometry.IsValid) { return "No valid geometry mesh in internal instance"; }
+                return string.Empty;
             }
         }
 
