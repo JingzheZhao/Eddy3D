@@ -58,12 +58,30 @@ namespace EddyLib
         public static (double X, double Y, double Z) GetDimensions(Mesh mesh)
         {
             if (mesh == null) return (0, 0, 0);
+            if (mesh.Vertices.Count == 0) return (0, 0, 0);
 
-            BoundingBox bbox = mesh.GetBoundingBox(true);
+            double minX = double.PositiveInfinity;
+            double minY = double.PositiveInfinity;
+            double minZ = double.PositiveInfinity;
+            double maxX = double.NegativeInfinity;
+            double maxY = double.NegativeInfinity;
+            double maxZ = double.NegativeInfinity;
+
+            for (int i = 0; i < mesh.Vertices.Count; i++)
+            {
+                var vertex = mesh.Vertices[i];
+                if (vertex.X < minX) minX = vertex.X;
+                if (vertex.Y < minY) minY = vertex.Y;
+                if (vertex.Z < minZ) minZ = vertex.Z;
+                if (vertex.X > maxX) maxX = vertex.X;
+                if (vertex.Y > maxY) maxY = vertex.Y;
+                if (vertex.Z > maxZ) maxZ = vertex.Z;
+            }
+
             return (
-                bbox.Max.X - bbox.Min.X,
-                bbox.Max.Y - bbox.Min.Y,
-                bbox.Max.Z - bbox.Min.Z
+                maxX - minX,
+                maxY - minY,
+                maxZ - minZ
             );
         }
 
