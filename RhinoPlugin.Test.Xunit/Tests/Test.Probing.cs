@@ -395,12 +395,12 @@ namespace RhinoPlugin.Test.Xunit
                     $"set \"PATH={fakeBinDir};%PATH%\"\r\n");
 
                 File.WriteAllText(
-                    Path.Combine(fakeBinDir, "reconstructParMesh.bat"),
+                    Path.Combine(fakeBinDir, "reconstructPar.bat"),
                     "@echo off\r\n" +
                     $"echo %CD%>\"{markerPath}\"\r\n");
 
                 var script = EddyLib.Strings.BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(
-                    new[] { "reconstructParMesh" },
+                    new[] { "reconstructPar -constant -noFields" },
                     caseDir,
                     EddyLib.Strings.RunMode.Canvas,
                     fakeInstallDir);
@@ -412,7 +412,7 @@ namespace RhinoPlugin.Test.Xunit
                     close: true,
                     startInNewThread: false);
 
-                Assert.True(File.Exists(markerPath), "Expected fake reconstructParMesh command to run.");
+                Assert.True(File.Exists(markerPath), "Expected fake reconstructPar command to run.");
                 Assert.Equal(caseDir, File.ReadAllText(markerPath).Trim());
             }
             finally

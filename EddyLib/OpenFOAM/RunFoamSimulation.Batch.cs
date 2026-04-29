@@ -75,7 +75,7 @@ namespace EddyLib
                 meshCmds.Add(WithDockerLog(
                     string.Format("mpiexec -np {0} snappyHexMesh -overwrite -parallel", runSettings.CPUs),
                     MeshLogFileName));
-                meshCmds.Add("reconstructParMesh -constant");
+                meshCmds.Add("reconstructPar -constant -noFields");
                 meshCmds.Add("renumberMesh -overwrite");
             }
             else
@@ -85,7 +85,7 @@ namespace EddyLib
                 meshCmds.Add(WithDockerLog("snappyHexMesh -overwrite", MeshLogFileName));
                 meshCmds.Add("renumberMesh -overwrite");
             }
-            meshCmds.Add("checkMesh -allGeometry -allTopology -writeSets vtk");
+            meshCmds.Add("checkMesh -allGeometry -allTopology -writeSets -setFormat vtk");
 
             var meshOnlyCmds = new List<string>(meshCmds);
             meshOnlyCmds.Add("cd " + DockerConfig.CaseMountPoint);

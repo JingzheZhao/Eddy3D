@@ -58,7 +58,7 @@ namespace EddyLib
 
                 // Docker scripts (.command on macOS, .bat on Windows)
                 var checkMeshCmds = new List<string> { "cd mesh", "checkMesh" };
-                var reconstructCmds = new List<string> { "cd mesh", "reconstructParMesh -constant" };
+                var reconstructCmds = new List<string> { "cd mesh", "reconstructPar -constant -noFields" };
                 var deleteProcCmds = new List<string> { "cd mesh", "rm -rf processor*" };
 
                 if (isWindows)
