@@ -79,6 +79,7 @@ Environment variables:
 
 - `EDDY3D_RUN_OPENFOAM_TESTS=1`: enables the slow execution tests.
 - `EDDY3D_BLUECFD_DIR`: overrides blueCFD auto-detection.
+- `EDDY3D_RADIANCE_DIR`: overrides Radiance auto-detection.
 - `EDDY3D_TEST_CPUS`: caps solver CPU count for constrained runners.
 
 ## Fixture Behavior

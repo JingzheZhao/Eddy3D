@@ -20,9 +20,7 @@ namespace EddyLib
         private static string _baseDir = IsWindows ? LocalEddy3DDir : RoamingEddy3DDir;
         private static readonly string CasesRootDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Eddy3D");
-        private static readonly string _radianceDirDefault = IsWindows
-            ? Path.Combine(_baseDir, "Radiance_012cb178_Windows")
-            : Path.Combine(_baseDir, "Radiance_012cb178_OSX", "radiance");
+        private static readonly string _radianceDirDefault = ResolveDefaultRadianceDir();
         private static string _radianceDir = _radianceDirDefault;
         private static string _energyPlusDir = IsWindows
             ? @"C:\EnergyPlusV9-4-0"
@@ -239,6 +237,46 @@ namespace EddyLib
 
             // Extremely unlikely collision fallback.
             return Path.Combine(casesRoot, "Case_" + Guid.NewGuid().ToString("N"));
+        }
+
+        private static string ResolveDefaultRadianceDir()
+        {
+            string fromEnvironment = Environment.GetEnvironmentVariable("EDDY3D_RADIANCE_DIR");
+            if (!string.IsNullOrWhiteSpace(fromEnvironment))
+            {
+                return TrimWrappingQuotes(fromEnvironment.Trim()).TrimEnd('\\', '/');
+            }
+
+            string bundledDefault = IsWindows
+                ? Path.Combine(_baseDir, "Radiance_012cb178_Windows")
+                : Path.Combine(_baseDir, "Radiance_012cb178_OSX", "radiance");
+
+            if (!IsWindows)
+            {
+                return bundledDefault;
+            }
+
+            string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+
+            string[] candidates =
+            {
+                Path.Combine(programFiles, "Radiance"),
+                @"C:\Radiance",
+                Path.Combine(programFilesX86, "Radiance"),
+                bundledDefault
+            };
+
+            foreach (string candidate in candidates)
+            {
+                if (!string.IsNullOrWhiteSpace(candidate)
+                    && File.Exists(Path.Combine(candidate, "bin", "rad.exe")))
+                {
+                    return candidate;
+                }
+            }
+
+            return bundledDefault;
         }
 
         private static string ResolveDefaultBlueCfdDir()

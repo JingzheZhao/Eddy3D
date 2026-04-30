@@ -77,7 +77,7 @@ namespace RhinoPlugin.Test.Xunit
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             string baseDir = isWindows ? @"C:\TestRadiance" : "/tmp/TestRadiance";
             string binDir = isWindows ? @"C:\TestRadiance\bin" : "/tmp/TestRadiance/bin";
-            string expectedDefaultFragment = isWindows ? "Radiance_012cb178_Windows" : "Radiance_012cb178_OSX";
+            string expectedDefault = originalPath;
 
             try
             {
@@ -91,20 +91,20 @@ namespace RhinoPlugin.Test.Xunit
 
                 // Test boolean strings (should revert to default)
                 DefaultDirectoriesAndPaths.RadianceDir = "False";
-                Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
+                Assert.Equal(expectedDefault, DefaultDirectoriesAndPaths.RadianceDir);
 
                 DefaultDirectoriesAndPaths.RadianceDir = "True";
-                Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
+                Assert.Equal(expectedDefault, DefaultDirectoriesAndPaths.RadianceDir);
 
                 // Test whitespace/empty
                 DefaultDirectoriesAndPaths.RadianceDir = " ";
-                Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
+                Assert.Equal(expectedDefault, DefaultDirectoriesAndPaths.RadianceDir);
 
                 // Test foreign absolute path from another OS (should revert to default)
                 DefaultDirectoriesAndPaths.RadianceDir = isWindows
                     ? "/Users/patrickkastner/Eddy3D/Radiance"
                     : @"C:\Program Files\Radiance";
-                Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
+                Assert.Equal(expectedDefault, DefaultDirectoriesAndPaths.RadianceDir);
             }
             finally
             {
