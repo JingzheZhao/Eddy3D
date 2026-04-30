@@ -248,6 +248,12 @@ namespace EddyLib
                 return string.Empty;
             }
 
+            string fromEnvironment = Environment.GetEnvironmentVariable("EDDY3D_BLUECFD_DIR");
+            if (!string.IsNullOrWhiteSpace(fromEnvironment))
+            {
+                return TrimWrappingQuotes(fromEnvironment.Trim()).TrimEnd('\\', '/');
+            }
+
             string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
 

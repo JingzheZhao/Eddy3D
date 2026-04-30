@@ -23,6 +23,12 @@ All custom test attributes must route through `TestExecutionPolicy`.
 | `RhinoInstalled` | Run (do not skip by policy) | Skip | Run if Rhino installed, else Skip |
 | `RhinoNativeHost` | Run | Skip | Skip |
 | `GrasshopperWithRhinoHost` | Run if Grasshopper available, else Skip | Skip | Skip |
+| `BlueCfd` | Run if blueCFD-Core 2024 / OpenFOAM 12 is available | Skip | Skip |
+| `OpenFoamExecution` | Run only when `EDDY3D_RUN_OPENFOAM_TESTS=1` | Skip | Skip |
+| `Radiance` | Run if Radiance is available | Skip | Skip |
+| `EnergyPlus` | Run if EnergyPlus is available | Skip | Skip |
+| `Python` | Run if `python` or `python3` starts successfully | Run if available | Run if available |
+| `ExternalService` | Run only when `EDDY3D_RUN_EXTERNAL_TESTS=1` | Run only when enabled | Run only when enabled |
 
 ### Fail-Fast Rule
 
@@ -41,6 +47,37 @@ Use these attributes in tests:
   - Backward-compatible names; maps to `RhinoNativeHost`
 - `RequiresGrasshopperFact` / `RequiresGrasshopperTheory`
   - Maps to `GrasshopperWithRhinoHost`
+- `RequiresOpenFoamExecutionFact` / `RequiresOpenFoamExecutionTheory`
+  - Maps to `RhinoNativeHost`, `BlueCfd`, and `OpenFoamExecution`
+- `RequiresRadianceFact` / `RequiresRadianceTheory`
+  - Maps to `RhinoNativeHost` and `Radiance`
+- `RequiresRadianceAndEnergyPlusFact`
+  - Maps to `RhinoNativeHost`, `Radiance`, and `EnergyPlus`
+- `RequiresPythonFact`
+  - Maps to `Python`
+- `RequiresExternalServiceFact`
+  - Maps to `ExternalService`
+
+## OpenFOAM Integration Tests
+
+OpenFOAM execution tests are long-running integration tests, not default unit tests.
+
+Local/manual execution:
+
+```powershell
+$env:EDDY3D_RUN_OPENFOAM_TESTS = "1"
+$env:EDDY3D_BLUECFD_DIR = "C:\Program Files\blueCFD-Core-2024"
+$env:EDDY3D_TEST_CPUS = "2"
+dotnet test RhinoPlugin.Test.Xunit\RhinoPlugin.Test.Xunit.csproj --filter "FullyQualifiedName~OFExecutionTests"
+```
+
+CI execution is handled by `.github/workflows/openfoam-integration.yml`. The workflow loads `ci/openfoam-integration.env` and targets a self-hosted Windows runner with the `OpenFOAM` label. That runner must have Rhino and blueCFD-Core 2024 / OpenFOAM 12 installed.
+
+Environment variables:
+
+- `EDDY3D_RUN_OPENFOAM_TESTS=1`: enables the slow execution tests.
+- `EDDY3D_BLUECFD_DIR`: overrides blueCFD auto-detection.
+- `EDDY3D_TEST_CPUS`: caps solver CPU count for constrained runners.
 
 ## Fixture Behavior
 
