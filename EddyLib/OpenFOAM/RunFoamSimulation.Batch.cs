@@ -238,7 +238,7 @@ namespace EddyLib
 
         private static void WriteGnuplotScript(string caseDir, int windDir)
         {
-            string residualsPath = Path.Combine(caseDir, "postProcessing", "residuals", "0", "residuals.dat");
+            string residualsPath = Strings.PlotResiduals.FindResidualsDat(caseDir);
             string outputPng = Path.Combine(caseDir, "residuals.png");
             string gnuplotScript = Path.Combine(caseDir, "plot_residuals.plt");
 

@@ -408,10 +408,11 @@ namespace RhinoPlugin.Test.Xunit
 
         private static string CreateResidualPlotPng(string caseDir, int windDir)
         {
-            string residualsPath = Path.Combine(caseDir, windDir.ToString(), "postProcessing", "residuals", "0", "residuals.dat");
+            string windDirPath = Path.Combine(caseDir, windDir.ToString());
+            string residualsPath = EddyLib.Strings.PlotResiduals.FindResidualsDat(windDirPath);
             string outputPath = Path.Combine(caseDir, windDir.ToString(), "residuals.png");
 
-            Assert.True(File.Exists(residualsPath), $"residuals.dat not found: {residualsPath}");
+            Assert.True(File.Exists(residualsPath), $"residuals.dat not found under: {Path.Combine(windDirPath, "postProcessing", "residuals")}");
 
             string[] lines = File.ReadAllLines(residualsPath);
             var fieldNames = new List<string>();

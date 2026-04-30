@@ -60,8 +60,10 @@ namespace EddyLib.Strings
                 }
             }
 
+            string plotPath = ToGnuplotRelativePath(residualsPath);
+
             sb.AppendLine("# Plot the data");
-            sb.Append($"plot 'postProcessing/residuals/0/residuals.dat' using 1:2 with linespoints title '{fieldNames[0]}' lw 2 pt 7 ps 0.5");
+            sb.Append($"plot '{plotPath}' using 1:2 with linespoints title '{fieldNames[0]}' lw 2 pt 7 ps 0.5");
 
             for (int i = 1; i < Math.Min(fieldNames.Length, 6); i++)
             {
@@ -73,14 +75,35 @@ namespace EddyLib.Strings
             return sb.ToString();
         }
 
+        public static string FindResidualsDat(string caseDir)
+        {
+            var residualsRoot = Path.Combine(caseDir, "postProcessing", "residuals");
+            if (!Directory.Exists(residualsRoot))
+            {
+                return Path.Combine(residualsRoot, "0", "residuals.dat");
+            }
+
+            string[] candidates = Directory.GetFiles(residualsRoot, "residuals.dat", SearchOption.AllDirectories);
+            if (candidates.Length == 0)
+            {
+                return Path.Combine(residualsRoot, "0", "residuals.dat");
+            }
+
+            return candidates
+                .OrderBy(GetResidualsTimeDirectory)
+                .ThenBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .First();
+        }
+
         /// <summary>
         /// Generates a batch file command to run gnuplot for residuals plotting
         /// </summary>
         public static string GeneratePlotCommand(string caseDir, int windDir)
         {
-            var residualsPath = Path.Combine(caseDir, windDir.ToString(), "postProcessing", "residuals", "0", "residuals.dat");
-            var outputPng = Path.Combine(caseDir, windDir.ToString(), "residuals.png");
-            var gnuplotScript = Path.Combine(caseDir, windDir.ToString(), "plot_residuals.plt");
+            var windDirPath = Path.Combine(caseDir, windDir.ToString());
+            var residualsPath = FindResidualsDat(windDirPath);
+            var outputPng = Path.Combine(windDirPath, "residuals.png");
+            var gnuplotScript = Path.Combine(windDirPath, "plot_residuals.plt");
 
             var sb = new StringBuilder();
             sb.AppendLine();
@@ -98,6 +121,29 @@ namespace EddyLib.Strings
             sb.AppendLine($")");
 
             return sb.ToString();
+        }
+
+        private static double GetResidualsTimeDirectory(string residualsPath)
+        {
+            string directoryName = Path.GetFileName(Path.GetDirectoryName(residualsPath));
+            if (double.TryParse(directoryName, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double value))
+            {
+                return value;
+            }
+
+            return double.PositiveInfinity;
+        }
+
+        private static string ToGnuplotRelativePath(string residualsPath)
+        {
+            string normalized = residualsPath.Replace('\\', '/');
+            int index = normalized.IndexOf("postProcessing/residuals/", StringComparison.OrdinalIgnoreCase);
+            if (index >= 0)
+            {
+                return normalized.Substring(index);
+            }
+
+            return normalized;
         }
     }
 }
