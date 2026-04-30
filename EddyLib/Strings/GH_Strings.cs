@@ -351,7 +351,7 @@ namespace EddyLib
 
             public const string Debug = "Debug Diagnostics";
             public const string DebugNick = "Dbg";
-            public const string DebugDesc = "Enable additional diagnostic function objects (fieldMinMax and volume averages) in solver logs. Keep off for faster runs.";
+            public const string DebugDesc = "Enable additional diagnostic function objects (field min/max magnitude and volume averages) in solver logs. Keep off for faster runs.";
 
             public const string SimpleC = "SIMPLEC";
             public const string SimpleCNick = "SPLC";

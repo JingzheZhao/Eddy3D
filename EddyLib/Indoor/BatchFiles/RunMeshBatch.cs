@@ -27,11 +27,17 @@ namespace EddyLib.Indoor.BatchFiles
         private static string BatchBody(int cpus)
         {
             return $@"blockMesh
+if errorlevel 1 exit /b %errorlevel%
 surfaceFeatures
+if errorlevel 1 exit /b %errorlevel%
 decomposePar -force
+if errorlevel 1 exit /b %errorlevel%
 mpiexec -np {cpus} snappyHexMesh -overwrite -parallel
-reconstructParMesh -constant
-renumberMesh -overwrite";
+if errorlevel 1 exit /b %errorlevel%
+reconstructPar -constant -noFields
+if errorlevel 1 exit /b %errorlevel%
+renumberMesh -overwrite
+if errorlevel 1 exit /b %errorlevel%";
         }
 
     }

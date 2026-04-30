@@ -27,29 +27,47 @@ namespace EddyLib.Indoor.BatchFiles
             if (cpus <= 1)
             {
                 return @"blockMesh >> ""blockMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 surfaceFeatures >> ""surfaceFeatures.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 snappyHexMesh -overwrite >> ""snappyHexMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 
 topoSet >> ""topoSet.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 
 renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
-foamRun -solver fluid >> ""foamRun.log"" 2>&1";
+if errorlevel 1 exit /b %errorlevel%
+foamRun -solver fluid >> ""foamRun.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%";
             }
 
             return $@"blockMesh >> ""blockMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 surfaceFeatures >> ""surfaceFeatures.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 decomposePar -force >> ""decomposePar.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 mpiexec -np {cpus} snappyHexMesh -overwrite -parallel >> ""snappyHexMesh.log"" 2>&1
-reconstructParMesh -constant >> ""reconstructParMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+reconstructPar -constant -noFields >> ""reconstructParMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 
 topoSet >> ""topoSet.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 
 renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 decomposePar -force >> ""decomposePar.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 mpiexec -np {cpus} foamRun -solver fluid -parallel >> ""foamRun.log"" 2>&1
-reconstructPar >> ""reconstructPar.log"" 2>&1";
+if errorlevel 1 exit /b %errorlevel%
+reconstructPar >> ""reconstructPar.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%";
         }
     }
 }

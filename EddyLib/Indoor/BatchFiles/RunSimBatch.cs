@@ -27,15 +27,23 @@ namespace EddyLib.Indoor.BatchFiles
             if (cpus <= 1)
             {
                 return @"topoSet >> ""topoSet.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
-foamRun -solver fluid >> ""foamRun.log"" 2>&1";
+if errorlevel 1 exit /b %errorlevel%
+foamRun -solver fluid >> ""foamRun.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%";
             }
 
             return $@"topoSet >> ""topoSet.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 decomposePar -force >> ""decomposePar.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 mpiexec -np {cpus} foamRun -solver fluid -parallel >> ""foamRun.log"" 2>&1
-reconstructPar >> ""reconstructPar.log"" 2>&1";
+if errorlevel 1 exit /b %errorlevel%
+reconstructPar >> ""reconstructPar.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%";
         }
     }
 }

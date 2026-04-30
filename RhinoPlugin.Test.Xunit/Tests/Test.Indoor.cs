@@ -275,6 +275,24 @@ namespace RhinoPlugin.Test.Xunit
             // Check specific dictionary content (e.g., endTime in controlDict)
             string controlDictContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "system", "controlDict"));
             Assert.Matches($"endTime\\s+{endTime};", controlDictContent);
+            Assert.DoesNotContain("fieldMinMax", controlDictContent);
+            Assert.Contains("type volFieldValue;", controlDictContent);
+            Assert.DoesNotContain("regionType all", controlDictContent);
+            Assert.DoesNotContain("weightedVolAverage", controlDictContent);
+            Assert.Matches(@"select\s+all;", controlDictContent);
+            Assert.Matches(@"operation\s+volAverage;", controlDictContent);
+            Assert.Matches(@"diffusivity\s+constant;", controlDictContent);
+
+            string snappyDictContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "system", "snappyHexMeshDict"));
+            Assert.Matches(@"Inlet1\.stl\s*\{[\s\S]*?file\s+""Inlet1\.stl"";", snappyDictContent);
+            Assert.Matches(@"features\s*\([\s\S]*?\{[\s\S]*?file\s+""Inlet1\.eMesh"";[\s\S]*?level\s+3;", snappyDictContent);
+            Assert.Matches(@"Inlet1\s*\{[\s\S]*?patchInfo\s*\{[\s\S]*?type\s+patch;", snappyDictContent);
+            Assert.Matches(@"Outlet2\s*\{[\s\S]*?patchInfo\s*\{[\s\S]*?type\s+patch;", snappyDictContent);
+            Assert.Matches(@"Wall0\s*\{[\s\S]*?patchInfo\s*\{[\s\S]*?type\s+wall;", snappyDictContent);
+            Assert.DoesNotContain("type            inlet;", snappyDictContent);
+            Assert.DoesNotContain("type            outlet;", snappyDictContent);
+            Assert.DoesNotContain("ExplicitFeatureSnap", snappyDictContent);
+            Assert.Contains("explicitFeatureSnap", snappyDictContent);
 
             // Ensure base blockMesh patches are present in thermal boundary conditions.
             string tDictContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "0", "T"));
@@ -283,6 +301,11 @@ namespace RhinoPlugin.Test.Xunit
             // Ensure simulation-only script includes topology step.
             string runSimContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "run_sim.bat"));
             Assert.Contains("topoSet", runSimContent);
+            Assert.Contains("if errorlevel 1 exit /b %errorlevel%", runSimContent);
+
+            string runAllContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "run_all.bat"));
+            Assert.Contains("reconstructPar -constant -noFields", runAllContent);
+            Assert.Contains("if errorlevel 1 exit /b %errorlevel%", runAllContent);
 
             _output.WriteLine($"Full simulation setup verified in {workingDir}");
         }
