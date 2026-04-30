@@ -29,28 +29,34 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         /// <summary>
-        /// Gets the recommended CPU count for tests: 75% of available cores, minimum 1, default 8 if detection fails.
+        /// Gets the recommended CPU count for execution tests: 75% of available cores,
+        /// with EDDY3D_TEST_CPUS available for constrained CI agents.
         /// </summary>
         private static int GetTestCpuCount()
         {
+            string overrideValue = Environment.GetEnvironmentVariable("EDDY3D_TEST_CPUS");
+            if (int.TryParse(overrideValue, out int overridden) && overridden > 0)
+            {
+                return overridden;
+            }
+
             try
             {
-                int availableCores = System.Environment.ProcessorCount;
+                int availableCores = Environment.ProcessorCount;
                 if (availableCores > 0)
                 {
-                    int cpuCount = (int)Math.Ceiling(availableCores * 0.75);
-                    return Math.Max(1, cpuCount); // Ensure at least 1 CPU
+                    return Math.Max(1, (int)Math.Ceiling(availableCores * 0.75));
                 }
             }
             catch
             {
-                // Fall through to default
+                // Fall through to the conservative default.
             }
 
-            return 8; // Default fallback
+            return 1;
         }
 
-        [NotWindowsServerFact]
+        [RequiresOpenFoamExecutionFact]
         public void BoxDomainCase_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -84,7 +90,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.True(File.Exists(residualPlot), $"Residual plot not found: {residualPlot}");
         }
 
-        [NotWindowsServerFact]
+        [RequiresOpenFoamExecutionFact]
         public void BoxDomainCase_WithSimpleC_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -181,7 +187,7 @@ namespace RhinoPlugin.Test.Xunit
             return (success, logBuilder.ToString());
         }
 
-        [NotWindowsServerTheory]
+        [RequiresOpenFoamExecutionTheory]
         [InlineData(5)]
         [InlineData(45)]
         [InlineData(90)]
@@ -222,7 +228,7 @@ namespace RhinoPlugin.Test.Xunit
             _ = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run.bat"));
         }
 
-        [NotWindowsServerFact]
+        [RequiresOpenFoamExecutionFact]
         public void IndoorSimpleCase_GeneratesAndExecutesSuccessfully()
         {
             // Arrange

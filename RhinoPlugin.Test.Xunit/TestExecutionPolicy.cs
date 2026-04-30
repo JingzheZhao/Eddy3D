@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -9,7 +10,13 @@ namespace RhinoPlugin.Test.Xunit
     {
         RhinoInstalled,
         RhinoNativeHost,
-        GrasshopperWithRhinoHost
+        GrasshopperWithRhinoHost,
+        BlueCfd,
+        Radiance,
+        EnergyPlus,
+        Python,
+        ExternalService,
+        OpenFoamExecution
     }
 
     /// <summary>
@@ -22,12 +29,27 @@ namespace RhinoPlugin.Test.Xunit
         internal const string RhinoHostRequiresWindowsReason = "Rhino in-process hosting requires Windows (RhinoLibrary.dll P/Invoke).";
         internal const string GrasshopperMissingReason = "Skipping test because Grasshopper is not available.";
         internal const string UnsupportedPlatformReason = "Rhino tests currently support Windows and macOS only.";
+        internal const string BlueCfdMissingReason = "Skipping test because blueCFD-Core 2024 / OpenFOAM 12 is not available.";
+        internal const string RadianceMissingReason = "Skipping test because Radiance is not available.";
+        internal const string EnergyPlusMissingReason = "Skipping test because EnergyPlus is not available.";
+        internal const string PythonMissingReason = "Skipping test because Python is not available.";
+        internal const string ExternalServiceDisabledReason = "Skipping external service integration test. Set EDDY3D_RUN_EXTERNAL_TESTS=1 to run.";
+        internal const string OpenFoamExecutionDisabledReason = "Skipping OpenFOAM execution integration test. Set EDDY3D_RUN_OPENFOAM_TESTS=1 to run.";
 
         private static readonly Lazy<bool> RhinoInstalled = new Lazy<bool>(DetectRhinoInstalled);
         private static readonly Lazy<bool> GrasshopperInstalled = new Lazy<bool>(DetectGrasshopperInstalled);
+        private static readonly Lazy<bool> BlueCfdInstalled = new Lazy<bool>(DetectBlueCfdInstalled);
+        private static readonly Lazy<bool> RadianceInstalled = new Lazy<bool>(DetectRadianceInstalled);
+        private static readonly Lazy<bool> EnergyPlusInstalled = new Lazy<bool>(DetectEnergyPlusInstalled);
+        private static readonly Lazy<string> PythonExecutablePath = new Lazy<string>(FindPythonExecutable);
 
         internal static bool IsRhinoInstalled => RhinoInstalled.Value;
         internal static bool IsGrasshopperInstalled => GrasshopperInstalled.Value;
+        internal static bool IsBlueCfdInstalled => BlueCfdInstalled.Value;
+        internal static bool IsRadianceInstalled => RadianceInstalled.Value;
+        internal static bool IsEnergyPlusInstalled => EnergyPlusInstalled.Value;
+        internal static bool IsPythonAvailable => !string.IsNullOrWhiteSpace(PythonExecutablePath.Value);
+        internal static string PythonExecutable => PythonExecutablePath.Value;
 
         internal static bool ShouldFailFastOnRhinoHostInitialization()
         {
@@ -45,6 +67,18 @@ namespace RhinoPlugin.Test.Xunit
                     return GetRhinoNativeHostSkipReason();
                 case TestExecutionRequirement.GrasshopperWithRhinoHost:
                     return GetGrasshopperSkipReason();
+                case TestExecutionRequirement.BlueCfd:
+                    return IsBlueCfdInstalled ? null : BlueCfdMissingReason;
+                case TestExecutionRequirement.Radiance:
+                    return IsRadianceInstalled ? null : RadianceMissingReason;
+                case TestExecutionRequirement.EnergyPlus:
+                    return IsEnergyPlusInstalled ? null : EnergyPlusMissingReason;
+                case TestExecutionRequirement.Python:
+                    return IsPythonAvailable ? null : PythonMissingReason;
+                case TestExecutionRequirement.ExternalService:
+                    return ExternalServiceTestsEnabled() ? null : ExternalServiceDisabledReason;
+                case TestExecutionRequirement.OpenFoamExecution:
+                    return OpenFoamExecutionTestsEnabled() ? null : OpenFoamExecutionDisabledReason;
                 default:
                     return null;
             }
@@ -215,6 +249,115 @@ namespace RhinoPlugin.Test.Xunit
             {
                 return false;
             }
+        }
+
+        private static bool DetectBlueCfdInstalled()
+        {
+            try
+            {
+                EddyLib.DefaultDirectoriesAndPaths.CheckBlueCfd();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool DetectRadianceInstalled()
+        {
+            try
+            {
+                EddyLib.DefaultDirectoriesAndPaths.CheckRadiance();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool DetectEnergyPlusInstalled()
+        {
+            try
+            {
+                EddyLib.DefaultDirectoriesAndPaths.CheckEnergyPlus();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string FindPythonExecutable()
+        {
+            string[] candidates = { "python", "python3" };
+            foreach (string candidate in candidates)
+            {
+                if (CanStartProcess(candidate, "--version"))
+                {
+                    return candidate;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool CanStartProcess(string fileName, string arguments)
+        {
+            try
+            {
+                using (var process = Process.Start(new ProcessStartInfo
+                {
+                    FileName = fileName,
+                    Arguments = arguments,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                }))
+                {
+                    if (process == null)
+                    {
+                        return false;
+                    }
+
+                    if (!process.WaitForExit(5000))
+                    {
+                        try { process.Kill(); } catch { }
+                        return false;
+                    }
+
+                    return process.ExitCode == 0;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool ExternalServiceTestsEnabled()
+        {
+            return IsTruthy(Environment.GetEnvironmentVariable("EDDY3D_RUN_EXTERNAL_TESTS"));
+        }
+
+        private static bool OpenFoamExecutionTestsEnabled()
+        {
+            return IsTruthy(Environment.GetEnvironmentVariable("EDDY3D_RUN_OPENFOAM_TESTS"));
+        }
+
+        private static bool IsTruthy(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return false;
+            }
+
+            return raw.Equals("1", StringComparison.OrdinalIgnoreCase)
+                || raw.Equals("true", StringComparison.OrdinalIgnoreCase)
+                || raw.Equals("yes", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

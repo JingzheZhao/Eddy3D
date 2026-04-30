@@ -24,19 +24,32 @@ namespace EddyLib.Indoor.BatchFiles
 
         private static string BatchBody(int cpus)
         {
-            return $@"blockMesh 2>&1 | tee -a ""blockMesh.log""
-surfaceFeatures 2>&1 | tee -a ""surfaceFeatures.log""
-decomposePar -force 2>&1 | tee -a ""decomposePar.log""
-mpiexec -np {cpus} snappyHexMesh -overwrite -parallel 2>&1 | tee -a ""snappyHexMesh.log""
-reconstructParMesh -constant 2>&1 | tee -a ""reconstructParMesh.log""
-renumberMesh -overwrite 2>&1 | tee -a ""renumberMesh.log""
+            if (cpus <= 1)
+            {
+                return @"blockMesh >> ""blockMesh.log"" 2>&1
+surfaceFeatures >> ""surfaceFeatures.log"" 2>&1
+snappyHexMesh -overwrite >> ""snappyHexMesh.log"" 2>&1
+renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
 
-topoSet 2>&1 | tee -a ""topoSet.log""
+topoSet >> ""topoSet.log"" 2>&1
 
-renumberMesh -overwrite 2>&1 | tee -a ""renumberMesh.log""
-decomposePar -force 2>&1 | tee -a ""decomposePar.log""
-mpiexec -np {cpus} foamRun -solver fluid -parallel 2>&1 | tee -a ""foamRun.log""
-reconstructPar 2>&1 | tee -a ""reconstructPar.log""";
+renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+foamRun -solver fluid >> ""foamRun.log"" 2>&1";
+            }
+
+            return $@"blockMesh >> ""blockMesh.log"" 2>&1
+surfaceFeatures >> ""surfaceFeatures.log"" 2>&1
+decomposePar -force >> ""decomposePar.log"" 2>&1
+mpiexec -np {cpus} snappyHexMesh -overwrite -parallel >> ""snappyHexMesh.log"" 2>&1
+reconstructParMesh -constant >> ""reconstructParMesh.log"" 2>&1
+renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+
+topoSet >> ""topoSet.log"" 2>&1
+
+renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+decomposePar -force >> ""decomposePar.log"" 2>&1
+mpiexec -np {cpus} foamRun -solver fluid -parallel >> ""foamRun.log"" 2>&1
+reconstructPar >> ""reconstructPar.log"" 2>&1";
         }
     }
 }

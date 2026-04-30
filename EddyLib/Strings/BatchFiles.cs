@@ -771,7 +771,7 @@ namespace EddyLib.Strings
         }
 
         public static string AppendToLog(string logFile) =>
-    $" 2>&1 | tee -a \"{logFile}\"";
+            $" >> \"{logFile}\" 2>&1";
 
         /// <summary>
         public static string SymbolicLinkCreatorBatch()

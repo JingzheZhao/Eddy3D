@@ -13,7 +13,7 @@ namespace RhinoPlugin.Test.Xunit
         private const double VGreat = -1.7976931e+307; // OpenFOAM sentinel for inside-wall probes
 
         // Regression: VGREAT in v or w was not caught — sqrt overflowed to inf.
-        [WindowsOnlyFact]
+        [RequiresPythonFact]
         public void AddMagU_VGreatSentinelInAnyComponent_NeverProducesInf()
         {
             var root = TestFixtures.CreateTestDirectory("testcase-datacurator-vgreat");
@@ -39,7 +39,7 @@ namespace RhinoPlugin.Test.Xunit
 
         // Regression: leading time token (e.g. "600") was consumed as the first velocity
         // component, misaligning all probes and producing huge/inf magnitudes.
-        [WindowsOnlyFact]
+        [RequiresPythonFact]
         public void AddMagU_ValidVelocity_ProbesAlignedAndMagnitudeCorrect()
         {
             var root = TestFixtures.CreateTestDirectory("testcase-datacurator-alignment");
@@ -90,7 +90,7 @@ namespace RhinoPlugin.Test.Xunit
                 new UTF8Encoding(false));
 
             // Run script
-            var psi = new ProcessStartInfo("python")
+            var psi = new ProcessStartInfo(TestExecutionPolicy.PythonExecutable ?? "python")
             {
                 UseShellExecute = false,
                 CreateNoWindow = true,

@@ -88,10 +88,9 @@ namespace EddyLib.FluidX3D
 
             Directory.CreateDirectory(workingRoot);
 
-            // Keep FluidX3D engine files in the case folder so each case is isolated
-            // from shared engine-state side effects.
-            string caseDirectoryRoot = Path.Combine(workingRoot, "FluidX3D");
-            string caseRoot = EnsureCaseEngineSourceDirectory(sourceRoot, caseDirectoryRoot);
+            // Use the installed FluidX3D source directly. The launch scripts redirect
+            // bin/export into the case folder, so simulation output stays case-local.
+            string caseRoot = sourceRoot;
             NormalizeBuildScripts(caseRoot);
 
             string setupPath = Path.Combine(caseRoot, "src", "setup.cpp");
@@ -126,7 +125,7 @@ namespace EddyLib.FluidX3D
             string scriptsDirectory = Path.Combine(workingRoot, "Scripts");
             Directory.CreateDirectory(scriptsDirectory);
 
-            string caseExportDirectory = Path.Combine(caseDirectoryRoot, "VTK");
+            string caseExportDirectory = Path.Combine(workingRoot, "VTK");
             string commandScriptPath = Path.Combine(scriptsDirectory, "run_fluidx3d.command");
             string batchScriptPath = Path.Combine(scriptsDirectory, "run_fluidx3d.bat");
             string windowsPlatformToolset = ResolveWindowsPlatformToolsetOverride(caseRoot);
@@ -1348,7 +1347,7 @@ exit /b 0
             sb.AppendLine();
             sb.AppendLine("ParaView");
             sb.AppendLine("--------");
-            sb.AppendLine("Open files in the case folder VTK directory (working-dir/FluidX3D/VTK).");
+            sb.AppendLine("Open files in the case folder VTK directory (working-dir/VTK).");
             sb.AppendLine("Eddy3D launch scripts redirect FluidX3D/bin/export to that case VTK directory.");
             sb.AppendLine("Use a Calculator filter with expression mag(data) to visualize velocity magnitude.");
             return sb.ToString();

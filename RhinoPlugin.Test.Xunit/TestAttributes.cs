@@ -62,4 +62,68 @@ namespace RhinoPlugin.Test.Xunit
             Skip = TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.GrasshopperWithRhinoHost);
         }
     }
+
+    public class RequiresOpenFoamExecutionFactAttribute : FactAttribute
+    {
+        public RequiresOpenFoamExecutionFactAttribute()
+        {
+            Skip = TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.RhinoNativeHost)
+                ?? TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.BlueCfd)
+                ?? TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.OpenFoamExecution);
+        }
+    }
+
+    public class RequiresOpenFoamExecutionTheoryAttribute : TheoryAttribute
+    {
+        public RequiresOpenFoamExecutionTheoryAttribute()
+        {
+            Skip = TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.RhinoNativeHost)
+                ?? TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.BlueCfd)
+                ?? TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.OpenFoamExecution);
+        }
+    }
+
+    public class RequiresRadianceFactAttribute : FactAttribute
+    {
+        public RequiresRadianceFactAttribute()
+        {
+            Skip = TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.RhinoNativeHost)
+                ?? TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.Radiance);
+        }
+    }
+
+    public class RequiresRadianceTheoryAttribute : TheoryAttribute
+    {
+        public RequiresRadianceTheoryAttribute()
+        {
+            Skip = TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.RhinoNativeHost)
+                ?? TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.Radiance);
+        }
+    }
+
+    public class RequiresRadianceAndEnergyPlusFactAttribute : FactAttribute
+    {
+        public RequiresRadianceAndEnergyPlusFactAttribute()
+        {
+            Skip = TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.RhinoNativeHost)
+                ?? TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.Radiance)
+                ?? TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.EnergyPlus);
+        }
+    }
+
+    public class RequiresPythonFactAttribute : FactAttribute
+    {
+        public RequiresPythonFactAttribute()
+        {
+            Skip = TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.Python);
+        }
+    }
+
+    public class RequiresExternalServiceFactAttribute : FactAttribute
+    {
+        public RequiresExternalServiceFactAttribute()
+        {
+            Skip = TestExecutionPolicy.GetSkipReason(TestExecutionRequirement.ExternalService);
+        }
+    }
 }

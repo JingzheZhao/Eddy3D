@@ -44,7 +44,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Equal(Math.Round(expected, decimals), Math.Round(actual, decimals));
         }
 
-        [NotWindowsServerTheory]
+        [RequiresRadianceTheory]
         [Trait("Category", "Execution")]
         [InlineData(0.5, 20.0, 5.0, MrtBcCollectionMode.AddBc)]
         [InlineData(0.6, 18.0, 5.0, MrtBcCollectionMode.Single)]
@@ -249,7 +249,7 @@ namespace RhinoPlugin.Test.Xunit
             ////             {'erf': 42.9, 'delta_mrt': 10.3}
         }
 
-        [NotWindowsServerFact]
+        [RequiresRadianceFact]
         [Trait("Category", "Execution")]
         public void ViewFactors()
         {
@@ -522,7 +522,7 @@ namespace RhinoPlugin.Test.Xunit
 
 
 
-        [NotWindowsServerFact]
+        [RequiresRadianceFact]
         [Trait("Category", "Execution")]
         public void UTCI()
         {

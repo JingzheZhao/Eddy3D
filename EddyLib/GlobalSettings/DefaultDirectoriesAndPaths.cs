@@ -27,7 +27,8 @@ namespace EddyLib
         private static string _energyPlusDir = IsWindows
             ? @"C:\EnergyPlusV9-4-0"
             : "/Applications/EnergyPlus-9-4-0";
-        private static string _blueCfdDir = @"C:\blueCFD-Core-2024";
+        private static readonly string _blueCfdDirDefault = ResolveDefaultBlueCfdDir();
+        private static string _blueCfdDir = _blueCfdDirDefault;
         private static readonly object AutoCasePathLock = new object();
         private static readonly Dictionary<string, string> AutoCasePathByInput =
             new Dictionary<string, string>(StringComparer.Ordinal);
@@ -115,12 +116,12 @@ namespace EddyLib
 
         /// <summary>
         /// Path to blueCFD-Core 2024 installation directory.
-        /// Default: C:\blueCFD-Core-2024
+        /// Default: blueCFD-Core-2024 installation detected on the current machine.
         /// </summary>
         public static string BlueCfdDir
         {
             get => _blueCfdDir;
-            set => _blueCfdDir = NormalizeEnginePath(value, @"C:\blueCFD-Core-2024");
+            set => _blueCfdDir = NormalizeEnginePath(value, _blueCfdDirDefault);
         }
 
         /// <summary>
@@ -224,7 +225,6 @@ namespace EddyLib
         private static string CreateUniqueAutoCasePath()
         {
             string casesRoot = Path.GetFullPath(CasesDir);
-            Directory.CreateDirectory(casesRoot);
 
             for (int attempts = 0; attempts < 128; attempts++)
             {
@@ -239,6 +239,35 @@ namespace EddyLib
 
             // Extremely unlikely collision fallback.
             return Path.Combine(casesRoot, "Case_" + Guid.NewGuid().ToString("N"));
+        }
+
+        private static string ResolveDefaultBlueCfdDir()
+        {
+            if (!IsWindows)
+            {
+                return string.Empty;
+            }
+
+            string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+
+            string[] candidates =
+            {
+                Path.Combine(programFiles, "blueCFD-Core-2024"),
+                @"C:\blueCFD-Core-2024",
+                Path.Combine(programFilesX86, "blueCFD-Core-2024"),
+                Path.Combine(programFiles, "blueCFD-Core-2020")
+            };
+
+            foreach (string candidate in candidates)
+            {
+                if (!string.IsNullOrWhiteSpace(candidate) && Directory.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            return Path.Combine(programFiles, "blueCFD-Core-2024");
         }
 
         private static string NormalizeCacheKey(string value)
@@ -461,12 +490,6 @@ namespace EddyLib
             {
                 throw new FileNotFoundException(
                     string.Format("blueCFD directory not found at: {0}. Please install blueCFD-Core 2024-1.", BlueCfdDir ?? "null"));
-            }
-
-            if (BlueCfdDir.IndexOf(' ') >= 0)
-            {
-                throw new InvalidOperationException(
-                    string.Format("blueCFD-Core 2024 must be installed in a path without spaces. Current path: {0}", BlueCfdDir));
             }
 
             string setvars = BlueCfdSetvarsBat;

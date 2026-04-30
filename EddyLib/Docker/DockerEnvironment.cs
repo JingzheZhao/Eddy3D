@@ -68,7 +68,7 @@ namespace EddyLib.Docker
 
         /// <summary>
         /// Returns true if the Docker daemon is running and accessible.
-        /// Runs <c>docker --version</c> with a 10-second timeout.
+        /// Runs <c>docker info</c> with a 10-second timeout.
         /// </summary>
         public static bool IsDockerAvailable()
         {
@@ -81,7 +81,7 @@ namespace EddyLib.Docker
                 var psi = new ProcessStartInfo
                 {
                     FileName = dockerExe,
-                    Arguments = "--version",
+                    Arguments = "info --format \"{{.ServerVersion}}\"",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,

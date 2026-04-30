@@ -359,7 +359,7 @@ namespace EddyLib
 
             public const string BlueCFD = "blueCFD-Core 2024 Folder";
             public const string BlueCFDNick = "CFDFolder";
-            public const string BlueCFDDesc = "Optional: Custom blueCFD-Core 2024 installation folder. Use a path without spaces, for example C:\\blueCFD-Core-2024.";
+            public const string BlueCFDDesc = "Optional: Custom blueCFD-Core 2024 installation folder. Defaults to the detected blueCFD-Core 2024 install.";
         }
 
         public static class ABL

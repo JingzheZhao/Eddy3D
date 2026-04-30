@@ -33,7 +33,7 @@ namespace RhinoPlugin.Test.Xunit.Tests
                 : "Linux";
         }
 
-        [Fact]
+        [RequiresExternalServiceFact]
         public async Task RunAllAnalyticsTests()
         {
             _output.WriteLine($"Eddy3D Analytics – {OsLabel} Integration Test");

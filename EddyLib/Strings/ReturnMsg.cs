@@ -7,7 +7,7 @@ namespace EddyLib.Strings
     {
         public static string MeshDoesntExist(string caseFolder)
         {
-            return @"The mesh for case  """ + caseFolder + @""" does not exist.";
+            return @"Could not find OpenFOAM mesh at """ + caseFolder + @""".";
         }
 
         public static string FieldDoesntExist(string currentCaseDir, OFField field)
