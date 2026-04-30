@@ -27,7 +27,7 @@ All custom test attributes must route through `TestExecutionPolicy`.
 | `OpenFoamExecution` | Run only when `EDDY3D_RUN_OPENFOAM_TESTS=1` | Skip | Skip |
 | `Radiance` | Run if Radiance is available | Skip | Skip |
 | `EnergyPlus` | Run if EnergyPlus is available | Skip | Skip |
-| `Python` | Run if `python`, `python3`, or `uv run --no-project python` starts successfully | Run if available | Run if available |
+| `Python` | Run if `python`, `python3`, or `uv run --no-project python` starts successfully. On Windows, detection also checks user/machine PATH values and common uv install folders. | Run if available | Run if available |
 | `ExternalService` | Run only when `EDDY3D_RUN_EXTERNAL_TESTS=1` | Run only when enabled | Run only when enabled |
 
 ### Fail-Fast Rule

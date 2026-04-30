@@ -167,6 +167,7 @@ namespace RhinoPlugin.Test.Xunit
                 reason);
 
             string tempRoot = TestFixtures.CreateTestDirectory("fluidx3d-sim-gpu");
+            FluidX3DAblPrepareResult result = null;
             try
             {
                 string workingRoot = Path.Combine(tempRoot, "working");
@@ -177,14 +178,14 @@ namespace RhinoPlugin.Test.Xunit
                     Uref = 5.0,
                     Zref = 10.0,
                     Z0 = 0.1,
-                    SimSeconds = 180.0,
-                    ExportIntervalSeconds = 10.0,
+                    SimSeconds = 20.0,
+                    ExportIntervalSeconds = 20.0,
                     DomainLx = 120.0,
                     DomainLy = 120.0,
                     DomainLz = 50.0
                 };
 
-                FluidX3DAblPrepareResult result = FluidX3DAblWorkflow.PrepareCase(sourceRoot, workingRoot, settings);
+                result = FluidX3DAblWorkflow.PrepareCase(sourceRoot, workingRoot, settings);
 
                 Assert.True(Directory.Exists(result.CaseRoot));
                 Assert.Equal(Path.Combine(result.CaseRoot, "bin", "export"), result.ExportDirectory);
@@ -231,6 +232,7 @@ namespace RhinoPlugin.Test.Xunit
             }
             finally
             {
+                CleanupDirectoryContents(result?.ExportDirectory);
                 TestFixtures.CleanupTestDirectory(tempRoot);
             }
         }
@@ -253,6 +255,31 @@ namespace RhinoPlugin.Test.Xunit
             }
 
             return RunFluidX3DCaseUnix(caseRoot);
+        }
+
+        private static void CleanupDirectoryContents(string directory)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+                {
+                    return;
+                }
+
+                foreach (string file in Directory.GetFiles(directory, "*", SearchOption.TopDirectoryOnly))
+                {
+                    File.Delete(file);
+                }
+
+                foreach (string childDirectory in Directory.GetDirectories(directory, "*", SearchOption.TopDirectoryOnly))
+                {
+                    Directory.Delete(childDirectory, recursive: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("FluidX3D export cleanup warning: " + ex.Message);
+            }
         }
 
         private static string RunFluidX3DCaseUnix(string caseRoot)

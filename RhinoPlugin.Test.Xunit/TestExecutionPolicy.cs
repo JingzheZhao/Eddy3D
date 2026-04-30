@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -327,38 +328,176 @@ namespace RhinoPlugin.Test.Xunit
         private static PythonCommand FindPythonCommand()
         {
             var pythonOverride = Environment.GetEnvironmentVariable("EDDY3D_PYTHON_EXE");
-            if (!string.IsNullOrWhiteSpace(pythonOverride) && CanStartProcess(pythonOverride, "--version"))
+            foreach (string executable in ResolveExecutableCandidates(pythonOverride))
             {
-                return new PythonCommand(pythonOverride);
+                if (CanStartProcess(executable, "--version"))
+                {
+                    return new PythonCommand(executable);
+                }
             }
 
             string[] candidates = { "python", "python3" };
             foreach (string candidate in candidates)
             {
-                if (CanStartProcess(candidate, "--version"))
+                foreach (string executable in ResolveExecutableCandidates(candidate))
                 {
-                    return new PythonCommand(candidate);
+                    if (CanStartProcess(executable, "--version"))
+                    {
+                        return new PythonCommand(executable);
+                    }
                 }
             }
 
             var uvOverride = Environment.GetEnvironmentVariable("EDDY3D_UV_EXE");
-            if (!string.IsNullOrWhiteSpace(uvOverride) && CanStartProcess(uvOverride, "run", "--no-project", "python", "--version"))
+            foreach (string executable in ResolveExecutableCandidates(uvOverride, includeCommonUvLocations: true))
             {
-                return new PythonCommand(uvOverride, "run", "--no-project", "python");
+                if (CanStartProcess(executable, "run", "--no-project", "python", "--version"))
+                {
+                    return new PythonCommand(executable, "run", "--no-project", "python");
+                }
             }
 
-            if (CanStartProcess("uv", "run", "--no-project", "python", "--version"))
+            foreach (string executable in ResolveExecutableCandidates("uv", includeCommonUvLocations: true))
             {
-                return new PythonCommand("uv", "run", "--no-project", "python");
+                if (CanStartProcess(executable, "run", "--no-project", "python", "--version"))
+                {
+                    return new PythonCommand(executable, "run", "--no-project", "python");
+                }
             }
 
             return null;
+        }
+
+        private static IEnumerable<string> ResolveExecutableCandidates(string fileName, bool includeCommonUvLocations = false)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                yield break;
+            }
+
+            string trimmed = TrimWrappingQuotes(Environment.ExpandEnvironmentVariables(fileName.Trim()));
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (string candidate in ExpandExecutableCandidate(trimmed, null))
+            {
+                if (seen.Add(candidate))
+                {
+                    yield return candidate;
+                }
+            }
+
+            if (ContainsPathSeparator(trimmed))
+            {
+                yield break;
+            }
+
+            foreach (string path in GetExecutableSearchPaths(includeCommonUvLocations))
+            {
+                foreach (string candidate in ExpandExecutableCandidate(trimmed, path))
+                {
+                    if (seen.Add(candidate))
+                    {
+                        yield return candidate;
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<string> ExpandExecutableCandidate(string fileName, string directory)
+        {
+            string basePath = string.IsNullOrWhiteSpace(directory)
+                ? fileName
+                : Path.Combine(directory, fileName);
+
+            if (Path.HasExtension(fileName))
+            {
+                yield return basePath;
+                yield break;
+            }
+
+            yield return basePath;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                yield return basePath + ".exe";
+                yield return basePath + ".cmd";
+                yield return basePath + ".bat";
+            }
+        }
+
+        private static IEnumerable<string> GetExecutableSearchPaths(bool includeCommonUvLocations)
+        {
+            foreach (string path in SplitPathEntries(Environment.GetEnvironmentVariable("PATH")))
+            {
+                yield return path;
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                foreach (string path in SplitPathEntries(Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User)))
+                {
+                    yield return path;
+                }
+
+                foreach (string path in SplitPathEntries(Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine)))
+                {
+                    yield return path;
+                }
+            }
+
+            if (!includeCommonUvLocations)
+            {
+                yield break;
+            }
+
+            string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            if (!string.IsNullOrWhiteSpace(userProfile))
+            {
+                yield return Path.Combine(userProfile, ".local", "bin");
+                yield return Path.Combine(userProfile, ".cargo", "bin");
+                yield return Path.Combine(userProfile, "scoop", "shims");
+            }
+
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (!string.IsNullOrWhiteSpace(localAppData))
+            {
+                yield return Path.Combine(localAppData, "Programs", "uv");
+                yield return Path.Combine(localAppData, "uv", "bin");
+            }
+        }
+
+        private static IEnumerable<string> SplitPathEntries(string pathValue)
+        {
+            if (string.IsNullOrWhiteSpace(pathValue))
+            {
+                yield break;
+            }
+
+            foreach (string rawEntry in pathValue.Split(Path.PathSeparator))
+            {
+                string entry = TrimWrappingQuotes(Environment.ExpandEnvironmentVariables(rawEntry.Trim()));
+                if (!string.IsNullOrWhiteSpace(entry))
+                {
+                    yield return entry;
+                }
+            }
+        }
+
+        private static bool ContainsPathSeparator(string value)
+        {
+            return value.IndexOf(Path.DirectorySeparatorChar) >= 0
+                || value.IndexOf(Path.AltDirectorySeparatorChar) >= 0;
         }
 
         private static bool CanStartProcess(string fileName, params string[] arguments)
         {
             try
             {
+                if ((ContainsPathSeparator(fileName) || Path.IsPathRooted(fileName)) && !File.Exists(fileName))
+                {
+                    return false;
+                }
+
                 var processStartInfo = new ProcessStartInfo(fileName)
                 {
                     UseShellExecute = false,
