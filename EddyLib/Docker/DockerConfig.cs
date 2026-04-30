@@ -9,13 +9,13 @@ namespace EddyLib.Docker
     public static class DockerConfig
     {
         /// <summary>Docker image with OpenFOAM 12.</summary>
-        public const string ImageName = "openfoam/openfoam12-paraview510";
+        public const string ImageName = "dicehub/openfoam:12";
 
         /// <summary>Named container for interactive runs.</summary>
         public const string ContainerName = "eddy3d-runner";
 
         /// <summary>Path to OpenFOAM 12 bashrc inside the container.</summary>
-        public const string OpenFoamBashrc = "/opt/openfoam12/etc/bashrc";
+        public const string OpenFoamBashrc = "/home/openfoam/OpenFOAM-12/etc/bashrc";
 
         /// <summary>Path to MPI binaries inside the container.</summary>
         public const string MpiPath = "/opt/amazon/openmpi/bin";

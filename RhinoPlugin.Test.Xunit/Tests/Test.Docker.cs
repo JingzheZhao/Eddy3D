@@ -20,6 +20,26 @@ namespace RhinoPlugin.Test.Xunit
     }
 
     /// <summary>
+    /// Skips tests that need the configured OpenFOAM image to already be present locally.
+    /// </summary>
+    public sealed class DockerOpenFoamImageFactAttribute : FactAttribute
+    {
+        public DockerOpenFoamImageFactAttribute()
+        {
+            if (!DockerEnvironment.IsDockerAvailable())
+            {
+                Skip = "Docker is not available on this machine.";
+                return;
+            }
+
+            if (!DockerEnvironment.IsImageAvailable(DockerConfig.ImageName))
+            {
+                Skip = "OpenFOAM Docker image is not available locally. Pull " + DockerConfig.ImageName + " first.";
+            }
+        }
+    }
+
+    /// <summary>
     /// Unit and integration tests for the Docker runtime infrastructure.
     /// Unit tests run without Docker; integration tests require Docker Desktop.
     /// </summary>
@@ -40,13 +60,13 @@ namespace RhinoPlugin.Test.Xunit
         [Fact]
         public void DockerConfig_HasExpectedImageName()
         {
-            Assert.Equal("openfoam/openfoam12-paraview510", DockerConfig.ImageName);
+            Assert.Equal("dicehub/openfoam:12", DockerConfig.ImageName);
         }
 
         [Fact]
         public void DockerConfig_HasExpectedBashrcPath()
         {
-            Assert.Equal("/opt/openfoam12/etc/bashrc", DockerConfig.OpenFoamBashrc);
+            Assert.Equal("/home/openfoam/OpenFOAM-12/etc/bashrc", DockerConfig.OpenFoamBashrc);
         }
 
         [Fact]
@@ -233,7 +253,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Contains("Docker", version);
         }
 
-        [DockerAvailableFact]
+        [DockerOpenFoamImageFact]
         public void RunHeadless_EchoCommand_ReturnsOutput()
         {
             var runner = new DockerRunner();
@@ -257,7 +277,7 @@ namespace RhinoPlugin.Test.Xunit
             }
         }
 
-        [DockerAvailableFact]
+        [DockerOpenFoamImageFact]
         public void RunHeadless_OpenFoamVersion_Succeeds()
         {
             var runner = new DockerRunner();
