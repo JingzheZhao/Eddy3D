@@ -27,7 +27,7 @@ All custom test attributes must route through `TestExecutionPolicy`.
 | `OpenFoamExecution` | Run only when `EDDY3D_RUN_OPENFOAM_TESTS=1` | Skip | Skip |
 | `Radiance` | Run if Radiance is available | Skip | Skip |
 | `EnergyPlus` | Run if EnergyPlus is available | Skip | Skip |
-| `Python` | Run if `python` or `python3` starts successfully | Run if available | Run if available |
+| `Python` | Run if `python`, `python3`, or `uv run --no-project python` starts successfully | Run if available | Run if available |
 | `ExternalService` | Run only when `EDDY3D_RUN_EXTERNAL_TESTS=1` | Run only when enabled | Run only when enabled |
 
 ### Fail-Fast Rule
@@ -81,6 +81,8 @@ Environment variables:
 - `EDDY3D_BLUECFD_DIR`: overrides blueCFD auto-detection.
 - `EDDY3D_RADIANCE_DIR`: overrides Radiance auto-detection.
 - `EDDY3D_TEST_CPUS`: caps solver CPU count for constrained runners.
+- `EDDY3D_PYTHON_EXE`: optional direct Python executable override.
+- `EDDY3D_UV_EXE`: optional uv executable override; tests run it as `uv run --no-project python`.
 
 ## Fixture Behavior
 

@@ -41,7 +41,7 @@ namespace RhinoPlugin.Test.Xunit
         private static readonly Lazy<bool> BlueCfdInstalled = new Lazy<bool>(DetectBlueCfdInstalled);
         private static readonly Lazy<bool> RadianceInstalled = new Lazy<bool>(DetectRadianceInstalled);
         private static readonly Lazy<bool> EnergyPlusInstalled = new Lazy<bool>(DetectEnergyPlusInstalled);
-        private static readonly Lazy<string> PythonExecutablePath = new Lazy<string>(FindPythonExecutable);
+        private static readonly Lazy<PythonCommand> PythonCommandValue = new Lazy<PythonCommand>(FindPythonCommand);
         private static readonly Lazy<bool> LocalEnvFileLoaded = new Lazy<bool>(LoadLocalEnvFile);
 
         internal static bool IsRhinoInstalled { get { EnsureLocalEnvFileLoaded(); return RhinoInstalled.Value; } }
@@ -49,8 +49,39 @@ namespace RhinoPlugin.Test.Xunit
         internal static bool IsBlueCfdInstalled { get { EnsureLocalEnvFileLoaded(); return BlueCfdInstalled.Value; } }
         internal static bool IsRadianceInstalled { get { EnsureLocalEnvFileLoaded(); return RadianceInstalled.Value; } }
         internal static bool IsEnergyPlusInstalled { get { EnsureLocalEnvFileLoaded(); return EnergyPlusInstalled.Value; } }
-        internal static bool IsPythonAvailable { get { EnsureLocalEnvFileLoaded(); return !string.IsNullOrWhiteSpace(PythonExecutablePath.Value); } }
-        internal static string PythonExecutable { get { EnsureLocalEnvFileLoaded(); return PythonExecutablePath.Value; } }
+        internal static bool IsPythonAvailable { get { EnsureLocalEnvFileLoaded(); return PythonCommandValue.Value != null; } }
+        internal static string PythonExecutable { get { EnsureLocalEnvFileLoaded(); return PythonCommandValue.Value?.FileName; } }
+
+        internal static ProcessStartInfo CreatePythonProcessStartInfo(string workingDirectory = null)
+        {
+            EnsureLocalEnvFileLoaded();
+
+            var command = PythonCommandValue.Value;
+            if (command == null)
+            {
+                throw new InvalidOperationException(PythonMissingReason);
+            }
+
+            var processStartInfo = new ProcessStartInfo(command.FileName)
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            if (!string.IsNullOrWhiteSpace(workingDirectory))
+            {
+                processStartInfo.WorkingDirectory = workingDirectory;
+            }
+
+            foreach (string argument in command.Arguments)
+            {
+                processStartInfo.ArgumentList.Add(argument);
+            }
+
+            return processStartInfo;
+        }
 
         internal static bool ShouldFailFastOnRhinoHostInitialization()
         {
@@ -293,33 +324,55 @@ namespace RhinoPlugin.Test.Xunit
             }
         }
 
-        private static string FindPythonExecutable()
+        private static PythonCommand FindPythonCommand()
         {
+            var pythonOverride = Environment.GetEnvironmentVariable("EDDY3D_PYTHON_EXE");
+            if (!string.IsNullOrWhiteSpace(pythonOverride) && CanStartProcess(pythonOverride, "--version"))
+            {
+                return new PythonCommand(pythonOverride);
+            }
+
             string[] candidates = { "python", "python3" };
             foreach (string candidate in candidates)
             {
                 if (CanStartProcess(candidate, "--version"))
                 {
-                    return candidate;
+                    return new PythonCommand(candidate);
                 }
+            }
+
+            var uvOverride = Environment.GetEnvironmentVariable("EDDY3D_UV_EXE");
+            if (!string.IsNullOrWhiteSpace(uvOverride) && CanStartProcess(uvOverride, "run", "--no-project", "python", "--version"))
+            {
+                return new PythonCommand(uvOverride, "run", "--no-project", "python");
+            }
+
+            if (CanStartProcess("uv", "run", "--no-project", "python", "--version"))
+            {
+                return new PythonCommand("uv", "run", "--no-project", "python");
             }
 
             return null;
         }
 
-        private static bool CanStartProcess(string fileName, string arguments)
+        private static bool CanStartProcess(string fileName, params string[] arguments)
         {
             try
             {
-                using (var process = Process.Start(new ProcessStartInfo
+                var processStartInfo = new ProcessStartInfo(fileName)
                 {
-                    FileName = fileName,
-                    Arguments = arguments,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true
-                }))
+                };
+
+                foreach (string argument in arguments)
+                {
+                    processStartInfo.ArgumentList.Add(argument);
+                }
+
+                using (var process = Process.Start(processStartInfo))
                 {
                     if (process == null)
                     {
@@ -339,6 +392,18 @@ namespace RhinoPlugin.Test.Xunit
             {
                 return false;
             }
+        }
+
+        private sealed class PythonCommand
+        {
+            internal PythonCommand(string fileName, params string[] arguments)
+            {
+                FileName = fileName;
+                Arguments = arguments ?? Array.Empty<string>();
+            }
+
+            internal string FileName { get; }
+            internal string[] Arguments { get; }
         }
 
         private static bool ExternalServiceTestsEnabled()

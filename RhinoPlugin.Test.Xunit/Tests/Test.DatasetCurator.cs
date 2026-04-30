@@ -79,25 +79,25 @@ namespace RhinoPlugin.Test.Xunit
                 csv.AppendLine(FormattableString.Invariant($"{i},0,1.8,50.0,0,0.5,0,-1"));
             File.WriteAllText(Path.Combine(datasetDir, $"{caseName}_{direction}.csv"), csv.ToString(), new UTF8Encoding(false));
 
-            // OpenFOAM probes U file: "time (u v w) (u v w) ..."
+            // OpenFOAM probes U/k files: "time (u v w) (u v w) ..." and "time k0 k1 ..."
             var uDir = Path.Combine(root, direction, "postProcessing", "ttt", "600");
             Directory.CreateDirectory(uDir);
             var uLine = new StringBuilder("600");
+            var kLine = new StringBuilder("600");
             foreach (var (u, v, w) in probes)
+            {
                 uLine.AppendFormat(CultureInfo.InvariantCulture, " ({0} {1} {2})", u, v, w);
+                kLine.Append(" 0");
+            }
             File.WriteAllLines(Path.Combine(uDir, "U"),
                 new[] { "# Time\t0", uLine.ToString() },
                 new UTF8Encoding(false));
+            File.WriteAllLines(Path.Combine(uDir, "k"),
+                new[] { "# Time\t0", kLine.ToString() },
+                new UTF8Encoding(false));
 
             // Run script
-            var psi = new ProcessStartInfo(TestExecutionPolicy.PythonExecutable ?? "python")
-            {
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                WorkingDirectory = root
-            };
+            var psi = TestExecutionPolicy.CreatePythonProcessStartInfo(root);
             psi.ArgumentList.Add(Path.Combine(root, "Scripts", "add_mag_u.py"));
             psi.ArgumentList.Add(caseName);
             psi.ArgumentList.Add(root);
