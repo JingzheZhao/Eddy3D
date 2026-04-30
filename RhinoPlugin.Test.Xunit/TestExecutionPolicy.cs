@@ -42,14 +42,15 @@ namespace RhinoPlugin.Test.Xunit
         private static readonly Lazy<bool> RadianceInstalled = new Lazy<bool>(DetectRadianceInstalled);
         private static readonly Lazy<bool> EnergyPlusInstalled = new Lazy<bool>(DetectEnergyPlusInstalled);
         private static readonly Lazy<string> PythonExecutablePath = new Lazy<string>(FindPythonExecutable);
+        private static readonly Lazy<bool> LocalEnvFileLoaded = new Lazy<bool>(LoadLocalEnvFile);
 
-        internal static bool IsRhinoInstalled => RhinoInstalled.Value;
-        internal static bool IsGrasshopperInstalled => GrasshopperInstalled.Value;
-        internal static bool IsBlueCfdInstalled => BlueCfdInstalled.Value;
-        internal static bool IsRadianceInstalled => RadianceInstalled.Value;
-        internal static bool IsEnergyPlusInstalled => EnergyPlusInstalled.Value;
-        internal static bool IsPythonAvailable => !string.IsNullOrWhiteSpace(PythonExecutablePath.Value);
-        internal static string PythonExecutable => PythonExecutablePath.Value;
+        internal static bool IsRhinoInstalled { get { EnsureLocalEnvFileLoaded(); return RhinoInstalled.Value; } }
+        internal static bool IsGrasshopperInstalled { get { EnsureLocalEnvFileLoaded(); return GrasshopperInstalled.Value; } }
+        internal static bool IsBlueCfdInstalled { get { EnsureLocalEnvFileLoaded(); return BlueCfdInstalled.Value; } }
+        internal static bool IsRadianceInstalled { get { EnsureLocalEnvFileLoaded(); return RadianceInstalled.Value; } }
+        internal static bool IsEnergyPlusInstalled { get { EnsureLocalEnvFileLoaded(); return EnergyPlusInstalled.Value; } }
+        internal static bool IsPythonAvailable { get { EnsureLocalEnvFileLoaded(); return !string.IsNullOrWhiteSpace(PythonExecutablePath.Value); } }
+        internal static string PythonExecutable { get { EnsureLocalEnvFileLoaded(); return PythonExecutablePath.Value; } }
 
         internal static bool ShouldFailFastOnRhinoHostInitialization()
         {
@@ -59,6 +60,8 @@ namespace RhinoPlugin.Test.Xunit
 
         internal static string GetSkipReason(TestExecutionRequirement requirement)
         {
+            EnsureLocalEnvFileLoaded();
+
             switch (requirement)
             {
                 case TestExecutionRequirement.RhinoInstalled:
@@ -340,12 +343,101 @@ namespace RhinoPlugin.Test.Xunit
 
         private static bool ExternalServiceTestsEnabled()
         {
+            EnsureLocalEnvFileLoaded();
             return IsTruthy(Environment.GetEnvironmentVariable("EDDY3D_RUN_EXTERNAL_TESTS"));
         }
 
         private static bool OpenFoamExecutionTestsEnabled()
         {
+            EnsureLocalEnvFileLoaded();
             return IsTruthy(Environment.GetEnvironmentVariable("EDDY3D_RUN_OPENFOAM_TESTS"));
+        }
+
+        private static void EnsureLocalEnvFileLoaded()
+        {
+            _ = LocalEnvFileLoaded.Value;
+        }
+
+        private static bool LoadLocalEnvFile()
+        {
+            try
+            {
+                string envFile = FindRepositoryFile(".env");
+                if (string.IsNullOrWhiteSpace(envFile) || !File.Exists(envFile))
+                {
+                    return false;
+                }
+
+                foreach (string rawLine in File.ReadLines(envFile))
+                {
+                    string line = rawLine.Trim();
+                    if (line.Length == 0 || line[0] == '#')
+                    {
+                        continue;
+                    }
+
+                    if (line.StartsWith("export ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        line = line.Substring("export ".Length).Trim();
+                    }
+
+                    int separator = line.IndexOf('=');
+                    if (separator <= 0)
+                    {
+                        continue;
+                    }
+
+                    string name = line.Substring(0, separator).Trim();
+                    string value = line.Substring(separator + 1).Trim();
+                    if (string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(name)))
+                    {
+                        continue;
+                    }
+
+                    Environment.SetEnvironmentVariable(name, TrimWrappingQuotes(value));
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string FindRepositoryFile(string fileName)
+        {
+            string current = Directory.GetCurrentDirectory();
+            while (!string.IsNullOrWhiteSpace(current))
+            {
+                string candidate = Path.Combine(current, fileName);
+                if (File.Exists(candidate) && File.Exists(Path.Combine(current, "Eddy.sln")))
+                {
+                    return candidate;
+                }
+
+                string parent = Directory.GetParent(current)?.FullName;
+                if (string.Equals(parent, current, StringComparison.OrdinalIgnoreCase))
+                {
+                    break;
+                }
+
+                current = parent;
+            }
+
+            return null;
+        }
+
+        private static string TrimWrappingQuotes(string value)
+        {
+            if (value.Length >= 2 &&
+                ((value[0] == '"' && value[value.Length - 1] == '"') ||
+                 (value[0] == '\'' && value[value.Length - 1] == '\'')))
+            {
+                return value.Substring(1, value.Length - 2);
+            }
+
+            return value;
         }
 
         private static bool IsTruthy(string raw)

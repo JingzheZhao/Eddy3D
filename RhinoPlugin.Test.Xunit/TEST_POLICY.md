@@ -71,6 +71,8 @@ $env:EDDY3D_TEST_CPUS = "2"
 dotnet test RhinoPlugin.Test.Xunit\RhinoPlugin.Test.Xunit.csproj --filter "FullyQualifiedName~OFExecutionTests"
 ```
 
+For local runs, the test policy also loads `.env` from the repository root before evaluating skip rules. Copy `.env.example` to `.env` and edit it for your machine. Values already set in the shell take precedence over `.env`.
+
 CI execution is handled by `.github/workflows/openfoam-integration.yml`. The workflow loads `ci/openfoam-integration.env` and targets a self-hosted Windows runner with the `OpenFOAM` label. That runner must have Rhino and blueCFD-Core 2024 / OpenFOAM 12 installed.
 
 Environment variables:
