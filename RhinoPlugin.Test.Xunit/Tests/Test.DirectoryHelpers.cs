@@ -140,5 +140,100 @@ namespace RhinoPlugin.Test.Xunit.Tests
             // Assert
             Assert.False(Directory.Exists(baseDirPath));
         }
+
+        [Fact]
+        public void EscapeBackslashes_NullInput_ThrowsNullReferenceException()
+        {
+            // Act & Assert
+            Assert.Throws<NullReferenceException>(() => DirectoryHelpers.EscapeBackslashes(null));
+        }
+
+        [Fact]
+        public void EscapeBackslashes_EmptyString_ReturnsEmptyString()
+        {
+            // Act
+            var result = DirectoryHelpers.EscapeBackslashes(string.Empty);
+
+            // Assert
+            Assert.Equal(string.Empty, result);
+        }
+
+        [Fact]
+        public void EscapeBackslashes_NoBackslashes_ReturnsSameString()
+        {
+            // Arrange
+            var input = "folder/subfolder/file.txt";
+
+            // Act
+            var result = DirectoryHelpers.EscapeBackslashes(input);
+
+            // Assert
+            Assert.Equal(input, result);
+        }
+
+        [Fact]
+        public void EscapeBackslashes_SingleBackslash_ReturnsDoubleBackslashes()
+        {
+            // Arrange
+            var input = @"a\b";
+
+            // Act
+            var result = DirectoryHelpers.EscapeBackslashes(input);
+
+            // Assert
+            Assert.Equal(@"a\\b", result);
+        }
+
+        [Fact]
+        public void EscapeBackslashes_MultipleSingleBackslashes_EscapesAll()
+        {
+            // Arrange
+            var input = @"a\b\c\d";
+
+            // Act
+            var result = DirectoryHelpers.EscapeBackslashes(input);
+
+            // Assert
+            Assert.Equal(@"a\\b\\c\\d", result);
+        }
+
+        [Fact]
+        public void EscapeBackslashes_ConsecutiveBackslashes_DoubleBackslashes_ReturnsTripleBackslashes()
+        {
+            // Arrange
+            var input = @"a\\b";
+
+            // Act
+            var result = DirectoryHelpers.EscapeBackslashes(input);
+
+            // Assert
+            Assert.Equal(@"a\\\b", result);
+        }
+
+        [Fact]
+        public void EscapeBackslashes_ConsecutiveBackslashes_TripleBackslashes_ReturnsDoubleBackslashes()
+        {
+            // Arrange
+            var input = @"a\\\b";
+
+            // Act
+            var result = DirectoryHelpers.EscapeBackslashes(input);
+
+            // Assert
+            Assert.Equal(@"a\\b", result);
+        }
+
+        [Fact]
+        public void EscapeBackslashes_ConsecutiveBackslashes_QuadrupleBackslashes_ReturnsQuadrupleBackslashes()
+        {
+            // Arrange
+            var input = @"a\\\\b";
+
+            // Act
+            var result = DirectoryHelpers.EscapeBackslashes(input);
+
+            // Assert
+            Assert.Equal(@"a\\\\b", result);
+        }
     }
 }
