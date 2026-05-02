@@ -333,7 +333,7 @@ Combines:
                     else
                     {
                         // show progress form
-                        var progress = new ProgressDialog(DoWorkAsync);
+                        var progress = new ProgressDialog(DoWorkAsync, "MRT Simulation");
                         progress.ShowModal();
 
                         // if user cancellation, abort solution

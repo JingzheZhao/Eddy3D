@@ -9,6 +9,13 @@ This file contains rules and conventions that the AI agent (Antigravity) must fo
 - **Example**: `0.5.8.815` means the version was tested with **Rhino 8.15**.
 - When updating `versions.md` or other documentation, always ensure the "Tested with Rhino X.YY" matches the suffix of the version being released.
 
+## UI Conventions
+
+- All UI work (Eto.Forms, etc.) must support both Light and Dark modes on both Windows and macOS.
+- Avoid hardcoded colors (e.g., `Colors.White`, `Color.FromArgb(...)`).
+- Use `SystemColors` (e.g., `SystemColors.ControlText`, `SystemColors.Highlight`) to ensure compatibility with host OS themes.
+- Layouts must be verified for legibility across all theme/platform combinations.
+
 ## Markdown Styling
 
 - In the changelog (`versions.md`), categories must be a bullet point followed by a colon:

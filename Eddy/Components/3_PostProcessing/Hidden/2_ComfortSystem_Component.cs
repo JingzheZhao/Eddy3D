@@ -184,7 +184,7 @@ namespace Eddy.Components.Radiation
                 else
                 {
                     // show progress form
-                    var progress = new ProgressDialog(DoWorkAsync);
+                    var progress = new ProgressDialog(DoWorkAsync, "Comfort Analysis");
                     progress.ShowModal();
 
                     // if user cancellation, abort solution

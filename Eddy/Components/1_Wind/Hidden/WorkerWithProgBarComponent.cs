@@ -81,7 +81,7 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
                 else
                 {
                     // show progress form
-                    var progress = new ProgressDialog(DoWorkAsync);
+                    var progress = new ProgressDialog(DoWorkAsync, "Wind Factor Calculation");
                     progress.ShowModal();
 
                     // if user cancellation, abort solution

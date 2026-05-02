@@ -21,6 +21,7 @@ namespace EddyLib.UI
         public bool Canceled = false;
         private bool isFinished = false;
         private Eto.Forms.ProgressBar pbar;
+        private string _baseTitle;
 
         public float Progress
         {
@@ -31,44 +32,55 @@ namespace EddyLib.UI
                 pbar.Value = (int)(clamped * 100);
                 string percent = FormatPercent(clamped);
                 ProgressPercent.Text = percent;
-                Title = $"MRT Simulation - {percent.Trim()}";
+                Title = $"{_baseTitle} - {percent.Trim()}";
             }
         }
 
-        public ProgressDialog(Func<CancellationTokenSource, Task> task, double refreshRate = 1000)
+        public ProgressDialog(Func<CancellationTokenSource, Task> task, string title = "Simulation", double refreshRate = 1000)
         {
-            Title = "MRT Simulation - 0%";
-            ClientSize = new Size(640, 430);
-            MinimumSize = new Size(560, 380);
+            _baseTitle = title;
+            Title = $"{_baseTitle} - 0%";
+            ClientSize = new Size(640, 520);
+            MinimumSize = new Size(580, 440);
             Resizable = true;
             ShowInTaskbar = true;
 
+            // --- Typography ---
+            var fontTitle = SystemFonts.Bold(18);
+            var fontBody = SystemFonts.Label(12);
+            var fontCaption = SystemFonts.Bold(10);
+            var fontMono = Fonts.Monospace(11);
+
             var titleLabel = new Label
             {
-                Text = "MRT Simulation",
-                Font = SystemFonts.Bold(16),
+                Text = title,
+                Font = fontTitle,
+                TextColor = SystemColors.ControlText
             };
 
             Status = new Label
             {
-                Text = "Starting simulation...",
+                Text = "Initializing...",
                 Wrap = WrapMode.Word,
-                Font = SystemFonts.Label(12),
-                Height = 44,
+                Font = fontBody,
+                Height = 44, // Room for 2 lines
+                TextColor = SystemColors.ControlText
             };
 
             TimeElapsed = new Label
             {
                 Text = "00:00:00",
                 VerticalAlignment = VerticalAlignment.Center,
-                Font = SystemFonts.Label(12),
+                Font = fontMono,
+                TextColor = SystemColors.ControlText
             };
 
             ProgressPercent = new Label
             {
                 Text = "  0%",
                 VerticalAlignment = VerticalAlignment.Center,
-                Font = SystemFonts.Label(12),
+                Font = fontTitle, // Use same size as title for emphasis
+                TextColor = SystemColors.Highlight
             };
 
             stopwatch = Stopwatch.StartNew();
@@ -76,34 +88,39 @@ namespace EddyLib.UI
             timer.Elapsed += (s, e) => { TimeElapsed.Text = stopwatch.Elapsed.ToString(@"hh\:mm\:ss"); };
             timer.Start();
 
-            pbar = new Eto.Forms.ProgressBar { MaxValue = 100, Value = 0 };
+            pbar = new Eto.Forms.ProgressBar { MaxValue = 100, Value = 0, Height = 14 };
 
-            var progressCaption = new Label
+            var progressLabel = new Label
             {
-                Text = "Progress",
-                Font = SystemFonts.Bold(12),
+                Text = "PROGRESS",
+                Font = fontCaption,
+                TextColor = Color.FromArgb(128, 128, 128),
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
-            var logHeader = new Label
+            var logHeaderLabel = new Label
             {
-                Text = "Log",
-                Font = SystemFonts.Bold(12),
+                Text = "SIMULATION LOG",
+                Font = fontCaption,
+                TextColor = Color.FromArgb(128, 128, 128),
             };
 
             StatusLog = new TextArea
             {
                 ReadOnly = true,
-                Font = Fonts.Monospace(12),
+                Font = fontMono,
                 SpellCheck = false,
                 Wrap = false,
-                Height = 210,
+                BackgroundColor = SystemColors.ControlBackground,
+                TextColor = SystemColors.ControlText,
             };
 
             var copyLog = new Button { Text = "Copy Log", ToolTip = "Copy simulation log to clipboard" };
+            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
+            
             DefaultButton = copyLog;
-            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation (Esc, Enter)" };
             AbortButton = cancel;
+
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
 
@@ -115,6 +132,7 @@ namespace EddyLib.UI
                     Close();
                 }
             };
+
             copyLog.Click += (s, e) =>
             {
                 try
@@ -131,6 +149,7 @@ namespace EddyLib.UI
                         uiThread?.Post(_ => { copyLog.Text = "Copy Log"; }, null));
                 }
             };
+
             Closing += (s, e) =>
             {
                 if (!isFinished && !Canceled)
@@ -145,16 +164,46 @@ namespace EddyLib.UI
                 if (!e.Cancel) { cts.Cancel(); timer.Stop(); }
             };
 
-            var layout = new DynamicLayout { Padding = new Padding(16), Spacing = new Size(0, 8) };
+            // --- Layout ---
+            var layout = new DynamicLayout { Padding = new Padding(24), Spacing = new Size(0, 10) };
 
+            // Header Section
             layout.Add(titleLabel, true, false);
             layout.Add(Status, true, false);
-            layout.Add(CreateProgressHeader(progressCaption), true, false);
+            
+            // Progress Section
+            layout.BeginVertical(spacing: new Size(0, 4));
+            var progressHeader = new DynamicLayout { Spacing = new Size(8, 0) };
+            progressHeader.BeginHorizontal();
+            progressHeader.Add(progressLabel, false, false);
+            progressHeader.Add(null, true, false);
+            progressHeader.Add(ProgressPercent, false, false);
+            progressHeader.EndHorizontal();
+            layout.Add(progressHeader, true, false);
             layout.Add(pbar, true, false);
-            layout.Add(CreateElapsedRow(), true, false);
-            layout.Add(logHeader, true, false);
+            layout.EndVertical();
+
+            // Stats Row
+            var statsRow = new DynamicLayout { Spacing = new Size(4, 0) };
+            statsRow.BeginHorizontal();
+            statsRow.Add(null, true, false);
+            statsRow.Add(new Label { Text = "Elapsed:", Font = SystemFonts.Label(11), TextColor = Color.FromArgb(128, 128, 128) }, false, false);
+            statsRow.Add(TimeElapsed, false, false);
+            statsRow.EndHorizontal();
+            layout.Add(statsRow, true, false);
+
+            // Log Section (Expands)
+            layout.Add(logHeaderLabel, true, false);
             layout.Add(StatusLog, true, true);
-            layout.Add(CreateButtonRow(copyLog, cancel), true, false);
+
+            // Action Row
+            var buttonRow = new DynamicLayout { Spacing = new Size(12, 0) };
+            buttonRow.BeginHorizontal();
+            buttonRow.Add(null, true, false);
+            buttonRow.Add(copyLog, false, false);
+            buttonRow.Add(cancel, false, false);
+            buttonRow.EndHorizontal();
+            layout.Add(buttonRow, true, false);
 
             Content = layout;
 
@@ -181,46 +230,6 @@ namespace EddyLib.UI
         private static string FormatPercent(float value)
         {
             return $"{(int)(value * 100),3}%";
-        }
-
-        private DynamicLayout CreateProgressHeader(Label progressCaption)
-        {
-            var row = new DynamicLayout { Spacing = new Size(8, 0) };
-            row.BeginHorizontal();
-            row.Add(progressCaption, false, false);
-            row.Add(null, true, false);
-            row.Add(ProgressPercent, false, false);
-            row.EndHorizontal();
-            return row;
-        }
-
-        private DynamicLayout CreateElapsedRow()
-        {
-            var label = new Label
-            {
-                Text = "Elapsed",
-                Font = SystemFonts.Label(12),
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-
-            var row = new DynamicLayout { Spacing = new Size(8, 0) };
-            row.BeginHorizontal();
-            row.Add(null, true, false);
-            row.Add(label, false, false);
-            row.Add(TimeElapsed, false, false);
-            row.EndHorizontal();
-            return row;
-        }
-
-        private static DynamicLayout CreateButtonRow(Button copyLog, Button cancel)
-        {
-            var row = new DynamicLayout { Spacing = new Size(8, 0) };
-            row.BeginHorizontal();
-            row.Add(null, true, false);
-            row.Add(copyLog, false, false);
-            row.Add(cancel, false, false);
-            row.EndHorizontal();
-            return row;
         }
     }
 
