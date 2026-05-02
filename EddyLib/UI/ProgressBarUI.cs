@@ -100,9 +100,9 @@ namespace EddyLib.UI
                 Height = 210,
             };
 
-            var copyLog = new Button { Text = "Copy Log" };
+            var copyLog = new Button { Text = "Copy Log", ToolTip = "Copy simulation log to clipboard" };
             DefaultButton = copyLog;
-            var cancel = new Button { Text = "Cancel" };
+            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation (Esc, Enter)" };
             AbortButton = cancel;
             var cts = new CancellationTokenSource();
             var uiThread = SynchronizationContext.Current;
