@@ -43,7 +43,7 @@ namespace EddyLib
                     ProcessStartInfo processInfo = new ProcessStartInfo
                     {
                         Arguments = arguments,
-                        FileName = DefaultDirectoriesAndPaths.RadianceBinDir + @"\epw2wea",
+                        FileName = DefaultDirectoriesAndPaths.ResolveExePath(DefaultDirectoriesAndPaths.RadianceBinDir, "epw2wea"),
                         WorkingDirectory = DefaultDirectoriesAndPaths.RadianceBinDir,
                         UseShellExecute = false,
                         RedirectStandardOutput = true,

@@ -43,6 +43,7 @@ namespace EddyLib.Radiation
         public double[] SkyTemperature;
 
         public Mesh UnifiedMeshLowPolyNoSky;
+        private double _viewFactorCutoffThreshold;
 
         // Dictionaries for tracking unique materials/constructions
         private Dictionary<string, Material> _allMats = new Dictionary<string, Material>();
@@ -108,6 +109,8 @@ namespace EddyLib.Radiation
             _allMats.Clear();
             _allCons.Clear();
             _allVeget.Clear();
+            _viewFactorCutoffThreshold = CalculateViewFactorCutoffThreshold(Polys, CumulativeViewFactorCutoff);
+            Console.WriteLine($"[EP] Surface temperature VF cutoff percentile: {CumulativeViewFactorCutoff:P0}, threshold: {_viewFactorCutoffThreshold:G4}");
 
             int surfIndex = 0;
             int groundIndex = 0;
@@ -145,9 +148,35 @@ namespace EddyLib.Radiation
         private bool ShouldSkipSurface(RPolygon s)
         {
             if (s.Type == RadiationSurfaceType.Sky) return true;
-            if (s.SeenByProbes < CumulativeViewFactorCutoff) return true;
             if (s.SimulationType != SimulationType.Simulated) return true;
+            if (s.SeenByProbes < _viewFactorCutoffThreshold) return true;
             return false;
+        }
+
+        internal static double CalculateViewFactorCutoffThreshold(IEnumerable<RPolygon> polys, double percentile)
+        {
+            if (polys == null) return 0;
+
+            var values = polys
+                .Where(s => s.Type != RadiationSurfaceType.Sky &&
+                            s.SimulationType == SimulationType.Simulated)
+                .Select(s => s.SeenByProbes)
+                .OrderBy(v => v)
+                .ToList();
+
+            if (values.Count == 0) return 0;
+
+            double clampedPercentile = Math.Max(0, Math.Min(1, percentile));
+            if (clampedPercentile <= 0) return 0;
+            if (clampedPercentile >= 1) return values[values.Count - 1];
+
+            double rank = clampedPercentile * (values.Count - 1);
+            int lower = (int)Math.Floor(rank);
+            int upper = (int)Math.Ceiling(rank);
+            if (lower == upper) return values[lower];
+
+            double weight = rank - lower;
+            return values[lower] + (values[upper] - values[lower]) * weight;
         }
 
         private string GetSurfacePrefix(RadiationSurfaceType type)
@@ -291,7 +320,7 @@ namespace EddyLib.Radiation
         {
             Console.WriteLine("Run EnergyPlus...");
 
-            var epExe = Path.Combine(DefaultDirectoriesAndPaths.EnergyPlusDir, "energyplus.exe");
+            var epExe = DefaultDirectoriesAndPaths.ResolveExePath(DefaultDirectoriesAndPaths.EnergyPlusDir, "energyplus");
             var epDir = Path.GetDirectoryName(epJsonFile);
 
             var energyPlus = Command.Run(epExe,
@@ -313,11 +342,26 @@ namespace EddyLib.Radiation
         {
             string esoFile = Path.Combine(BaseWorkingDir, "Ep", $"{ProjectName}out.eso");
 
-            if (!File.Exists(esoFile)) return null;
+            if (!File.Exists(esoFile))
+            {
+                Console.Error.WriteLine($"[EP] ESO file not found: {esoFile}");
+                var epFiles = Directory.Exists(Path.GetDirectoryName(esoFile))
+                    ? string.Join(", ", Directory.GetFiles(Path.GetDirectoryName(esoFile)))
+                    : "(Ep dir missing)";
+                Console.Error.WriteLine($"[EP] Ep dir contents: {epFiles}");
+                return null;
+            }
 
-            Console.WriteLine("Read results...");
+            Console.WriteLine($"[EP] Reading results from {esoFile}");
             var results = EsoReader.LoadEsoFile(esoFile);
-            if (results == null) return null;
+            if (results == null || results.Count == 0)
+            {
+                Console.Error.WriteLine("[EP] ESO loaded but returned no results.");
+                return results;
+            }
+
+            Console.WriteLine($"[EP] Loaded {results.Count} ESO result entries.");
+            Console.WriteLine($"[EP] Sample zones: {string.Join(", ", results.Take(5).Select(r => $"\"{r.zone}\" ({r.tag})"))}");
 
             // Map results back to polygons
             MapResultsToPolygons(results);
@@ -334,9 +378,12 @@ namespace EddyLib.Radiation
             // Create a lookup for faster access
             var resultLookup = results.ToLookup(r => r.zone);
 
+            int matched = 0;
+            int skipped = 0;
+
             Parallel.ForEach(Polys, p =>
             {
-                if (p.SimulationType != SimulationType.Simulated) return;
+                if (p.SimulationType != SimulationType.Simulated) { Interlocked.Increment(ref skipped); return; }
 
                 string prefix = GetSurfacePrefix(p.Type);
                 string key = $"{prefix}_{p.ID}";
@@ -345,8 +392,18 @@ namespace EddyLib.Radiation
                 if (match != null)
                 {
                     p.SurfaceTemperature = RPolygon.toFloatArray(match.values.ToArray());
+                    Interlocked.Increment(ref matched);
                 }
             });
+
+            Console.WriteLine($"[EP] Surface temp mapped: {matched} matched, {skipped} skipped (non-simulated).");
+            if (matched == 0)
+            {
+                var sampleKeys = Polys.Where(p => p.SimulationType == SimulationType.Simulated)
+                                     .Take(3).Select(p => $"{GetSurfacePrefix(p.Type)}_{p.ID}");
+                Console.Error.WriteLine($"[EP] No matches. Sample lookup keys: {string.Join(", ", sampleKeys)}");
+                Console.Error.WriteLine($"[EP] Sample ESO zones: {string.Join(", ", resultLookup.Select(g => g.Key).Take(5))}");
+            }
         }
 
         #endregion

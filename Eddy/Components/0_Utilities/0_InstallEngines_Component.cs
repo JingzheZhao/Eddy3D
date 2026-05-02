@@ -248,11 +248,12 @@ namespace Eddy
                 return InstallRadianceMacOS();
             }
 
-            string url = "https://github.com/LBNL-ETA/Radiance/releases/download/012cb178/Radiance_012cb178_Windows.zip";
-            string zipFile = Path.Combine(Path.GetTempPath(), "Radiance_012cb178_Windows.zip");
+            string archiveName = DefaultDirectoriesAndPaths.RadianceWindowsArchiveName;
+            string url = GetRadianceReleaseUrl(archiveName);
+            string zipFile = Path.Combine(Path.GetTempPath(), archiveName);
 
             string baseDir = DefaultDirectoriesAndPaths.Eddy3DInstallDir;
-            string targetDir = Path.Combine(baseDir, "Radiance_012cb178_Windows");
+            string targetDir = Path.Combine(baseDir, DefaultDirectoriesAndPaths.RadianceWindowsFolderName);
 
             try
             {
@@ -282,11 +283,19 @@ namespace Eddy
 
         private string InstallRadianceMacOS()
         {
-            string url = "https://github.com/LBNL-ETA/Radiance/releases/download/012cb178/Radiance_012cb178_OSX.zip";
-            string zipFile = Path.Combine(Path.GetTempPath(), "Radiance_012cb178_OSX.zip");
+            bool isArm64 = RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
+            string archiveName = isArm64
+                ? DefaultDirectoriesAndPaths.RadianceMacOSArm64ArchiveName
+                : DefaultDirectoriesAndPaths.RadianceMacOSArchiveName;
+            string url = GetRadianceReleaseUrl(archiveName);
+            string zipFile = Path.Combine(Path.GetTempPath(), archiveName);
 
             string baseDir = DefaultDirectoriesAndPaths.Eddy3DInstallDir;
-            string targetDir = Path.Combine(baseDir, "Radiance_012cb178_OSX");
+            string targetDir = Path.Combine(
+                baseDir,
+                isArm64
+                    ? DefaultDirectoriesAndPaths.RadianceMacOSArm64FolderName
+                    : DefaultDirectoriesAndPaths.RadianceMacOSFolderName);
 
             try
             {
@@ -331,6 +340,11 @@ namespace Eddy
             {
                 return string.Format("Error installing Radiance: {0}\n", ex.Message);
             }
+        }
+
+        private static string GetRadianceReleaseUrl(string archiveName)
+        {
+            return $"https://github.com/LBNL-ETA/Radiance/releases/download/{DefaultDirectoriesAndPaths.RadianceReleaseTag}/{archiveName}";
         }
 
         private string InstallDocker()

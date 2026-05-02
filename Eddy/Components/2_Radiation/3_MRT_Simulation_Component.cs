@@ -1,8 +1,9 @@
-﻿using Eddy.Properties;
+using Eddy.Properties;
 using EddyLib;
 using Eddy.Analytics;
 using EddyLib.Radiation;
 using EddyLib.UI;
+using EddyLib.Web;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
@@ -10,6 +11,7 @@ using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,6 +20,7 @@ namespace Eddy
     public class MRT_Simulation_Component : GH_Component
     {
         private MRT_Simulation_System MRTSystem;
+        private bool MRTSimulationSucceeded;
 
         public override GH_Exposure Exposure
         {
@@ -54,7 +57,8 @@ Combines:
 
             pManager.AddTextParameter(
                 "Weather File", "EPW",
-                "Path to EnergyPlus weather file (.epw) for climate data.",
+                "Path to EnergyPlus weather file (.epw) for climate data. " +
+                "Also accepts an http/https URL — the file is downloaded once and cached in %AppData%\\Eddy3D\\Weather.",
                 GH_ParamAccess.item);
 
             pManager.AddGenericParameter(
@@ -134,9 +138,34 @@ Combines:
                 return;
             }
 
+            if (!string.IsNullOrEmpty(weatherPath) && weatherPath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                this.Message = "Downloading...";
+                Grasshopper.Instances.ActiveCanvas?.Refresh();
+                try
+                {
+                    var (localPath, downloaded) = FileDownloader.ResolveEpwPath(weatherPath);
+                    weatherPath = localPath;
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                        downloaded ? $"Downloaded weather file to: {localPath}"
+                                   : $"Using cached weather file: {localPath}");
+                }
+                catch (Exception ex)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Failed to download weather file: {ex.Message}");
+                    return;
+                }
+                finally
+                {
+                    this.Message = null;
+                    Grasshopper.Instances.ActiveCanvas?.Refresh();
+                }
+            }
+
             if (!File.Exists(weatherPath))
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Weather file could not be found");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
+                    "Weather file not found. Provide a local .epw path or an http/https URL.");
                 return;
             }
 
@@ -213,7 +242,7 @@ Combines:
             }
 
             string settingsInput = "";
-            MRT_Simulation_Settings set = null;
+            MRT_Simulation_Settings set = new MRT_Simulation_Settings();
             DA.GetData(4, ref settingsInput);
 
             if (!String.IsNullOrWhiteSpace(settingsInput))
@@ -275,33 +304,66 @@ Combines:
 
             MRTSystem = new MRT_Simulation_System(workDir, weather, modelRSurfaces, RadProbes, CFDResultPath, set);
 
-            // redirect stderr
-            var errors = new StringWriter();
-            Console.SetError(errors);
+            // Tee stdout + stderr into a log buffer so we can persist it to the working dir
+            var logBuffer = new StringWriter();
+            var originalOut = Console.Out;
+            var originalErr = Console.Error;
+            Console.SetOut(new TeeWriter(originalOut, logBuffer));
+            Console.SetError(new TeeWriter(originalErr, logBuffer));
 
-            if (RUN)
+            string logPath = Path.Combine(MRTSystem.BaseWorkingDir, "mrt.log");
+            MRTSimulationSucceeded = false;
+            try
             {
-                Analytics.Analytics.TrackSimulationRun(
-                    "mrt",
-                    Analytics.Analytics.InferEngineFromPath(CFDResultPath, "native"));
+                Console.WriteLine($"=== MRT run started {DateTime.Now:yyyy-MM-dd HH:mm:ss} ===");
+                Console.WriteLine($"Working dir: {MRTSystem.BaseWorkingDir}");
+                Console.WriteLine($"Weather:     {weatherPath}");
+                Console.WriteLine($"Run:         {RUN}");
 
-                if (HidePopUp)
+                if (RUN)
                 {
-                    DoWork(new CancellationTokenSource());
+                    Analytics.Analytics.TrackSimulationRun(
+                        "mrt",
+                        Analytics.Analytics.InferEngineFromPath(CFDResultPath, "native"));
+
+                    if (HidePopUp)
+                    {
+                        DoWork(new CancellationTokenSource());
+                    }
+                    else
+                    {
+                        // show progress form
+                        var progress = new ProgressDialog(DoWorkAsync);
+                        progress.ShowModal();
+
+                        // if user cancellation, abort solution
+                        if (progress.Canceled)
+                        {
+                            OnPingDocument().RequestAbortSolution();
+                        }
+                    }
                 }
                 else
                 {
-                    // show progress form
-                    var progress = new ProgressDialog(DoWorkAsync);
-                    progress.ShowModal();
-
-                    // if user cancellation, abort solution
-                    if (progress.Canceled)
-                    {
-                        OnPingDocument().RequestAbortSolution();
-                    }
+                    Console.WriteLine("Run input is false - skipping simulation.");
                 }
             }
+            finally
+            {
+                Console.SetOut(originalOut);
+                Console.SetError(originalErr);
+                try
+                {
+                    File.WriteAllText(logPath, logBuffer.ToString());
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Log: {logPath}");
+                }
+                catch (Exception ex)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, $"Could not write log: {ex.Message}");
+                }
+            }
+
+            ReportSurfaceTemperatureStatus(RUN, MRTSimulationSucceeded);
 
             DA.SetData(0, MRTSystem);
 
@@ -311,6 +373,54 @@ Combines:
                 DA.SetData(1, resultFilePath);
 
                 DA.SetData(2, MRTSystem.Settings.toJSON());
+            }
+        }
+
+        private void ReportSurfaceTemperatureStatus(bool ran, bool succeeded)
+        {
+            if (MRTSystem?.Settings == null || !MRTSystem.Settings.ComputeSurfaceTemperatureEnergyPlus) return;
+
+            var simulatedPolys = MRTSystem.Polys?.FindAll(p =>
+                p.Type != RadiationSurfaceType.Sky &&
+                p.SimulationType == SimulationType.Simulated);
+
+            int simulatedCount = simulatedPolys?.Count ?? 0;
+            if (simulatedCount == 0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                    "Surface temperatures are enabled, but no non-sky polygons use the Simulated temperature source.");
+                return;
+            }
+
+            if (!ran)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                    "Surface temperatures will be available after running the MRT simulation with EnergyPlus enabled.");
+                return;
+            }
+
+            if (!succeeded)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
+                    "MRT simulation failed before EnergyPlus surface temperatures were produced. Check mrt.log and RadiationErrorLog.log in the case folder.");
+                return;
+            }
+
+            int mappedCount = simulatedPolys.FindAll(p => p.SurfaceTemperature != null && p.SurfaceTemperature.Length > 0).Count;
+            if (mappedCount == 0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
+                    "EnergyPlus finished, but no simulated polygons received surface temperature results. Check mrt.log and lower the VFC setting if all polygons were filtered.");
+            }
+            else if (mappedCount < simulatedCount)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                    $"EnergyPlus surface temperatures were mapped to {mappedCount} of {simulatedCount} simulated polygons. Filtered polygons will fall back to ambient temperature in MRT.");
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                    $"EnergyPlus surface temperatures mapped to all {mappedCount} simulated polygons.");
             }
         }
 
@@ -337,7 +447,7 @@ Combines:
 
         private void DoWork(CancellationTokenSource cts)
         {
-            var success = RunSlowSimulation(cts, 2);
+            MRTSimulationSucceeded = RunSlowSimulation(cts, 2);
         }
 
         private async Task DoWorkAsync(CancellationTokenSource cts)
@@ -357,20 +467,41 @@ Combines:
             if (MRTSystem.RadiationSystem == null) return false;
             if (MRTSystem.ThermalSystem == null) return false;
 
-            Console.WriteLine("Starting ViewFactor Calculation");
-            if (cts.IsCancellationRequested) return false;
-            if (!MRTSystem.RunVF(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP)) { return false; }
-
             if (MRTSystem.Settings.ComputeReflectionsAndDiffuseRadiation)
             {
+                // VF and DDS have no data dependencies — run in parallel.
+                // VF writes to Probes[i].VFtoPolys and Polys[j].SeenByProbes.
+                // DDS reads probe positions/normals (immutable) and writes .ill files to disk.
+                Console.WriteLine("Starting ViewFactor + Radiance DDS in parallel");
                 if (cts.IsCancellationRequested) return false;
-                if (!MRTSystem.RadiationSystem.RunDDS(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP)) { return false; }
+
+                bool vfOk = false;
+                bool ddsOk = false;
+
+                var vfTask = Task.Run(() =>
+                {
+                    vfOk = MRTSystem.RunVF(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+                });
+
+                var ddsTask = Task.Run(() =>
+                {
+                    ddsOk = MRTSystem.RadiationSystem.RunDDS(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+                });
+
+                Task.WaitAll(vfTask, ddsTask);
+                if (!vfOk || !ddsOk) return false;
 
                 if (cts.IsCancellationRequested) return false;
                 MRTSystem.RadiationSystem.LoadDDSData(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
             }
             else
             {
+                // Simple raycast path — must stay sequential.
+                // RunDirectRayCast reads Probes[i].VFtoMaterial["Sky"] which is set by RunVF.
+                Console.WriteLine("Starting ViewFactor Calculation");
+                if (cts.IsCancellationRequested) return false;
+                if (!MRTSystem.RunVF(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP)) { return false; }
+
                 MRTSystem.RadiationSystem.RunDirectRayCast(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
             }
 
@@ -380,6 +511,7 @@ Combines:
             {
                 if (cts.IsCancellationRequested) return false;
                 var data = MRTSystem.ThermalSystem.RunEP(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
+                if (data == null || data.Count == 0) return false;
             }
 
             if (cts.IsCancellationRequested) return false;
@@ -398,6 +530,18 @@ Combines:
             var proto = MRTSystem.ComfortSystem.SaveResults(true, cts.Token, MRTSystem.TOTAL, ref MRTSystem.STEP);
 
             return true;
+        }
+
+        private sealed class TeeWriter : TextWriter
+        {
+            private readonly TextWriter a;
+            private readonly TextWriter b;
+            public TeeWriter(TextWriter a, TextWriter b) { this.a = a; this.b = b; }
+            public override Encoding Encoding => a?.Encoding ?? Encoding.UTF8;
+            public override void Write(string value) { a?.Write(value); b?.Write(value); }
+            public override void WriteLine(string value) { a?.WriteLine(value); b?.WriteLine(value); }
+            public override void Write(char value) { a?.Write(value); b?.Write(value); }
+            public override void Flush() { a?.Flush(); b?.Flush(); }
         }
     }
 }

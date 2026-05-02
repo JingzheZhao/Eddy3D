@@ -18,11 +18,24 @@ namespace EddyLib
         private static readonly string LocalEddy3DDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Eddy3D");
         private static string _baseDir = IsWindows ? LocalEddy3DDir : RoamingEddy3DDir;
+        public const string RadianceReleaseTag = "rad6R0P2";
+        public const string RadianceBuildId = "c1700d56";
+        public const string RadianceWindowsArchiveName = "Radiance_c1700d56_Windows.zip";
+        public const string RadianceMacOSArchiveName = "Radiance_c1700d56_OSX.zip";
+        public const string RadianceMacOSArm64ArchiveName = "Radiance_c1700d56_OSX_arm64.zip";
+        public const string RadianceWindowsFolderName = "Radiance_c1700d56_Windows";
+        public const string RadianceMacOSFolderName = "Radiance_c1700d56_OSX";
+        public const string RadianceMacOSArm64FolderName = "Radiance_c1700d56_OSX_arm64";
         private static readonly string CasesRootDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Eddy3D");
         private static readonly string _radianceDirDefault = IsWindows
-            ? Path.Combine(_baseDir, "Radiance_012cb178_Windows")
-            : Path.Combine(_baseDir, "Radiance_012cb178_OSX", "radiance");
+            ? Path.Combine(_baseDir, RadianceWindowsFolderName)
+            : Path.Combine(
+                _baseDir,
+                RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+                    ? RadianceMacOSArm64FolderName
+                    : RadianceMacOSFolderName,
+                "radiance");
         private static string _radianceDir = _radianceDirDefault;
         private static string _energyPlusDir = IsWindows
             ? @"C:\EnergyPlusV9-4-0"
@@ -97,6 +110,17 @@ namespace EddyLib
         /// Path to Radiance binaries directory.
         /// </summary>
         public static string RadianceBinDir => Path.Combine(RadianceDir, "bin");
+
+        /// <summary>
+        /// Resolves a command name to a full executable path inside <paramref name="binDir"/>,
+        /// applying the platform-specific .exe suffix on Windows. Falls back to the bare
+        /// command name (PATH lookup) if the file isn't present in the bin dir.
+        /// </summary>
+        public static string ResolveExePath(string binDir, string command)
+        {
+            string exePath = Path.Combine(binDir, command + (IsWindows ? ".exe" : ""));
+            return File.Exists(exePath) ? exePath : command;
+        }
 
         /// <summary>
         /// Path to Radiance library directory.

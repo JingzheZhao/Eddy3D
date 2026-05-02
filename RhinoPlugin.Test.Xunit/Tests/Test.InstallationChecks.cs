@@ -76,7 +76,11 @@ namespace RhinoPlugin.Test.Xunit
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             string baseDir = isWindows ? @"C:\TestRadiance" : "/tmp/TestRadiance";
             string binDir = isWindows ? @"C:\TestRadiance\bin" : "/tmp/TestRadiance/bin";
-            string expectedDefaultFragment = isWindows ? "Radiance_012cb178_Windows" : "Radiance_012cb178_OSX";
+            string expectedDefaultFragment = isWindows
+                ? DefaultDirectoriesAndPaths.RadianceWindowsFolderName
+                : RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+                    ? DefaultDirectoriesAndPaths.RadianceMacOSArm64FolderName
+                    : DefaultDirectoriesAndPaths.RadianceMacOSFolderName;
 
             try
             {

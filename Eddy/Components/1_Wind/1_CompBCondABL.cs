@@ -122,40 +122,27 @@ GH_Strings.ABL.Desc + EddyVersion.toString(),
 
             DA.GetData(GH_Strings.ABL.EPW, ref epwFilePath);
 
-            // Auto-download EPW if URL provided
-            if (epwFilePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(epwFilePath) && epwFilePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
             {
+                this.Message = "Downloading...";
+                Grasshopper.Instances.ActiveCanvas?.Refresh();
                 try
                 {
-                    string fileName = Path.GetFileName(new Uri(epwFilePath).AbsolutePath);
-                    string localDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Weather");
-                    string localPath = Path.Combine(localDir, fileName);
-
-                    if (!File.Exists(localPath))
-                    {
-                        this.Message = "Downloading...";
-                        Grasshopper.Instances.ActiveCanvas?.Refresh();
-                        try
-                        {
-                            Task.Run(async () => await FileDownloader.DownloadFileAsync(epwFilePath, localPath)).Wait();
-                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Downloaded weather file to: {localPath}");
-                        }
-                        finally
-                        {
-                            this.Message = null;
-                            Grasshopper.Instances.ActiveCanvas?.Refresh();
-                        }
-                    }
-                    else
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Using existing cached weather file: {localPath}");
-                    }
+                    var (localPath, downloaded) = FileDownloader.ResolveEpwPath(epwFilePath);
                     epwFilePath = localPath;
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                        downloaded ? $"Downloaded weather file to: {localPath}"
+                                   : $"Using cached weather file: {localPath}");
                 }
                 catch (Exception ex)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Failed to download weather file: {ex.Message}");
                     return;
+                }
+                finally
+                {
+                    this.Message = null;
+                    Grasshopper.Instances.ActiveCanvas?.Refresh();
                 }
             }
 
