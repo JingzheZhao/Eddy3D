@@ -27,3 +27,8 @@
 **Vulnerability:** Symlink/TOCTOU attack vulnerability when creating temporary scripts or config files. The vulnerable pattern uses predictable directories (e.g., `Path.Combine(Path.GetTempPath(), "MyApp")`) and writes using `File.WriteAllText`.
 **Learning:** `File.WriteAllText` combined with predictable paths allows an attacker to pre-create the file or directory, redirecting the write operation to overwrite critical system files or allowing them to intercept executing logic.
 **Prevention:** Generate highly unpredictable filenames (e.g., `Guid.NewGuid()`) directly inside `Path.GetTempPath()`. Instantiate these files using `FileStream` configured with `FileMode.CreateNew`, `FileAccess.Write`, and `FileShare.None`. This combination guarantees atomic creation and exclusive access, rejecting the operation if the file already exists.
+
+## 2024-05-24 - Validate shell paths for command tools
+**Vulnerability:** Command injection when invoking `xdg-open` or `/usr/bin/open` with unvalidated file paths.
+**Learning:** Tools like `xdg-open` interpret shell metacharacters in paths even if `Process.Start` sets `UseShellExecute = false`.
+**Prevention:** Implement a method to reject paths containing shell metacharacters before executing underlying shell wrappers.
