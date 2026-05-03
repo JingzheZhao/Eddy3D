@@ -22,3 +22,8 @@
 **Vulnerability:** Command injection via string concatenation in `ProcessStartInfo.Arguments`.
 **Learning:** Concatenating user inputs into a command string for execution can allow attackers to inject malicious OS commands, even with `UseShellExecute = false`.
 **Prevention:** Use `ProcessStartInfo.ArgumentList` to securely pass arguments, preventing the host OS parser from executing injected shell metacharacters.
+
+## 2024-05-25 - Secure Temporary File Creation
+**Vulnerability:** Symlink/TOCTOU attack vulnerability when creating temporary scripts or config files. The vulnerable pattern uses predictable directories (e.g., `Path.Combine(Path.GetTempPath(), "MyApp")`) and writes using `File.WriteAllText`.
+**Learning:** `File.WriteAllText` combined with predictable paths allows an attacker to pre-create the file or directory, redirecting the write operation to overwrite critical system files or allowing them to intercept executing logic.
+**Prevention:** Generate highly unpredictable filenames (e.g., `Guid.NewGuid()`) directly inside `Path.GetTempPath()`. Instantiate these files using `FileStream` configured with `FileMode.CreateNew`, `FileAccess.Write`, and `FileShare.None`. This combination guarantees atomic creation and exclusive access, rejecting the operation if the file already exists.

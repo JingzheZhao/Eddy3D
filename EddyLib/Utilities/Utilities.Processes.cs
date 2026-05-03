@@ -109,11 +109,12 @@ exit
                 string cmdExe = @"C:\Windows\System32\cmd.exe";
                 if (!File.Exists(cmdExe)) { return; }
 
-                string tempDir = Path.Combine(Path.GetTempPath(), "Eddy3D");
-                Directory.CreateDirectory(tempDir);
-
-                string tempBatchFile = Path.Combine(tempDir, $"Eddy3D_{Guid.NewGuid():N}.bat");
-                File.WriteAllText(tempBatchFile, scriptContent);
+                string tempBatchFile = Path.Combine(Path.GetTempPath(), $"Eddy3D_{Guid.NewGuid():N}.bat");
+                using (FileStream fs = new FileStream(tempBatchFile, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    sw.Write(scriptContent);
+                }
 
                 ThreadStart ths = new ThreadStart(() =>
                 {
