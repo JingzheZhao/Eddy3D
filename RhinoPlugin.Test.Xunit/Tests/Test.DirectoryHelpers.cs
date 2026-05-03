@@ -142,6 +142,59 @@ namespace RhinoPlugin.Test.Xunit.Tests
         }
 
         [Fact]
+        public void CleanDirectory_CleansFilesAndFolders()
+        {
+            // Arrange
+            var baseDirPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(baseDirPath);
+
+            var nestedDirPath1 = Path.Combine(baseDirPath, "nested1");
+            var nestedDirPath2 = Path.Combine(baseDirPath, "nested2");
+            var doubleNestedDirPath = Path.Combine(nestedDirPath1, "nested1_1");
+
+            Directory.CreateDirectory(nestedDirPath1);
+            Directory.CreateDirectory(nestedDirPath2);
+            Directory.CreateDirectory(doubleNestedDirPath);
+
+            File.WriteAllText(Path.Combine(baseDirPath, "file1.txt"), "content");
+            File.WriteAllText(Path.Combine(nestedDirPath1, "file2.txt"), "content");
+            File.WriteAllText(Path.Combine(nestedDirPath2, "file3.txt"), "content");
+            File.WriteAllText(Path.Combine(doubleNestedDirPath, "file4.txt"), "content");
+
+            // Act
+            DirectoryHelpers.CleanDirectory(baseDirPath);
+
+            // Assert
+            Assert.True(Directory.Exists(baseDirPath));
+            Assert.Empty(Directory.EnumerateFileSystemEntries(baseDirPath));
+        }
+
+        [Fact]
+        public void CleanDirectory_HandlesEmptyDirectory()
+        {
+            // Arrange
+            var emptyDirPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(emptyDirPath);
+
+            // Act
+            DirectoryHelpers.CleanDirectory(emptyDirPath);
+
+            // Assert
+            Assert.True(Directory.Exists(emptyDirPath));
+            Assert.Empty(Directory.EnumerateFileSystemEntries(emptyDirPath));
+        }
+
+        [Fact]
+        public void CleanDirectory_ThrowsDirectoryNotFoundException_WhenDirectoryDoesNotExist()
+        {
+            // Arrange
+            var nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            // Act & Assert
+            Assert.Throws<DirectoryNotFoundException>(() => DirectoryHelpers.CleanDirectory(nonExistentPath));
+        }
+
+        [Fact]
         public void EscapeBackslashes_NullInput_ThrowsNullReferenceException()
         {
             // Act & Assert
