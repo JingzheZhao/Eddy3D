@@ -235,5 +235,113 @@ namespace RhinoPlugin.Test.Xunit.Tests
             // Assert
             Assert.Equal(@"a\\\\b", result);
         }
+
+        [Fact]
+        public void NormalizeBackslashes_NullInput_ThrowsNullReferenceException()
+        {
+            // Act & Assert
+            Assert.Throws<NullReferenceException>(() => DirectoryHelpers.NormalizeBackslashes(null));
+        }
+
+        [Fact]
+        public void NormalizeBackslashes_EmptyString_ReturnsEmptyString()
+        {
+            // Act
+            var result = DirectoryHelpers.NormalizeBackslashes(string.Empty);
+
+            // Assert
+            Assert.Equal(string.Empty, result);
+        }
+
+        [Fact]
+        public void NormalizeBackslashes_NoBackslashes_ReturnsSameString()
+        {
+            // Arrange
+            var input = "folder/subfolder/file.txt";
+
+            // Act
+            var result = DirectoryHelpers.NormalizeBackslashes(input);
+
+            // Assert
+            Assert.Equal(input, result);
+        }
+
+        [Fact]
+        public void NormalizeBackslashes_SingleBackslash_ReturnsSingleBackslash()
+        {
+            // Arrange
+            var input = @"a\b";
+
+            // Act
+            var result = DirectoryHelpers.NormalizeBackslashes(input);
+
+            // Assert
+            Assert.Equal(@"a\b", result);
+        }
+
+        [Fact]
+        public void NormalizeBackslashes_MultipleSingleBackslashes_ReturnsMultipleSingleBackslashes()
+        {
+            // Arrange
+            var input = @"a\b\c\d";
+
+            // Act
+            var result = DirectoryHelpers.NormalizeBackslashes(input);
+
+            // Assert
+            Assert.Equal(@"a\b\c\d", result);
+        }
+
+        [Fact]
+        public void NormalizeBackslashes_DoubleBackslashes_ReturnsSingleBackslash()
+        {
+            // Arrange
+            var input = @"a\\b";
+
+            // Act
+            var result = DirectoryHelpers.NormalizeBackslashes(input);
+
+            // Assert
+            Assert.Equal(@"a\b", result);
+        }
+
+        [Fact]
+        public void NormalizeBackslashes_TripleBackslashes_ReturnsSingleBackslash()
+        {
+            // Arrange
+            var input = @"a\\\b";
+
+            // Act
+            var result = DirectoryHelpers.NormalizeBackslashes(input);
+
+            // Assert
+            Assert.Equal(@"a\b", result);
+        }
+
+        [Fact]
+        public void NormalizeBackslashes_QuadrupleBackslashes_ReturnsSingleBackslash()
+        {
+            // Arrange
+            var input = @"a\\\\b";
+
+            // Act
+            var result = DirectoryHelpers.NormalizeBackslashes(input);
+
+            // Assert
+            Assert.Equal(@"a\b", result);
+        }
+
+        [Fact]
+        public void NormalizeBackslashes_OctupleBackslashes_ReturnsSingleBackslash()
+        {
+            // Arrange
+            var input = @"a\\\\\\\\b";
+
+            // Act
+            var result = DirectoryHelpers.NormalizeBackslashes(input);
+
+            // Assert
+            Assert.Equal(@"a\b", result);
+        }
     }
 }
