@@ -120,7 +120,7 @@ namespace Eddy
             string colorMapInput = GanColorMap.Viridis.ToString();
 
             if (!DA.GetDataList(0, buildings)) return;
-            
+
             Mesh building = new Mesh();
             foreach (var b in buildings)
             {
@@ -227,6 +227,7 @@ namespace Eddy
             // Notice we do NOT clear _cachedResult here; old results stay visible until the new computation finishes.
             _lastInputHash = inputHash;
             Message = "Generating input...";
+            Grasshopper.Instances.ActiveCanvas?.Refresh();
 
             // Cancel any previous in-flight request
             _cts?.Cancel();
