@@ -297,26 +297,38 @@ namespace EddyLib.Radiation
 
         public static void RunOconv(string radFilePath, string octFilePath)
         {
-            //// get executing platform
-            //var platform = new ExecutingPlatform();
-            //// add environmental variables
-            //string radbin = platform.RadBinDir;
-            //string radlib = Path.Combine(platform.RadDir, "lib");
-            //string daybin = platform.DaysimBinDir;
-            //char ps = (platform.OS == OSType.Windows) ? ';' : ':';
-            //Environment.SetEnvironmentVariable("PATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$PATH");
-            //Environment.SetEnvironmentVariable("RAYPATH", "." + ps + radlib + ps + radbin + ps + daybin + ps + "$RAYPATH");
+            ProcessStartInfo psi = new ProcessStartInfo("oconv")
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                WorkingDirectory = Path.GetDirectoryName(octFilePath)
+            };
+            psi.ArgumentList.Add(radFilePath);
 
-            ProcessStartInfo psi = new ProcessStartInfo("cmd.exe", "/c oconv \"" + radFilePath + "\" > \"" + octFilePath + "\"");
-            psi.UseShellExecute = false;
-            psi.RedirectStandardOutput = true;
-            psi.RedirectStandardError = true;
-            psi.CreateNoWindow = true;
-            psi.WorkingDirectory = Path.GetDirectoryName(octFilePath);
+            using (Process p = Process.Start(psi))
+            {
+                if (p == null)
+                {
+                    throw new InvalidOperationException("Unable to start oconv.");
+                }
 
-            Process p = Process.Start(psi);
-            p.WaitForExit();
-            p.Close();
+                using (var fs = new FileStream(octFilePath, FileMode.Create, FileAccess.Write))
+                {
+                    var writeTask = System.Threading.Tasks.Task.Run(() => p.StandardOutput.BaseStream.CopyTo(fs));
+                    var errorTask = p.StandardError.ReadToEndAsync();
+
+                    p.WaitForExit();
+                    writeTask.Wait();
+                    string error = errorTask.GetAwaiter().GetResult();
+
+                    if (p.ExitCode != 0)
+                    {
+                        throw new InvalidOperationException("oconv failed with exit code " + p.ExitCode + ": " + error);
+                    }
+                }
+            }
         }
 
         public static void RunRayCastMat(string octree_path, string pts_path, string output_path)
