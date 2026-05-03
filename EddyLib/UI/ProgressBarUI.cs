@@ -64,7 +64,8 @@ namespace EddyLib.UI
                 Wrap = WrapMode.Word,
                 Font = fontBody,
                 Height = 44, // Room for 2 lines
-                TextColor = SystemColors.ControlText
+                TextColor = SystemColors.ControlText,
+                ToolTip = "Current simulation status"
             };
 
             TimeElapsed = new Label
@@ -72,7 +73,8 @@ namespace EddyLib.UI
                 Text = "00:00:00",
                 VerticalAlignment = VerticalAlignment.Center,
                 Font = fontMono,
-                TextColor = SystemColors.ControlText
+                TextColor = SystemColors.ControlText,
+                ToolTip = "Time elapsed since simulation started"
             };
 
             ProgressPercent = new Label
@@ -80,7 +82,8 @@ namespace EddyLib.UI
                 Text = "  0%",
                 VerticalAlignment = VerticalAlignment.Center,
                 Font = fontTitle, // Use same size as title for emphasis
-                TextColor = SystemColors.Highlight
+                TextColor = SystemColors.Highlight,
+                ToolTip = "Simulation Progress Percentage"
             };
 
             stopwatch = Stopwatch.StartNew();
@@ -88,7 +91,7 @@ namespace EddyLib.UI
             timer.Elapsed += (s, e) => { TimeElapsed.Text = stopwatch.Elapsed.ToString(@"hh\:mm\:ss"); };
             timer.Start();
 
-            pbar = new Eto.Forms.ProgressBar { MaxValue = 100, Value = 0, Height = 14 };
+            pbar = new Eto.Forms.ProgressBar { MaxValue = 100, Value = 0, Height = 14, ToolTip = "Simulation Progress" };
 
             var progressLabel = new Label
             {
@@ -113,10 +116,11 @@ namespace EddyLib.UI
                 Wrap = false,
                 BackgroundColor = SystemColors.ControlBackground,
                 TextColor = SystemColors.ControlText,
+                ToolTip = "Simulation Log Output"
             };
 
-            var copyLog = new Button { Text = "Copy Log", ToolTip = "Copy simulation log to clipboard" };
-            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation" };
+            var copyLog = new Button { Text = "Copy Log", ToolTip = "Copy simulation log to clipboard (Enter)" };
+            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation (Esc)" };
             
             DefaultButton = copyLog;
             AbortButton = cancel;
