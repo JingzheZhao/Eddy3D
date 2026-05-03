@@ -121,3 +121,7 @@
 ## 2026-04-25 - O(N) LINQ in high-frequency CSV reading loop
 **Learning:** Re-evaluating `Dictionary.Keys.ToList()` and using `FirstOrDefault` to map keys per row causes unnecessary allocations and O(N) scaling per row inside the reading loop of `DatasetReaderCMP.cs`.
 **Action:** Lift the keys extraction out of the reading loop and reverse the column map to a `Dictionary<string, int>` mapping column names directly to indices, eliminating list creation per iteration and dropping the inner-loop lookup from O(N) to O(1).
+
+## 2024-05-18 - [Avoid File.ReadAllLines on large file parsing]
+**Learning:** Using `File.ReadAllLines` to parse large CSV, Dat, or PTS files causes massive Large Object Heap (LOH) allocations since the entire file content is loaded into memory as a `string[]` at once.
+**Action:** Always prefer `File.ReadLines` when sequentially iterating or parsing lines to return an `IEnumerable<string>`, dramatically reducing memory usage and GC thrashing.

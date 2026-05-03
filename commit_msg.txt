@@ -1,0 +1,6 @@
+⚡ Bolt: Replace File.ReadAllLines with File.ReadLines for large file parsing
+
+💡 What: Replaced `File.ReadAllLines` with `File.ReadLines` across the `RadianceFiles` parsing methods (`readPTS`, `readDatFile`, `readCSVFile`).
+🎯 Why: `File.ReadAllLines` loads the entire file into a massive array in memory, creating large objects that land on the Large Object Heap (LOH) and cause significant Garbage Collection (GC) pressure when parsing multi-megabyte result files.
+📊 Impact: Evaluated sequentially, `File.ReadLines` returns an `IEnumerable<string>` allowing the parser to process each line one by one, reducing peak memory usage from O(N) to O(1) and preventing LOH allocations.
+🔬 Measurement: Can be verified by running the test suite and analyzing heap allocations using a profiler when parsing large Radiance `.pts`, `.dat`, and `.csv` simulation files.

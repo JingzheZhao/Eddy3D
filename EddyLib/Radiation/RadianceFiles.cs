@@ -398,45 +398,70 @@ namespace EddyLib
 
         public static double[][] readPTS(string pts_path)
         {
-            var lines = File.ReadAllLines(pts_path);
-
-            double[][] points = new double[lines.Length][];
-
-            for (int k = 0; k < lines.Length; k++)
+            // Bolt: Replaced File.ReadAllLines with File.ReadLines for lazy evaluation,
+            // reducing LOH allocations when reading large PTS files.
+            var pointsList = new System.Collections.Generic.List<double[]>();
+            foreach (var line in File.ReadLines(pts_path))
             {
-                string[] ptsString = lines[k].Split(' ').Take(3).ToArray();
+                string[] ptsString = line.Split(' ').Take(3).ToArray();
                 double[] pts = Array.ConvertAll<string, double>(ptsString, Double.Parse);
-                points[k] = pts;
+                pointsList.Add(pts);
             }
 
-            return points;
+            return pointsList.ToArray();
         }
 
         public static double[,] readDatFile(string path)
         {
-            string[] txt = File.ReadAllLines(path);
-            double[,] RGB = new double[txt.Length, 3];
-            for (int i = 0; i < txt.Length; i++)
+            // Bolt: Replaced File.ReadAllLines with File.ReadLines for lazy evaluation,
+            // reducing LOH allocations when reading large dat files.
+            var lines = File.ReadLines(path);
+            var tempRGB = new System.Collections.Generic.List<double[]>();
+
+            foreach (var line in lines)
             {
-                string[] ln = txt[i].Split('\t');
-                RGB[i, 0] = double.Parse(ln[0]);
-                RGB[i, 1] = double.Parse(ln[1]);
-                RGB[i, 2] = double.Parse(ln[2]);
+                string[] ln = line.Split('\t');
+                tempRGB.Add(new double[] { double.Parse(ln[0]), double.Parse(ln[1]), double.Parse(ln[2]) });
+            }
+
+            double[,] RGB = new double[tempRGB.Count, 3];
+            for (int i = 0; i < tempRGB.Count; i++)
+            {
+                RGB[i, 0] = tempRGB[i][0];
+                RGB[i, 1] = tempRGB[i][1];
+                RGB[i, 2] = tempRGB[i][2];
             }
             return RGB;
         }
 
         public static double[,] readCSVFile(string path)
         {
-            string[] txt = File.ReadAllLines(path);
-            double[,] data = new double[txt.Length, txt[0].Trim(',').Split(',').Length];
-            for (int i = 0; i < txt.Length; i++)
+            // Bolt: Replaced File.ReadAllLines with File.ReadLines for lazy evaluation,
+            // reducing LOH allocations when reading large CSV files.
+            var lines = File.ReadLines(path);
+            var rowData = new System.Collections.Generic.List<double[]>();
+
+            foreach (var line in lines)
             {
-                string[] ln = txt[i].Trim(',').Split(',');
+                string[] ln = line.Trim(',').Split(',');
+                var parsedRow = new double[ln.Length];
                 for (int j = 0; j < ln.Length; j++)
                 {
                     if (string.IsNullOrWhiteSpace(ln[j])) continue;
-                    data[i, j] = double.Parse(ln[j]);
+                    parsedRow[j] = double.Parse(ln[j]);
+                }
+                rowData.Add(parsedRow);
+            }
+
+            if (rowData.Count == 0) return new double[0, 0];
+
+            double[,] data = new double[rowData.Count, rowData[0].Length];
+            for (int i = 0; i < rowData.Count; i++)
+            {
+                for (int j = 0; j < rowData[0].Length; j++)
+                {
+                    if (j < rowData[i].Length)
+                        data[i, j] = rowData[i][j];
                 }
             }
             return data;
