@@ -74,3 +74,7 @@
 ## 2024-05-24 - Canvas Empty State Actionability
 **Learning:** Using passive empty states (like "No data" or "Idle") leaves users guessing their next action and is poor UX.
 **Action:** Replace passive empty state texts in UI components with clear, actionable instructions (e.g., "Toggle 'Run' to start", "Connect a result") to guide the user workflow.
+
+## 2025-08-01 - [Progress Dialog ETA and Non-blocking Updates]
+**Learning:** Progress dialogs are significantly more helpful when they provide an ETA (Estimated Time Remaining). Additionally, using `SynchronizationContext.Post` instead of `Send` for UI updates from a background thread prevents the simulation from stalling if the UI thread is busy. Surfacing keyboard shortcuts (like Esc/Enter) in tooltips also improves accessibility and discoverability.
+**Action:** When implementing `ProgressDialog` in Eto.Forms, include a `TimeRemaining` calculation based on elapsed time and current progress. Use `context.Post` for logging and status updates to ensure non-blocking behavior. Explicitly add shortcut hints to button tooltips.

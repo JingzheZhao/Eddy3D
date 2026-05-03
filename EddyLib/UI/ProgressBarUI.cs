@@ -14,6 +14,7 @@ namespace EddyLib.UI
         public Label Status;
         public TextArea StatusLog;
         private Label TimeElapsed;
+        private Label TimeRemaining;
         private Label ProgressPercent;
         private Stopwatch stopwatch;
         private UITimer timer;
@@ -22,18 +23,42 @@ namespace EddyLib.UI
         private bool isFinished = false;
         private Eto.Forms.ProgressBar pbar;
         private string _baseTitle;
+        private float _progress = 0f;
 
         public float Progress
         {
-            get { return pbar.Value / 100f; }
+            get { return _progress; }
             set
             {
-                float clamped = Math.Clamp(value, 0f, 1f);
-                pbar.Value = (int)(clamped * 100);
-                string percent = FormatPercent(clamped);
+                _progress = Math.Clamp(value, 0f, 1f);
+                pbar.Value = (int)(_progress * 100);
+                string percent = FormatPercent(_progress);
                 ProgressPercent.Text = percent;
-                Title = $"{_baseTitle} - {percent.Trim()}";
+                UpdateStatus();
             }
+        }
+
+        private void UpdateStatus()
+        {
+            var elapsed = stopwatch.Elapsed;
+            TimeElapsed.Text = elapsed.ToString(@"hh\:mm\:ss");
+
+            string etaStr = "--:--:--";
+            if (_progress > 0.001f && _progress < 1f)
+            {
+                double totalMs = elapsed.TotalMilliseconds / _progress;
+                double remainingMs = totalMs - elapsed.TotalMilliseconds;
+                var remaining = TimeSpan.FromMilliseconds(remainingMs);
+                etaStr = remaining.ToString(@"hh\:mm\:ss");
+            }
+            else if (_progress >= 1f)
+            {
+                etaStr = "00:00:00";
+            }
+            TimeRemaining.Text = etaStr;
+
+            string percent = FormatPercent(_progress).Trim();
+            Title = $"{_baseTitle} - {percent} (ETA: {etaStr})";
         }
 
         public ProgressDialog(Func<CancellationTokenSource, Task> task, string title = "Simulation", double refreshRate = 1000)
@@ -77,6 +102,14 @@ namespace EddyLib.UI
                 ToolTip = "Time elapsed since simulation started"
             };
 
+            TimeRemaining = new Label
+            {
+                Text = "--:--:--",
+                VerticalAlignment = VerticalAlignment.Center,
+                Font = fontMono,
+                TextColor = SystemColors.ControlText
+            };
+
             ProgressPercent = new Label
             {
                 Text = "  0%",
@@ -88,7 +121,7 @@ namespace EddyLib.UI
 
             stopwatch = Stopwatch.StartNew();
             timer = new UITimer { Interval = 1.0 };
-            timer.Elapsed += (s, e) => { TimeElapsed.Text = stopwatch.Elapsed.ToString(@"hh\:mm\:ss"); };
+            timer.Elapsed += (s, e) => { UpdateStatus(); };
             timer.Start();
 
             pbar = new Eto.Forms.ProgressBar { MaxValue = 100, Value = 0, Height = 14, ToolTip = "Simulation Progress" };
@@ -188,11 +221,14 @@ namespace EddyLib.UI
             layout.EndVertical();
 
             // Stats Row
-            var statsRow = new DynamicLayout { Spacing = new Size(4, 0) };
+            var statsRow = new DynamicLayout { Spacing = new Size(8, 0) };
             statsRow.BeginHorizontal();
             statsRow.Add(null, true, false);
             statsRow.Add(new Label { Text = "Elapsed:", Font = SystemFonts.Label(11), TextColor = Color.FromArgb(128, 128, 128) }, false, false);
             statsRow.Add(TimeElapsed, false, false);
+            statsRow.Add(new Drawable { Width = 12 }, false, false); // Spacer
+            statsRow.Add(new Label { Text = "Remaining:", Font = SystemFonts.Label(11), TextColor = Color.FromArgb(128, 128, 128) }, false, false);
+            statsRow.Add(TimeRemaining, false, false);
             statsRow.EndHorizontal();
             layout.Add(statsRow, true, false);
 
@@ -254,7 +290,7 @@ namespace EddyLib.UI
         public override void Write(string value)
         {
             chained?.Write(value);
-            if (context != null) context.Send((object state) =>
+            if (context != null) context.Post((object state) =>
             {
                 dialog.Status.Text = value;
                 dialog.StatusLog.Append(value + Environment.NewLine, true);
@@ -264,7 +300,7 @@ namespace EddyLib.UI
         public override void WriteLine(string value)
         {
             chained?.WriteLine(value);
-            if (context != null) context.Send((object state) =>
+            if (context != null) context.Post((object state) =>
             {
                 if (value.StartsWith(ProgressKey))
                 {
