@@ -121,7 +121,9 @@ namespace EddyLib.Radiation
             Mesh daysimMesh = new Mesh();
             daysimMesh.Append(BuildingGeometry);
 
-            // Todo: add ground plane to the above mesh
+            // add ground plane to the above mesh
+            Mesh groundPlane = GeometryHelpers.GenerateGroundPlane(BuildingGeometry);
+            daysimMesh.Append(groundPlane);
 
             // Make sure this understands userdata
 

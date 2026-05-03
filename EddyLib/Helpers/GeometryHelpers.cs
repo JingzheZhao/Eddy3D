@@ -77,6 +77,19 @@ namespace EddyLib
         }
 
         /// <summary>
+        /// Generates a ground plane mesh based on the bounding box of the input building geometry.
+        /// </summary>
+        public static Mesh GenerateGroundPlane(Mesh buildingGeometry)
+        {
+            BoundingBox bbox = buildingGeometry.GetBoundingBox(true);
+            Point3d centerBottom = new Point3d(bbox.Center.X, bbox.Center.Y, bbox.Min.Z);
+            double size = Math.Max(bbox.Diagonal.Length * 5, 1000);
+            Interval interval = new Interval(-size / 2, size / 2);
+            Plane plane = new Plane(centerBottom, Vector3d.ZAxis);
+            return Mesh.CreateFromPlane(plane, interval, interval, 2, 2);
+        }
+
+        /// <summary>
         /// Calculates the area of a polygon defined by a list of points.
         /// </summary>
         public static double CalculatePolygonArea(List<Point3d> vertices)

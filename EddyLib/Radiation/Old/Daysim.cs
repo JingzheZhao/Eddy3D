@@ -53,7 +53,9 @@ void plastic Generic_20
             Mesh daysimMesh = new Mesh();
             daysimMesh.Append(BuildingGeometry);
 
-            // Todo: add ground plane to the above mesh
+            // add ground plane to the above mesh
+            Mesh groundPlane = GeometryHelpers.GenerateGroundPlane(BuildingGeometry);
+            daysimMesh.Append(groundPlane);
 
             File.WriteAllText(baseWorkingDir + @"Rad\materials.rad", radMat);
             RadianceFiles.MeshProc(daysimMesh, baseWorkingDir + @"Rad\scene.rad", "Generic_20");
