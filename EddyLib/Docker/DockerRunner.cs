@@ -559,25 +559,57 @@ echo ""----------------------------------------""
             File.WriteAllText(scriptPath, scriptContent.Replace("\r\n", "\n"));
 
             var containerScriptPath = DockerConfig.CaseMountPoint + "/run_docker.sh";
-            var dockerArgs = string.Format(
-                "run --rm -it --platform {4} --entrypoint /bin/bash -v \"{0}:{1}\" -w {1} {2} \"{3}\"",
-                hostCasePath,
-                DockerConfig.CaseMountPoint,
-                _imageName,
-                containerScriptPath,
-                DockerConfig.Platform);
 
-            var fullDockerCmd = string.Format("{0} {1}", _dockerExe, dockerArgs);
-            log.AppendLine(string.Format("{0} Launching terminal with: {1}",
-                DateTime.Now.ToString("HH:mm:ss"), fullDockerCmd));
+            log.AppendLine(string.Format("{0} Launching terminal with Docker command...", DateTime.Now.ToString("HH:mm:ss")));
 
             try
             {
-                Process.Start("wt.exe", fullDockerCmd);
+                var psiWt = new ProcessStartInfo
+                {
+                    FileName = "wt.exe",
+                    UseShellExecute = false
+                };
+                psiWt.ArgumentList.Add(_dockerExe);
+                psiWt.ArgumentList.Add("run");
+                psiWt.ArgumentList.Add("--rm");
+                psiWt.ArgumentList.Add("-it");
+                psiWt.ArgumentList.Add("--platform");
+                psiWt.ArgumentList.Add(DockerConfig.Platform);
+                psiWt.ArgumentList.Add("--entrypoint");
+                psiWt.ArgumentList.Add("/bin/bash");
+                psiWt.ArgumentList.Add("-v");
+                psiWt.ArgumentList.Add($"{hostCasePath}:{DockerConfig.CaseMountPoint}");
+                psiWt.ArgumentList.Add("-w");
+                psiWt.ArgumentList.Add(DockerConfig.CaseMountPoint);
+                psiWt.ArgumentList.Add(_imageName);
+                psiWt.ArgumentList.Add(containerScriptPath);
+
+                Process.Start(psiWt);
             }
             catch
             {
-                Process.Start("cmd.exe", string.Format("/k {0}", fullDockerCmd));
+                var psiCmd = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    UseShellExecute = false
+                };
+                psiCmd.ArgumentList.Add("/k");
+                psiCmd.ArgumentList.Add(_dockerExe);
+                psiCmd.ArgumentList.Add("run");
+                psiCmd.ArgumentList.Add("--rm");
+                psiCmd.ArgumentList.Add("-it");
+                psiCmd.ArgumentList.Add("--platform");
+                psiCmd.ArgumentList.Add(DockerConfig.Platform);
+                psiCmd.ArgumentList.Add("--entrypoint");
+                psiCmd.ArgumentList.Add("/bin/bash");
+                psiCmd.ArgumentList.Add("-v");
+                psiCmd.ArgumentList.Add($"{hostCasePath}:{DockerConfig.CaseMountPoint}");
+                psiCmd.ArgumentList.Add("-w");
+                psiCmd.ArgumentList.Add(DockerConfig.CaseMountPoint);
+                psiCmd.ArgumentList.Add(_imageName);
+                psiCmd.ArgumentList.Add(containerScriptPath);
+
+                Process.Start(psiCmd);
             }
 
             log.AppendLine(string.Format("{0} Terminal window opened for Docker command.",
