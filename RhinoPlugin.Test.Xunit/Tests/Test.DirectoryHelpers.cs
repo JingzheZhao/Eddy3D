@@ -418,5 +418,64 @@ namespace RhinoPlugin.Test.Xunit.Tests
             // Assert
             Assert.Equal(@"a\b", result);
         }
+
+        [Fact]
+        public void ToUnixPath_NullInput_ThrowsNullReferenceException()
+        {
+            // Act & Assert
+            Assert.Throws<NullReferenceException>(() => DirectoryHelpers.ToUnixPath(null));
+        }
+
+        [Fact]
+        public void ToUnixPath_ConvertsBackslashesToForwardSlashes()
+        {
+            // Arrange
+            var input = @"folder\subfolder";
+
+            // Act
+            var result = DirectoryHelpers.ToUnixPath(input);
+
+            // Assert
+            Assert.Equal("//folder/subfolder", result);
+        }
+
+        [Fact]
+        public void ToUnixPath_ConvertsColonsToForwardSlashes()
+        {
+            // Arrange
+            var input = "D:folder";
+
+            // Act
+            var result = DirectoryHelpers.ToUnixPath(input);
+
+            // Assert
+            Assert.Equal("//D/folder", result);
+        }
+
+        [Fact]
+        public void ToUnixPath_PrependsDoubleForwardSlashes()
+        {
+            // Arrange
+            var input = "folder/subfolder";
+
+            // Act
+            var result = DirectoryHelpers.ToUnixPath(input);
+
+            // Assert
+            Assert.Equal("//folder/subfolder", result);
+        }
+
+        [Fact]
+        public void ToUnixPath_ConvertsUpperCToLowerC()
+        {
+            // Arrange
+            var input = @"C:\folder";
+
+            // Act
+            var result = DirectoryHelpers.ToUnixPath(input);
+
+            // Assert
+            Assert.Equal("//c//folder", result);
+        }
     }
 }
