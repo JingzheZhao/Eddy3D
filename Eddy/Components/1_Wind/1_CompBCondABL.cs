@@ -166,7 +166,9 @@ GH_Strings.ABL.Desc + EddyVersion.toString(),
 
             // Check if anything causes a 0 BC
 
-            if (BCC.BCs.Where(v => v.epsilon == 0).Any() || BCC.BCs.Where(v => v.k == 0).Any() || BCC.BCs.Where(v => v.omega == 0).Any())
+            // Bolt: Replaced chained .Where().Any() with a single .Any() evaluating all conditions.
+            // This reduces memory allocations (no intermediate iterators) and reduces traversal from O(3N) to O(N).
+            if (BCC.BCs.Any(v => v.epsilon == 0 || v.k == 0 || v.omega == 0))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain."); return;
             }
