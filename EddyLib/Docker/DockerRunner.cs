@@ -489,23 +489,24 @@ echo ""----------------------------------------""
             AppendMacTerminalCompletion(scriptBuilder);
             scriptContent = scriptBuilder.ToString();
 
-            File.WriteAllText(scriptPath, scriptContent);
+            var fileOptions = new FileStreamOptions
+            {
+                Mode = FileMode.Create,
+                Access = FileAccess.Write,
+                Share = FileShare.None,
+#pragma warning disable CA1416 // Validate platform compatibility
+                UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
+#pragma warning restore CA1416
+            };
+
+            using (var stream = new FileStream(scriptPath, fileOptions))
+            using (var writer = new StreamWriter(stream))
+            {
+                writer.Write(scriptContent);
+            }
+
             log.AppendLine(string.Format("{0} Created script: {1}",
                 DateTime.Now.ToString("HH:mm:ss"), scriptPath));
-
-            // Make script executable
-            var chmodPsi = new ProcessStartInfo
-            {
-                FileName = "/bin/chmod",
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            chmodPsi.ArgumentList.Add("+x");
-            chmodPsi.ArgumentList.Add(scriptPath);
-            using (var chmodProcess = Process.Start(chmodPsi))
-            {
-                chmodProcess?.WaitForExit();
-            }
 
             // Open Terminal.app with the script
             var psi = new ProcessStartInfo
