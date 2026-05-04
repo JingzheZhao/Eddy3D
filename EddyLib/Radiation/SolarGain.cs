@@ -112,6 +112,44 @@ namespace EddyLib.Radiation
             standing
         };
 
+        private static readonly double[][] FpTableStanding = new double[][]
+        {
+            new double[] { 0.25, 0.25, 0.23, 0.19, 0.15, 0.10, 0.06 },
+            new double[] { 0.25, 0.25, 0.23, 0.18, 0.15, 0.10, 0.06 },
+            new double[] { 0.24, 0.24, 0.22, 0.18, 0.14, 0.10, 0.06 },
+            new double[] { 0.22, 0.22, 0.20, 0.17, 0.13, 0.09, 0.06 },
+            new double[] { 0.21, 0.21, 0.18, 0.15, 0.12, 0.08, 0.06 },
+            new double[] { 0.18, 0.18, 0.17, 0.14, 0.11, 0.08, 0.06 },
+            new double[] { 0.17, 0.17, 0.16, 0.13, 0.11, 0.08, 0.06 },
+            new double[] { 0.18, 0.18, 0.16, 0.13, 0.11, 0.08, 0.06 },
+            new double[] { 0.20, 0.20, 0.18, 0.15, 0.12, 0.08, 0.06 },
+            new double[] { 0.22, 0.22, 0.20, 0.16, 0.13, 0.09, 0.06 },
+            new double[] { 0.24, 0.24, 0.21, 0.17, 0.13, 0.09, 0.06 },
+            new double[] { 0.25, 0.25, 0.22, 0.18, 0.14, 0.09, 0.06 },
+            new double[] { 0.25, 0.25, 0.22, 0.18, 0.14, 0.09, 0.06 }
+        };
+
+        private static readonly double[][] FpTableSeating = new double[][]
+        {
+            new double[] { 0.20, 0.23, 0.21, 0.21, 0.18, 0.16, 0.12 },
+            new double[] { 0.203232, 0.228288, 0.204624, 0.200448, 0.186528, 0.157992, 0.123192 },
+            new double[] { 0.20, 0.23, 0.21, 0.20, 0.18, 0.15, 0.12 },
+            new double[] { 0.19, 0.23, 0.20, 0.20, 0.18, 0.15, 0.12 },
+            new double[] { 0.18, 0.21, 0.19, 0.19, 0.17, 0.14, 0.12 },
+            new double[] { 0.16, 0.20, 0.18, 0.18, 0.16, 0.13, 0.12 },
+            new double[] { 0.15, 0.18, 0.17, 0.17, 0.15, 0.13, 0.12 },
+            new double[] { 0.16, 0.18, 0.16, 0.16, 0.14, 0.13, 0.12 },
+            new double[] { 0.18, 0.18, 0.16, 0.14, 0.14, 0.12, 0.12 },
+            new double[] { 0.19, 0.18, 0.15, 0.13, 0.13, 0.12, 0.12 },
+            new double[] { 0.21, 0.18, 0.14, 0.12, 0.12, 0.12, 0.12 },
+            new double[] { 0.21, 0.17, 0.13, 0.11, 0.11, 0.12, 0.12 },
+            new double[] { 0.21, 0.17, 0.12, 0.11, 0.11, 0.11, 0.12 }
+        };
+
+        private static readonly int[] AltRange = new int[] { 0, 15, 30, 45, 60, 75, 90 };
+
+        private static readonly int[] AzRange = new int[] { 0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180 };
+
         public static double ERF_Modified(double alt, Posture posture, double Idir, double Idiff, double asa = 0.7)
         {
             //  ERF function to estimate the impact of solar radiation on occupant comfort
@@ -271,53 +309,16 @@ namespace EddyLib.Radiation
                 az = 360 - az;
             }
 
-            // fix inputs
-
-            var jDim = 7;
-            var iDim = 13;
-
-            var fp_table = new double[iDim][];
-
-            for (int ii = 0; ii < iDim; ii++)
-            {
-                fp_table[ii] = new double[jDim];
-            }
-
+            // Bolt optimization: Use static cached tables instead of local array allocations
+            double[][] fp_table;
             if (posture == Posture.standing || posture == Posture.supine)
             {
-                fp_table[0] = new double[] { 0.25, 0.25, 0.23, 0.19, 0.15, 0.10, 0.06 };
-                fp_table[1] = new double[] { 0.25, 0.25, 0.23, 0.18, 0.15, 0.10, 0.06 };
-                fp_table[2] = new double[] { 0.24, 0.24, 0.22, 0.18, 0.14, 0.10, 0.06 };
-                fp_table[3] = new double[] { 0.22, 0.22, 0.20, 0.17, 0.13, 0.09, 0.06 };
-                fp_table[4] = new double[] { 0.21, 0.21, 0.18, 0.15, 0.12, 0.08, 0.06 };
-                fp_table[5] = new double[] { 0.18, 0.18, 0.17, 0.14, 0.11, 0.08, 0.06 };
-                fp_table[6] = new double[] { 0.17, 0.17, 0.16, 0.13, 0.11, 0.08, 0.06 };
-                fp_table[7] = new double[] { 0.18, 0.18, 0.16, 0.13, 0.11, 0.08, 0.06 };
-                fp_table[8] = new double[] { 0.20, 0.20, 0.18, 0.15, 0.12, 0.08, 0.06 };
-                fp_table[9] = new double[] { 0.22, 0.22, 0.20, 0.16, 0.13, 0.09, 0.06 };
-                fp_table[10] = new double[] { 0.24, 0.24, 0.21, 0.17, 0.13, 0.09, 0.06 };
-                fp_table[11] = new double[] { 0.25, 0.25, 0.22, 0.18, 0.14, 0.09, 0.06 };
-                fp_table[12] = new double[] { 0.25, 0.25, 0.22, 0.18, 0.14, 0.09, 0.06 };
+                fp_table = FpTableStanding;
             }
-            else if (posture == Posture.seating)
+            else
             {
-                fp_table[0] = new double[] { 0.20, 0.23, 0.21, 0.21, 0.18, 0.16, 0.12 };
-
-                // typo in original code
-                fp_table[1] = new double[] { 0.203232, 0.228288, 0.204624, 0.200448, 0.186528, 0.157992, 0.123192 };
-                fp_table[2] = new double[] { 0.20, 0.23, 0.21, 0.20, 0.18, 0.15, 0.12 };
-                fp_table[3] = new double[] { 0.19, 0.23, 0.20, 0.20, 0.18, 0.15, 0.12 };
-                fp_table[4] = new double[] { 0.18, 0.21, 0.19, 0.19, 0.17, 0.14, 0.12 };
-                fp_table[5] = new double[] { 0.16, 0.20, 0.18, 0.18, 0.16, 0.13, 0.12 };
-                fp_table[6] = new double[] { 0.15, 0.18, 0.17, 0.17, 0.15, 0.13, 0.12 };
-                fp_table[7] = new double[] { 0.16, 0.18, 0.16, 0.16, 0.14, 0.13, 0.12 };
-                fp_table[8] = new double[] { 0.18, 0.18, 0.16, 0.14, 0.14, 0.12, 0.12 };
-                fp_table[9] = new double[] { 0.19, 0.18, 0.15, 0.13, 0.13, 0.12, 0.12 };
-                fp_table[10] = new double[] { 0.21, 0.18, 0.14, 0.12, 0.12, 0.12, 0.12 };
-                fp_table[11] = new double[] { 0.21, 0.17, 0.13, 0.11, 0.11, 0.12, 0.12 };
-                fp_table[12] = new double[] { 0.21, 0.17, 0.12, 0.11, 0.11, 0.11, 0.12 };
+                fp_table = FpTableSeating;
             }
-            ;
 
             if (posture == Posture.supine)
             {
@@ -328,21 +329,18 @@ namespace EddyLib.Radiation
             }
 
             double fp;
-            var alt_range = new int[] { 0, 15, 30, 45, 60, 75, 90 };
-            var az_range = new int[] { 0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180 };
-
-            var alt_i = Find_span(alt_range, alt);
-            var az_i = Find_span(az_range, az);
+            var alt_i = Find_span(AltRange, alt);
+            var az_i = Find_span(AzRange, az);
 
             var fp11 = fp_table[az_i][alt_i];
             var fp12 = fp_table[az_i][alt_i + 1];
             var fp21 = fp_table[az_i + 1][alt_i];
             var fp22 = fp_table[az_i + 1][alt_i + 1];
 
-            var az1 = az_range[az_i];
-            var az2 = az_range[az_i + 1];
-            var alt1 = alt_range[alt_i];
-            var alt2 = alt_range[alt_i + 1];
+            var az1 = AzRange[az_i];
+            var az2 = AzRange[az_i + 1];
+            var alt1 = AltRange[alt_i];
+            var alt2 = AltRange[alt_i + 1];
 
             // bilinear interpolation
             fp = fp11 * (az2 - az) * (alt2 - alt);
