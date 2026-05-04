@@ -33,6 +33,11 @@
 **Learning:** Tools like `xdg-open` interpret shell metacharacters in paths even if `Process.Start` sets `UseShellExecute = false`.
 **Prevention:** Implement a method to reject paths containing shell metacharacters before executing underlying shell wrappers.
 
+## 2026-03-10 - Secure Git and Tool Invocation in FluidX3DAblWorkflow
+**Vulnerability:** Command injection in `FluidX3DAblWorkflow.cs` via unsanitized repository URLs or file paths concatenated into `git` and `vswhere` command strings.
+**Learning:** Manual quoting in command strings (e.g., `"-C \"" + path + "\""`) is fragile and fails to prevent injection if the path itself contains escaped quotes or other shell-active characters.
+**Prevention:** Use a private helper method that wraps `ProcessStartInfo` and exclusively populates `ArgumentList` with a `params string[]` collection. This ensures that every argument is passed to the OS as a distinct, safely-handled token, bypassing shell parsing entirely.
+
 ## 2024-05-03 - TOCTOU Vulnerability in Shell Script Creation
 **Vulnerability:** Shell scripts were created with default permissions and subsequently made executable via `chmod +x`, creating a race condition window where an attacker could modify the script before execution.
 **Learning:** In .NET 8, `FileStreamOptions.UnixCreateMode` allows for atomic file creation with specific Unix permissions, eliminating this TOCTOU window.
