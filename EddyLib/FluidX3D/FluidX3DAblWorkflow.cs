@@ -229,11 +229,9 @@ namespace EddyLib.FluidX3D
                     throw new InvalidOperationException("Source directory exists but is not empty: " + fullSourceRoot);
                 }
 
-                string cloneArgs = string.IsNullOrWhiteSpace(normalizedPinnedCommit)
-                    ? "clone --depth 1 \"" + RepositoryUrl + "\" \"" + fullSourceRoot + "\""
-                    : "clone \"" + RepositoryUrl + "\" \"" + fullSourceRoot + "\"";
-
-                string cloneOutput = RunProcess("git", cloneArgs, null);
+                string cloneOutput = string.IsNullOrWhiteSpace(normalizedPinnedCommit)
+                    ? RunProcess("git", null, "clone", "--depth", "1", RepositoryUrl, fullSourceRoot)
+                    : RunProcess("git", null, "clone", RepositoryUrl, fullSourceRoot);
                 status.AppendLine("Cloned FluidX3D repository.");
                 if (!string.IsNullOrWhiteSpace(cloneOutput))
                 {
@@ -256,7 +254,7 @@ namespace EddyLib.FluidX3D
 
                 if (canPullLatest)
                 {
-                    string pullOutput = RunProcess("git", "-C \"" + fullSourceRoot + "\" pull --ff-only", null);
+                    string pullOutput = RunProcess("git", null, "-C", fullSourceRoot, "pull", "--ff-only");
                     status.AppendLine("Updated existing FluidX3D source.");
                     if (!string.IsNullOrWhiteSpace(pullOutput))
                     {
@@ -294,8 +292,8 @@ namespace EddyLib.FluidX3D
                 return "Pinned commit already checked out: " + currentHead + ".";
             }
 
-            RunProcess("git", "-C \"" + repositoryRoot + "\" fetch --all --tags --prune", null);
-            string checkoutOutput = RunProcess("git", "-C \"" + repositoryRoot + "\" checkout " + normalized, null);
+            RunProcess("git", null, "-C", repositoryRoot, "fetch", "--all", "--tags", "--prune");
+            string checkoutOutput = RunProcess("git", null, "-C", repositoryRoot, "checkout", normalized);
 
             if (!TryReadGitHeadCommit(repositoryRoot, out string newHead)
                 || !newHead.StartsWith(normalized, StringComparison.OrdinalIgnoreCase))
@@ -318,7 +316,7 @@ namespace EddyLib.FluidX3D
 
             try
             {
-                string output = RunProcess("git", "-C \"" + repositoryRoot + "\" rev-parse HEAD", null);
+                string output = RunProcess("git", null, "-C", repositoryRoot, "rev-parse", "HEAD");
                 string value = output
                     .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(line => line.Trim())
@@ -1230,8 +1228,8 @@ exit /b 0
 
                 string output = RunProcess(
                     vswhere,
-                    "-latest -products * -property installationPath",
-                    null);
+                    null,
+                    "-latest", "-products", "*", "-property", "installationPath");
 
                 string path = output
                     .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
@@ -1403,11 +1401,16 @@ exit /b 0
 
             try
             {
-                using (Process process = Process.Start(new ProcessStartInfo("/bin/chmod", "+x \"" + path + "\"")
+                var psi = new ProcessStartInfo
                 {
+                    FileName = "/bin/chmod",
                     UseShellExecute = false,
                     CreateNoWindow = true
-                }))
+                };
+                psi.ArgumentList.Add("+x");
+                psi.ArgumentList.Add(path);
+
+                using (Process process = Process.Start(psi))
                 {
                     process?.WaitForExit();
                 }
@@ -1418,18 +1421,25 @@ exit /b 0
             }
         }
 
-        private static string RunProcess(string fileName, string arguments, string workingDirectory)
+        private static string RunProcess(string fileName, string workingDirectory, params string[] args)
         {
             ProcessStartInfo psi = new ProcessStartInfo
             {
                 FileName = fileName,
-                Arguments = arguments,
                 WorkingDirectory = string.IsNullOrWhiteSpace(workingDirectory) ? Environment.CurrentDirectory : workingDirectory,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
+
+            if (args != null)
+            {
+                foreach (string arg in args)
+                {
+                    psi.ArgumentList.Add(arg);
+                }
+            }
 
             StringBuilder output = new StringBuilder();
             using (Process process = Process.Start(psi))
