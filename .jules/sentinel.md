@@ -42,3 +42,8 @@
 **Vulnerability:** Shell scripts were created with default permissions and subsequently made executable via `chmod +x`, creating a race condition window where an attacker could modify the script before execution.
 **Learning:** In .NET 8, `FileStreamOptions.UnixCreateMode` allows for atomic file creation with specific Unix permissions, eliminating this TOCTOU window.
 **Prevention:** Use `FileStream` and `FileStreamOptions.UnixCreateMode` rather than `File.WriteAllText` + `Process.Start("chmod")` when creating executable scripts on Unix-like systems.
+
+## 2024-05-25 - Secure External Execution via ArgumentList and Disabling Shell Execute
+**Vulnerability:** Command injection when invoking interactive shell components (like `wt.exe` or `cmd.exe /k`) via `Process.Start` using strings formatted with user-controlled parameters, or writing such parameters directly into a temporary `.bat` file for execution.
+**Learning:** Writing dynamically concatenated command strings into a temporary `.bat` file does NOT prevent command injection, as the Windows batch interpreter will evaluate shell metacharacters like `&` within the script.
+**Prevention:** To securely execute external commands, bypass batch scripts and `cmd.exe` string evaluation entirely by passing the target executable and its arguments individually using `ProcessStartInfo.ArgumentList` with `UseShellExecute = false`. This guarantees arguments are passed exactly to the target executable.
