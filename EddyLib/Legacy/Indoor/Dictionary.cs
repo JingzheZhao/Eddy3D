@@ -55,7 +55,6 @@ namespace EddyLib.Indoor
                 this.header = GetHeader(this);
                 this.dimensions = "dimensions      [0 1 -1 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform (0 0 0);";
 
                 this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
@@ -76,7 +75,6 @@ namespace EddyLib.Indoor
                 this.header = GetHeader(this);
                 this.dimensions = "dimensions      [0 0 0 1 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 300;";
 
                 this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
@@ -97,7 +95,6 @@ namespace EddyLib.Indoor
                 this.header = GetHeader(this);
                 this.dimensions = "dimensions      [0 0 1 0 0 0 0]";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
 
                 this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
@@ -118,7 +115,6 @@ namespace EddyLib.Indoor
                 this.header = GetHeader(this);
                 this.dimensions = "dimensions      [0 0 0 1 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
 
                 this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
@@ -139,7 +135,6 @@ namespace EddyLib.Indoor
                 this.header = GetHeader(this);
                 this.dimensions = "dimensions      [0 2 -2 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
 
                 this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
@@ -160,7 +155,6 @@ namespace EddyLib.Indoor
                 this.header = GetHeader(this);
                 this.dimensions = "dimensions      [0 2 -1 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
 
                 this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
@@ -181,7 +175,6 @@ namespace EddyLib.Indoor
                 this.header = GetHeader(this);
                 this.dimensions = "dimensions      [1 -1 -2 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 101325;";
 
                 this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
@@ -202,7 +195,6 @@ namespace EddyLib.Indoor
                 this.header = GetHeader(this);
                 this.dimensions = "dimensions      [0 0 -1 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField   uniform 0;";
                 this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
                 this.internalDict.AddRange(outlet.Select(i => GetZeroGradient(i)));
@@ -222,7 +214,6 @@ namespace EddyLib.Indoor
                 this.header = GetHeader(this);
                 this.dimensions = "dimensions [1 -1 -2 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.internalField = "internalField uniform 101325;";
                 this.internalDict.AddRange(inlet.Select(i => GetFixedValue(i)));
                 this.internalDict.AddRange(outlet.Select(i => GetZeroGradient(i)));

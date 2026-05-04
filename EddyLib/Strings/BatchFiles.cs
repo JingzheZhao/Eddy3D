@@ -39,9 +39,10 @@ namespace EddyLib.Strings
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
                 {
+                    string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode);
                     foreach (string str in TopoSet)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
+                        sb.Append(dockerPrefix).Append(str);
                     }
                     sb.AppendLine("ping -n 6 127.0.0.1 >nul");
                 }
@@ -229,9 +230,10 @@ namespace EddyLib.Strings
             {
                 if (RunSettings.CPUs > 1)
                 {
+                    string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode);
                     foreach (string str in RCMeshMultiCPU(RunSettings, MeshSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
+                        sb.Append(dockerPrefix).Append(str);
                     }
 #if DEBUG
                     //sb.AppendLine("PAUSE");
@@ -239,9 +241,10 @@ namespace EddyLib.Strings
                 }
                 else
                 {
+                    string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode);
                     foreach (string str in RCMeshSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
+                        sb.Append(dockerPrefix).Append(str);
                     }
 #if DEBUG
                     //sb.AppendLine("PAUSE");
@@ -278,9 +281,10 @@ namespace EddyLib.Strings
             {
                 if (RunSettings.CPUs > 1)
                 {
+                    string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
                     foreach (string str in RCSimMultiCPU(RunSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
+                        sb.Append(dockerPrefix).Append(str);
                     }
 #if DEBUG
                     //sb.AppendLine("PAUSE");
@@ -288,9 +292,10 @@ namespace EddyLib.Strings
                 }
                 else
                 {
+                    string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
                     foreach (string str in RCSimSingleCPU(RunSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
+                        sb.Append(dockerPrefix).Append(str);
                     }
 #if DEBUG
                     //sb.AppendLine("PAUSE");
@@ -345,9 +350,10 @@ namespace EddyLib.Strings
             {
                 if (RunSettings.CPUs > 1)
                 {
+                    string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
                     foreach (string str in RCSimContinueMultiCPU(RunSettings))
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
+                        sb.Append(dockerPrefix).Append(str);
                     }
 #if DEBUG
                     //sb.AppendLine("PAUSE");
@@ -355,9 +361,10 @@ namespace EddyLib.Strings
                 }
                 else
                 {
+                    string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
                     foreach (string str in RCSimContinueSingleCPU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
+                        sb.Append(dockerPrefix).Append(str);
                     }
 #if DEBUG
                     //sb.AppendLine("PAUSE");
@@ -395,17 +402,19 @@ namespace EddyLib.Strings
             {
                 if (RunSettings.CPUs > 1)
                 {
+                    string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
                     foreach (string str in divU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
+                        sb.Append(dockerPrefix).Append(str);
                     }
                     sb.AppendLine("ping -n 6 127.0.0.1 >nul");
                 }
                 else
                 {
+                    string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
                     foreach (string str in divU)
                     {
-                        sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d) + str);
+                        sb.Append(dockerPrefix).Append(str);
                     }
                     sb.AppendLine("ping -n 6 127.0.0.1 >nul");
                 }
@@ -432,9 +441,10 @@ namespace EddyLib.Strings
             StringBuilder sb = new StringBuilder();
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
+                string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode);
                 foreach (string str in RCCheckMeshSingleCPU)
                 {
-                    sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
+                    sb.Append(dockerPrefix).Append(str);
                 }
 #if DEBUG
                 //sb.AppendLine("PAUSE");
@@ -456,9 +466,10 @@ namespace EddyLib.Strings
             StringBuilder sb = new StringBuilder();
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
+                string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode);
                 foreach (string str in reconstructMesh())
                 {
-                    sb.Append(DockerPrefixPath(DOM, MeshSettings, RunSettings, mode) + str);
+                    sb.Append(dockerPrefix).Append(str);
                 }
                 sb.AppendLine("ping -n 6 127.0.0.1 >nul");
             }
