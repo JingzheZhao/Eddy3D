@@ -289,6 +289,28 @@ namespace RhinoPlugin.Test.Xunit.Tests
             Assert.Equal(@"a\\\\b", result);
         }
 
+        [Theory]
+        [InlineData(@"\", @"\\")]
+        [InlineData(@"\\", @"\\\")]
+        [InlineData(@"\\\", @"\\")]
+        [InlineData(@"\\\\", @"\\\\")]
+        [InlineData(@"\\a", @"\\\a")]
+        [InlineData(@"a\\", @"a\\\")]
+        [InlineData(@"a\b\\c", @"a\\b\\\c")]
+        [InlineData(@"\\a\b\", @"\\\a\\b\\")]
+        [InlineData(@"\\\\\", @"\\\\\")]
+        [InlineData(@"\\\\\\", @"\\\\")]
+        [InlineData(@"\\\\\\\", @"\\\\\\")]
+        [InlineData(@"a\b\\\c\\\\d\\\\\e", @"a\\b\\c\\\\d\\\\\e")]
+        public void EscapeBackslashes_VariousCombinations_ReturnsExpectedResult(string input, string expected)
+        {
+            // Act
+            var result = DirectoryHelpers.EscapeBackslashes(input);
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
+
         [Fact]
         public void NormalizeBackslashes_NullInput_ThrowsNullReferenceException()
         {
