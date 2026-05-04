@@ -32,3 +32,8 @@
 **Vulnerability:** Command injection when invoking `xdg-open` or `/usr/bin/open` with unvalidated file paths.
 **Learning:** Tools like `xdg-open` interpret shell metacharacters in paths even if `Process.Start` sets `UseShellExecute = false`.
 **Prevention:** Implement a method to reject paths containing shell metacharacters before executing underlying shell wrappers.
+
+## 2024-05-03 - TOCTOU Vulnerability in Shell Script Creation
+**Vulnerability:** Shell scripts were created with default permissions and subsequently made executable via `chmod +x`, creating a race condition window where an attacker could modify the script before execution.
+**Learning:** In .NET 8, `FileStreamOptions.UnixCreateMode` allows for atomic file creation with specific Unix permissions, eliminating this TOCTOU window.
+**Prevention:** Use `FileStream` and `FileStreamOptions.UnixCreateMode` rather than `File.WriteAllText` + `Process.Start("chmod")` when creating executable scripts on Unix-like systems.
