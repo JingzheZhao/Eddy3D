@@ -107,7 +107,8 @@ namespace EddyLib.UI
                 Text = "--:--:--",
                 VerticalAlignment = VerticalAlignment.Center,
                 Font = fontMono,
-                TextColor = SystemColors.ControlText
+                TextColor = SystemColors.ControlText,
+                ToolTip = "Estimated time remaining"
             };
 
             ProgressPercent = new Label
@@ -120,7 +121,7 @@ namespace EddyLib.UI
             };
 
             stopwatch = Stopwatch.StartNew();
-            timer = new UITimer { Interval = 1.0 };
+            timer = new UITimer { Interval = refreshRate / 1000.0 };
             timer.Elapsed += (s, e) => { UpdateStatus(); };
             timer.Start();
 
@@ -146,7 +147,7 @@ namespace EddyLib.UI
                 ReadOnly = true,
                 Font = fontMono,
                 SpellCheck = false,
-                Wrap = false,
+                Wrap = true,
                 BackgroundColor = SystemColors.ControlBackground,
                 TextColor = SystemColors.ControlText,
                 ToolTip = "Simulation Log Output"
@@ -159,10 +160,16 @@ namespace EddyLib.UI
             AbortButton = cancel;
 
             var cts = new CancellationTokenSource();
-            var uiThread = SynchronizationContext.Current;
+            var uiContext = SynchronizationContext.Current;
 
             cancel.Click += (s, e) =>
             {
+                if (isFinished)
+                {
+                    Close();
+                    return;
+                }
+
                 if (MessageBox.Show(this, "Abort the simulation?", "Confirm", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.Yes)
                 {
                     Canceled = true;
@@ -177,13 +184,13 @@ namespace EddyLib.UI
                     Clipboard.Instance.Text = StatusLog.Text;
                     copyLog.Text = "Copied!";
                     Task.Delay(2000).ContinueWith(_ =>
-                        uiThread?.Post(_ => { copyLog.Text = "Copy Log"; }, null));
+                        uiContext?.Post(_ => { copyLog.Text = "Copy Log"; }, null));
                 }
                 catch
                 {
                     copyLog.Text = "Failed";
                     Task.Delay(2000).ContinueWith(_ =>
-                        uiThread?.Post(_ => { copyLog.Text = "Copy Log"; }, null));
+                        uiContext?.Post(_ => { copyLog.Text = "Copy Log"; }, null));
                 }
             };
 
@@ -247,23 +254,40 @@ namespace EddyLib.UI
 
             Content = layout;
 
-            // Redirect Console.Out through ProgressWriter, keeping the previous writer in chain
+            // Redirect Console.Out and Console.Error through ProgressWriter, keeping previous writers in chain
             var previousOut = Console.Out;
-            Console.SetOut(new ProgressWriter(this, SynchronizationContext.Current, previousOut));
+            var previousError = Console.Error;
+            Console.SetOut(new ProgressWriter(this, uiContext, previousOut));
+            Console.SetError(new ProgressWriter(this, uiContext, previousError));
 
             var run = task(cts);
 
             run.ContinueWith((r) =>
             {
                 isFinished = true;
+                timer.Stop();
+
                 if (r.IsFaulted && r.Exception != null)
                 {
                     var inner = r.Exception.Flatten().InnerException ?? r.Exception;
                     Console.Error.WriteLine($"Simulation failed: {inner.GetType().Name}: {inner.Message}");
                     if (inner.StackTrace != null) Console.Error.WriteLine(inner.StackTrace);
+
+                    if (uiContext != null) uiContext.Post(_ =>
+                    {
+                        Status.Text = "Simulation failed. See log for details.";
+                        Status.TextColor = Colors.Red;
+                        cancel.Text = "Close";
+                        cancel.ToolTip = "Close this dialog (Esc, Enter)";
+                    }, null);
                 }
+                else
+                {
+                    if (uiContext != null) uiContext.Post((object state) => { Close(); }, null);
+                }
+
                 Console.SetOut(previousOut);
-                if (uiThread != null) uiThread.Send((object state) => { Close(); }, null);
+                Console.SetError(previousError);
             });
         }
 
@@ -276,31 +300,31 @@ namespace EddyLib.UI
     public class ProgressWriter : TextWriter
     {
         private ProgressDialog dialog;
-        private SynchronizationContext context;
+        private SynchronizationContext uiContext;
         private TextWriter chained;
         public const string ProgressKey = "{%} ";
 
         public ProgressWriter(ProgressDialog prog_dialog, SynchronizationContext ui_context, TextWriter chained = null)
         {
             dialog = prog_dialog;
-            context = ui_context;
+            uiContext = ui_context;
             this.chained = chained;
         }
 
         public override void Write(string value)
         {
             chained?.Write(value);
-            if (context != null) context.Post((object state) =>
+            if (uiContext != null) uiContext.Post((object state) =>
             {
                 dialog.Status.Text = value;
-                dialog.StatusLog.Append(value + Environment.NewLine, true);
+                dialog.StatusLog.Append(value, true);
             }, null);
         }
 
         public override void WriteLine(string value)
         {
             chained?.WriteLine(value);
-            if (context != null) context.Post((object state) =>
+            if (uiContext != null) uiContext.Post((object state) =>
             {
                 if (value.StartsWith(ProgressKey))
                 {

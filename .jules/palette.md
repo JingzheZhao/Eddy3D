@@ -78,3 +78,11 @@
 ## 2025-08-01 - [Progress Dialog ETA and Non-blocking Updates]
 **Learning:** Progress dialogs are significantly more helpful when they provide an ETA (Estimated Time Remaining). Additionally, using `SynchronizationContext.Post` instead of `Send` for UI updates from a background thread prevents the simulation from stalling if the UI thread is busy. Surfacing keyboard shortcuts (like Esc/Enter) in tooltips also improves accessibility and discoverability.
 **Action:** When implementing `ProgressDialog` in Eto.Forms, include a `TimeRemaining` calculation based on elapsed time and current progress. Use `context.Post` for logging and status updates to ensure non-blocking behavior. Explicitly add shortcut hints to button tooltips.
+
+## 2026-03-24 - [Persist Progress Dialog on Failure]
+**Learning:** Automatically closing a progress dialog when a background task fails prevents users from reading error messages or copying logs, leading to a frustrating experience.
+**Action:** When a background task in a `ProgressDialog` faults, keep the dialog open, update the status to indicate failure (e.g., using `Colors.Red`), and change the "Cancel" button to "Close" to allow for log inspection.
+
+## 2026-03-24 - [Ensure full error visibility in Logs]
+**Learning:** Redirecting only `Console.Out` to a UI log misses critical error information sent to `Console.Error`.
+**Action:** Always redirect both `Console.Out` and `Console.Error` to the UI log writer in progress dialogs to ensure all simulation feedback is captured. Additionally, set `Wrap = true` on the log text area to handle long lines and stack traces without horizontal scrolling.
