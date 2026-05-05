@@ -570,12 +570,16 @@ namespace Eddy
                 var psi = new ProcessStartInfo
                 {
                     FileName = "git",
-                    Arguments = "-C \"" + repositoryRoot + "\" rev-parse HEAD",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
+
+                psi.ArgumentList.Add("-C");
+                psi.ArgumentList.Add(repositoryRoot);
+                psi.ArgumentList.Add("rev-parse");
+                psi.ArgumentList.Add("HEAD");
 
                 using (var process = Process.Start(psi))
                 {
