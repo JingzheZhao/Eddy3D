@@ -207,34 +207,22 @@ namespace EddyLib
                 Utilities.DownLoadFile("http://www.rforscience.com/wpmain/wp-content/uploads/2014/06/Koeppen-Geiger-ASCII.txt", filePathKoeppen);
             }
 
-            string[] txt = File.ReadAllLines(filePathKoeppen);
-
-            // Stupid formatting of this file creates 4 columns
-            int columnsCnt = 4;
-            var matrix = ArrayHelper.CreateJaggedMatrix(txt.Length, columnsCnt);
-
-            for (int i = 1; i < txt.Length; i++)
-            {
-                var line = System.Text.RegularExpressions.Regex.Split(txt[i], @"\s{1,}");
-                for (int c = 0; c < columnsCnt; c++)
-                {
-                    // Data is stored in column 1-3, column 0 is empty
-                    matrix[i][c] = line[c];
-                }
-            }
-
             string climateClass = "";
             double delta = 0.3;
 
-            // - 1 because of header line; -2 ??
-
-            for (int i = 1; i < txt.Length; i++)
+            // Bolt: Replaced O(N) memory allocation (File.ReadAllLines + jagged array)
+            // and slow Regex.Split with O(1) lazy iteration (File.ReadLines.Skip(1))
+            // and fast String.Split with early return to avoid evaluating the rest of the file once found.
+            foreach (var line in File.ReadLines(filePathKoeppen).Skip(1))
             {
-                // Data is stored in column 1-3, column 0 is empty
-                if (Math.Abs(longitude - Convert.ToDouble(matrix[i][1], CultureInfo.InvariantCulture)) < delta
-                    && Math.Abs(latitude - Convert.ToDouble(matrix[i][2], CultureInfo.InvariantCulture)) < delta)
+                var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 3) continue;
+
+                if (Math.Abs(longitude - double.Parse(parts[0], CultureInfo.InvariantCulture)) < delta &&
+                    Math.Abs(latitude - double.Parse(parts[1], CultureInfo.InvariantCulture)) < delta)
                 {
-                    climateClass = Convert.ToString(matrix[i][3], CultureInfo.InvariantCulture);
+                    climateClass = parts[2];
+                    break;
                 }
             }
 
