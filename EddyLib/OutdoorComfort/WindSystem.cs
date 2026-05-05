@@ -91,14 +91,25 @@ namespace EddyLib.OutdoorComfort
             var indices = new int[HoursPerYear];
             var directions = new int[HoursPerYear];
 
+            // Bolt optimization: Cache results for all 360 possible wind directions
+            // to avoid redundant FindClosestDirection calls during 8760 hour loop.
+            var cache = new (int Index, int Offset)[360];
+            var isCached = new bool[360];
+
             for (int h = 0; h < HoursPerYear; h++)
             {
                 int weatherDir = (int)weather.WindDirection[h];
 
-                // Normalize 360 to 0
-                if (weatherDir == 360) weatherDir = 0;
+                // Normalize direction to 0-359 range
+                int normalizedDir = ((weatherDir % 360) + 360) % 360;
 
-                var (closestIndex, offset) = FindClosestDirection(weatherDir, simulatedDirections);
+                if (!isCached[normalizedDir])
+                {
+                    cache[normalizedDir] = FindClosestDirection(normalizedDir, simulatedDirections);
+                    isCached[normalizedDir] = true;
+                }
+
+                var (closestIndex, offset) = cache[normalizedDir];
 
                 offsets[h] = offset;
                 indices[h] = closestIndex;
@@ -149,9 +160,10 @@ namespace EddyLib.OutdoorComfort
         /// </summary>
         private static int AngularDistance(int dir1, int dir2)
         {
-            var vec1 = Utilities.Dir2Vec(dir1);
-            var vec2 = Utilities.Dir2Vec(dir2);
-            return (int)Math.Abs(Math.Round(Utilities.AngleBetweenVectors(vec1, vec2)));
+            // Bolt optimization: Replace vector-based trig with modular arithmetic
+            // avoids expensive Math.Sin, Math.Cos, and Math.Atan2 calls and allocations.
+            int diff = Math.Abs(dir1 - dir2) % 360;
+            return diff > 180 ? 360 - diff : diff;
         }
 
         /// <summary>

@@ -5,3 +5,7 @@
 ## 2025-01-24 - Static Caching of Lookup Tables
 **Learning:** Initializing large lookup tables or range arrays within a method that is called frequently (e.g., inside a loop over 8,760 hours for thousands of sensors) causes massive unnecessary heap allocations and garbage collection pressure.
 **Action:** Move constant data, such as interpolation tables and range definitions, into `static readonly` class-level fields to ensure they are allocated only once.
+
+## 2026-03-11 - Fast Angular Distance and Lookup Caching
+**Learning:** Vector-based trigonometry for calculating angular distances between directions is expensive due to multiple transcendental function calls (Sin, Cos, Atan2) and object allocations. When processing 8,760 hours of data with limited discrete input values (e.g., integer degrees), a simple lookup table is significantly faster than repeated searches.
+**Action:** Use modular arithmetic for angular distance between circular values: `int diff = Math.Abs(dir1 - dir2) % 360; return diff > 180 ? 360 - diff : diff;`. For discrete inputs like wind directions (0-359), use a 360-element array cache to store results of expensive calculations or searches.
