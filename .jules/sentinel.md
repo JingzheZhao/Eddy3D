@@ -47,3 +47,8 @@
 **Vulnerability:** Command injection when invoking interactive shell components (like `wt.exe` or `cmd.exe /k`) via `Process.Start` using strings formatted with user-controlled parameters, or writing such parameters directly into a temporary `.bat` file for execution.
 **Learning:** Writing dynamically concatenated command strings into a temporary `.bat` file does NOT prevent command injection, as the Windows batch interpreter will evaluate shell metacharacters like `&` within the script.
 **Prevention:** To securely execute external commands, bypass batch scripts and `cmd.exe` string evaluation entirely by passing the target executable and its arguments individually using `ProcessStartInfo.ArgumentList` with `UseShellExecute = false`. This guarantees arguments are passed exactly to the target executable.
+
+## 2026-03-10 - Secure Model Download and Git Invocation
+**Vulnerability:** Command injection in `MLModelCMP.cs` and `InstallEngines_Component.cs` via unsanitized HuggingFace tokens or repository paths concatenated into `curl` and `git` command strings.
+**Learning:** Concatenating credentials or paths into command strings is insecure even with `UseShellExecute = false`. Attackers can use spaces or shell metacharacters to inject additional arguments or commands.
+**Prevention:** Use `ProcessStartInfo.ArgumentList` to ensure arguments are passed as discrete tokens. For sensitive data like tokens, pass them via appropriate flags (e.g., `-H` for headers) within the `ArgumentList` to ensure they are handled safely by the OS.

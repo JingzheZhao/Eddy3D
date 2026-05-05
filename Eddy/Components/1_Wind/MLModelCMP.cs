@@ -297,25 +297,40 @@ namespace Eddy
 
                 Message = $"{modelName} | Downloading";
 
-                string authArg = hasToken
-                    ? $"-H \"Authorization: Bearer {hfToken}\" "
-                    : "";
-
                 var psi = new ProcessStartInfo
                 {
                     FileName = curlPath,
-                    Arguments =
-                        "-L --fail --show-error --http1.1 --tlsv1.2 " +
-                        "--retry 3 --retry-delay 2 --connect-timeout 30 --max-time 0 " +
-                        "-A \"Grasshopper-SUSLAB-Model-Downloader\" " +
-                        authArg +
-                        $"\"{modelUrl}\" " +
-                        $"-o \"{tempPath}\"",
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true
                 };
+
+                psi.ArgumentList.Add("-L");
+                psi.ArgumentList.Add("--fail");
+                psi.ArgumentList.Add("--show-error");
+                psi.ArgumentList.Add("--http1.1");
+                psi.ArgumentList.Add("--tlsv1.2");
+                psi.ArgumentList.Add("--retry");
+                psi.ArgumentList.Add("3");
+                psi.ArgumentList.Add("--retry-delay");
+                psi.ArgumentList.Add("2");
+                psi.ArgumentList.Add("--connect-timeout");
+                psi.ArgumentList.Add("30");
+                psi.ArgumentList.Add("--max-time");
+                psi.ArgumentList.Add("0");
+                psi.ArgumentList.Add("-A");
+                psi.ArgumentList.Add("Grasshopper-SUSLAB-Model-Downloader");
+
+                if (hasToken)
+                {
+                    psi.ArgumentList.Add("-H");
+                    psi.ArgumentList.Add($"Authorization: Bearer {hfToken}");
+                }
+
+                psi.ArgumentList.Add(modelUrl);
+                psi.ArgumentList.Add("-o");
+                psi.ArgumentList.Add(tempPath);
 
                 using (var process = new Process { StartInfo = psi })
                 {
@@ -440,19 +455,33 @@ namespace Eddy
             var psi = new ProcessStartInfo
             {
                 FileName = curlPath,
-                Arguments =
-                    "-sS -L --http1.1 --tlsv1.2 " +
-                    "--retry 2 --retry-delay 2 --connect-timeout 20 --max-time 60 " +
-                    "-A \"Grasshopper-SUSLAB-Token-Validator\" " +
-                    $"-H \"Authorization: Bearer {token}\" " +
-                    $"\"{apiUrl}\" " +
-                    $"-o \"{tempFile}\" " +
-                    "-w \"%{http_code}\"",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
+
+            psi.ArgumentList.Add("-sS");
+            psi.ArgumentList.Add("-L");
+            psi.ArgumentList.Add("--http1.1");
+            psi.ArgumentList.Add("--tlsv1.2");
+            psi.ArgumentList.Add("--retry");
+            psi.ArgumentList.Add("2");
+            psi.ArgumentList.Add("--retry-delay");
+            psi.ArgumentList.Add("2");
+            psi.ArgumentList.Add("--connect-timeout");
+            psi.ArgumentList.Add("20");
+            psi.ArgumentList.Add("--max-time");
+            psi.ArgumentList.Add("60");
+            psi.ArgumentList.Add("-A");
+            psi.ArgumentList.Add("Grasshopper-SUSLAB-Token-Validator");
+            psi.ArgumentList.Add("-H");
+            psi.ArgumentList.Add($"Authorization: Bearer {token}");
+            psi.ArgumentList.Add(apiUrl);
+            psi.ArgumentList.Add("-o");
+            psi.ArgumentList.Add(tempFile);
+            psi.ArgumentList.Add("-w");
+            psi.ArgumentList.Add("%{http_code}");
 
             using (var proc = new Process { StartInfo = psi })
             {
