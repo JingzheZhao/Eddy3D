@@ -64,6 +64,10 @@
 **Learning:** Eto.Forms `Label` components do not wrap text by default. In progress dialogs, where status messages can contain very long file paths or detailed error messages, this causes the text to be truncated or push the dialog bounds out of screen, rendering it inaccessible and hard to read.
 **Action:** When initializing `Label` components in Eto.Forms intended for dynamic or potentially lengthy text updates (like logs or status readouts), explicitly set `Wrap = WrapMode.Word` to ensure the text remains readable within the container limits.
 
+## 2026-03-31 - [Interactive Hover Feedback for Custom Grasshopper Attributes]
+**Learning:** Custom interactive regions in Grasshopper `GH_ComponentAttributes` (like dropdown buttons or custom controls) feel unresponsive if they don't provide visual hover feedback. Implementing `RespondToMouseMove` to change the cursor to `GH_Hand` significantly improves the perceived quality of the UI.
+**Action:** For all custom `GH_ComponentAttributes` with interactive bounds, override `RespondToMouseMove` and use the cached reflection pattern to call `AttachCursor(sender, "GH_Hand")`.
+
 ## 2026-03-30 - [Provide Call-to-Actions in Component Empty States]
 **Learning:** Empty states on Grasshopper canvas drawings that simply state "No data" or describe a missing state (e.g., "Idle", "Missing result") leave users guessing what to do next.
 **Action:** When designing empty states for custom canvas drawings, always supplement the status description with a clear, actionable instruction (e.g., "Enable 'Live' toggle to monitor" or "Connect a valid simulation result"). This improves the clarity of error messages and provides a helpful call-to-action.
