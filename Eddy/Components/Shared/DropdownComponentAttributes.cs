@@ -39,6 +39,9 @@ namespace Eddy
         private readonly DropdownDef[] _defs;
         private readonly System.Collections.Generic.Dictionary<int, RectangleF> _btnBounds = new();
 
+        private static System.Reflection.MethodInfo _attachCursorMethod;
+        private static bool _attachCursorMethodSearched = false;
+
         public DropdownComponentAttributes(GH_Component owner, DropdownDef[] dropdowns) : base(owner)
         {
             _defs = dropdowns;
@@ -103,6 +106,35 @@ namespace Eddy
             graphics.SmoothingMode = prevSmoothing;
         }
 
+        public override GH_ObjectResponse RespondToMouseMove(GH_Canvas sender, GH_CanvasMouseEvent e)
+        {
+            foreach (var def in _defs)
+            {
+                if (!_btnBounds.TryGetValue(def.ParamIndex, out var r)) continue;
+                var param = Owner.Params.Input[def.ParamIndex];
+                if (param.SourceCount > 0) continue;
+
+                // We expand the click target slightly for ease of use
+                var clickRect = new RectangleF(r.X - 2f, r.Y - 2f, r.Width + 4f, r.Height + 4f);
+                if (clickRect.Contains(e.CanvasLocation))
+                {
+                    if (!_attachCursorMethodSearched)
+                    {
+                        var cursorServerType = Grasshopper.Instances.CursorServer.GetType();
+                        _attachCursorMethod = cursorServerType.GetMethod("AttachCursor", new[] { typeof(object), typeof(string) });
+                        _attachCursorMethodSearched = true;
+                    }
+
+                    if (_attachCursorMethod != null)
+                    {
+                        _attachCursorMethod.Invoke(Grasshopper.Instances.CursorServer, new object[] { sender, "GH_Hand" });
+                        return GH_ObjectResponse.Handled;
+                    }
+                }
+            }
+            return base.RespondToMouseMove(sender, e);
+        }
+
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
             if (e.Button == MouseButtons.Left)
@@ -110,11 +142,11 @@ namespace Eddy
                 foreach (var def in _defs)
                 {
                     if (!_btnBounds.TryGetValue(def.ParamIndex, out var r)) continue;
-                    
+
                     // We expand the click target slightly for ease of use
                     var clickRect = new RectangleF(r.X - 2f, r.Y - 2f, r.Width + 4f, r.Height + 4f);
                     if (!clickRect.Contains(e.CanvasLocation)) continue;
-                    
+
                     var param = Owner.Params.Input[def.ParamIndex];
                     if (param.SourceCount > 0) continue;
 
