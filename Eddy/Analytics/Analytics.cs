@@ -577,7 +577,7 @@ namespace Eddy.Analytics
             {
                 try
                 {
-                    string model = RunShellCommand("sysctl", "-n hw.model");
+                    string model = RunShellCommand("sysctl", "-n", "hw.model");
                     if (!string.IsNullOrWhiteSpace(model) &&
                         model.StartsWith("MacBook", StringComparison.OrdinalIgnoreCase))
                         return "laptop";
@@ -716,18 +716,24 @@ namespace Eddy.Analytics
         /// <summary>
         /// Runs a shell command and returns trimmed stdout. Timeout: 3 seconds.
         /// </summary>
-        private static string RunShellCommand(string command, string args)
+        private static string RunShellCommand(string command, params string[] arguments)
         {
+            var psi = new ProcessStartInfo
+            {
+                FileName = command,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            foreach (var arg in arguments)
+            {
+                psi.ArgumentList.Add(arg);
+            }
+
             using var process = new Process
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = command,
-                    Arguments = args,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
+                StartInfo = psi
             };
             process.Start();
             string output = process.StandardOutput.ReadToEnd();

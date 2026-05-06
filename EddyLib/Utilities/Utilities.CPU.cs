@@ -66,7 +66,10 @@ namespace EddyLib
         {
             string psOut = RunProcessForOutput(
                 "powershell",
-                "-NoProfile -NonInteractive -Command \"(Get-CimInstance Win32_Processor | Measure-Object -Property NumberOfCores -Sum).Sum\"");
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                "(Get-CimInstance Win32_Processor | Measure-Object -Property NumberOfCores -Sum).Sum");
 
             if (TryParsePositiveInt(psOut, out int coresFromPowerShell))
             {
@@ -74,7 +77,7 @@ namespace EddyLib
             }
 
             // Fallback for older hosts where PowerShell CIM may fail.
-            string wmicOut = RunProcessForOutput("wmic", "cpu get NumberOfCores");
+            string wmicOut = RunProcessForOutput("wmic", "cpu", "get", "NumberOfCores");
             var matches = Regex.Matches(wmicOut ?? string.Empty, @"\d+");
             int sum = 0;
             foreach (Match match in matches)
@@ -90,7 +93,7 @@ namespace EddyLib
 
         private static int DetectMacPhysicalCores()
         {
-            string output = RunProcessForOutput("sysctl", "-n hw.physicalcpu");
+            string output = RunProcessForOutput("sysctl", "-n", "hw.physicalcpu");
             if (TryParsePositiveInt(output, out int cores))
             {
                 return cores;
@@ -122,19 +125,23 @@ namespace EddyLib
             return uniqueCoreSocketPairs.Count;
         }
 
-        private static string RunProcessForOutput(string fileName, string arguments)
+        private static string RunProcessForOutput(string fileName, params string[] arguments)
         {
             try
             {
                 var psi = new ProcessStartInfo
                 {
                     FileName = fileName,
-                    Arguments = arguments,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true
                 };
+
+                foreach (var arg in arguments)
+                {
+                    psi.ArgumentList.Add(arg);
+                }
 
                 using (var process = Process.Start(psi))
                 {
