@@ -16,3 +16,7 @@
 ## 2024-05-07 - Reflection Optimization in Loops
 **Learning:** In C#, using reflection (`GetType().GetProperty()`) inside a loop over a homogeneous collection introduces unnecessary overhead and garbage collection pressure because the `PropertyInfo` object remains identical across iterations.
 **Action:** Always hoist `PropertyInfo` retrieval out of the loop and cache it for subsequent iterations when the object types are consistent, significantly improving execution speed.
+
+## 2024-05-26 - Outer Loop Parallelization and False Sharing
+**Learning:** Parallelizing the inner loop of a nested O(Hours * Sensors) simulation with trivial per-iteration work causes excessive task scheduling overhead and can lead to false sharing when multiple threads write to adjacent memory in the same row.
+**Action:** Parallelize the outer (temporal) loop instead of the inner (spatial) loop. This improves cache locality, allows hoisting temporal-invariant calculations (like solar projection factors), and ensures each thread writes to its own distinct row, eliminating false sharing.

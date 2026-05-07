@@ -18,17 +18,38 @@ namespace EddyLib.Radiation
                 Values[h] = new float[numberOfSensors];
             }
 
-            System.Threading.Tasks.Parallel.For(0, numberOfSensors, p =>
+            // Bolt optimization: Parallelize the outer loop (hours) and keep the inner loop (sensors) sequential.
+            // This avoids the overhead of managing tasks for trivial inner loop work and prevents false sharing
+            // by ensuring each thread writes to its own set of memory (the entire 'h' row).
+            // Hoisting hour-invariant calculations (solar elevation, projection factor) out of the inner loop
+            // significantly reduces redundant trigonometric and mathematical calls.
+            System.Threading.Tasks.Parallel.For(0, numberOfHours, h =>
             {
-                for (int h = 0; h < numberOfHours; h++)
+                double solarElevation = weather.SolarElevation[h];
+                double rad = Utilities.Deg2Rad(solarElevation);
+                double fp = Get_fp_cylinder(rad);
+
+                // Precalculate coefficients for the ERF calculation to minimize operations in the inner loop
+                // dMRT = (Idiff + (fp / feff) * Idir) * (sw_abs / (lw_abs * hr))
+                const double feff = 0.725; // for Posture.standing
+                const double hr = 6.0;
+                const double lw_abs = 0.95;
+                const double sw_abs = 0.7; // default asa
+
+                double K = sw_abs / (lw_abs * hr);
+                double kDir = (fp / feff) * K;
+                double kDiff = K;
+
+                float[] sensorValues = Values[h];
+                float[] hTotalRad = totalRad[h];
+                float[] hDirectRad = directRad[h];
+
+                for (int p = 0; p < numberOfSensors; p++)
                 {
-                    double dMRT;
-                    double diffRad = totalRad[h][p] - directRad[h][p];
-                    double dirRad = directRad[h][p];
+                    double diffRad = (double)hTotalRad[p] - hDirectRad[p];
+                    double dirRad = (double)hDirectRad[p];
 
-                    dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], SolarGain.Posture.standing, dirRad, diffRad);
-
-                    Values[h][p] = (float)dMRT;
+                    sensorValues[p] = (float)(diffRad * kDiff + dirRad * kDir);
                 }
             });
 
@@ -43,13 +64,21 @@ namespace EddyLib.Radiation
 
             for (int h = 0; h < numberOfHours; h++)
             {
-                double dMRT;
-                double diffRad = totalRad[h] - directRad[h];
-                double dirRad = directRad[h];
+                double solarElevation = weather.SolarElevation[h];
+                double rad = Utilities.Deg2Rad(solarElevation);
+                double fp = Get_fp_cylinder(rad);
 
-                dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], SolarGain.Posture.standing, dirRad, diffRad);
+                double diffRad = (double)totalRad[h] - directRad[h];
+                double dirRad = (double)directRad[h];
 
-                Values[h] = (float)dMRT;
+                // Bolt optimization: Use direct formula to avoid method call overhead and redundant checks
+                const double feff = 0.725;
+                const double hr = 6.0;
+                const double lw_abs = 0.95;
+                const double sw_abs = 0.7;
+
+                double K = sw_abs / (lw_abs * hr);
+                Values[h] = (float)((diffRad + (fp / feff) * dirRad) * K);
             }
 
             return Values;
@@ -152,59 +181,18 @@ namespace EddyLib.Radiation
 
         public static double ERF_Modified(double alt, Posture posture, double Idir, double Idiff, double asa = 0.7)
         {
-            //  ERF function to estimate the impact of solar radiation on occupant comfort
-            //  INPUTS:
-            //  alt : altitude of sun in degrees [0, 90]
-            //  az : azimuth of sun in degrees [0, 180]
-            //  posture: posture of occupant ('seated', 'standing', or 'supine')
-            //  Idir : direct beam intensity (normal)
-            //  tsol: total solar transmittance (SC * 0.87)
-            //  fsvv : sky vault view fraction : fraction of sky vault in occupant's view [0, 1]
-            //  fbes : fraction body exposed to sun [0, 1] // Patrick: In our case 1 since we have no windows
-            //  asa : avg shortwave abs : average shortwave absorptivity of body [0, 1]
-            //  tsol_factor : (optional) correction to tsol based on angle of incidence
-
-            //var DEG_TO_RAD = 0.0174532925;
-            var hr = 6;
-
-            //var Idiff = 0.2 * Idir;
-            //double fsvv = 1; never used
-
-            // Floor reflectance
-            // var Rfloor = 0.6;
+            // Bolt optimization: simplified formula to reduce operations.
+            // dMRT = (Idiff + (fp / feff) * Idir) * (asa / (lw_abs * hr))
 
             var rad = Utilities.Deg2Rad(alt);
-
             var fp = Get_fp_cylinder(rad);
 
-            double feff;
-            if (posture == Posture.standing || posture == Posture.supine)
-            {
-                feff = 0.725;
-            }
-            else
-            {
-                feff = 0.696;
-            }
+            double feff = (posture == Posture.standing || posture == Posture.supine) ? 0.725 : 0.696;
 
-            var sw_abs = asa;
-            var lw_abs = 0.95;
+            const double hr = 6.0;
+            const double lw_abs = 0.95;
 
-            // We take Idiff directly from the simulation
-
-            var E_diff = feff * Idiff;
-
-            //var E_diff = feff * Idiff;
-
-            var E_direct = fp * Idir;
-
-            //var E_refl = feff * fsvv * 0.5 * tsol * (Idir * Math.Sin(alt * DEG_TO_RAD) + Idiff) * Rfloor;
-
-            var E_solar = E_diff + E_direct; // + E_refl;
-            var ERF = E_solar * (sw_abs / lw_abs);
-            var dMRT = ERF / (hr * feff);
-
-            return dMRT;
+            return (Idiff + (fp / feff) * Idir) * (asa / (lw_abs * hr));
         }
 
         public static void ERF(double alt, double az, Posture posture, double Idir, double tsol, double fsvv, double fbes, double asa, out double ERF, out double dMRT, double tsol_factor = 1.0)
@@ -250,22 +238,6 @@ namespace EddyLib.Radiation
             var E_solar = E_diff + E_direct + E_refl;
             ERF = E_solar * (sw_abs / lw_abs);
             dMRT = ERF / (hr * feff);
-        }
-
-        private static int Find_span(int[] arr, double x)
-        {
-            // for ordered array arr and value x, find the left index
-            // of the closed interval that the value falls in.
-
-            for (var i = 0; i < arr.Length - 1; i++)
-            {
-                if (x <= arr[i + 1] && x >= arr[i])
-                {
-                    return i;
-                }
-            }
-
-            return -1;
         }
 
         private static double Get_fp_cylinder(double theta, double r = 0.3, double h = 1.75)
@@ -329,8 +301,11 @@ namespace EddyLib.Radiation
             }
 
             double fp;
-            var alt_i = Find_span(AltRange, alt);
-            var az_i = Find_span(AzRange, az);
+            // Bolt optimization: Replace O(N) Find_span with O(1) index calculation.
+            // AltRange and AzRange use uniform 15-degree steps.
+            // Using array lookups (e.g., AltRange[alt_i]) instead of hardcoded math ensures robustness.
+            var alt_i = Math.Min((int)(alt / 15), AltRange.Length - 2);
+            var az_i = Math.Min((int)(az / 15), AzRange.Length - 2);
 
             var fp11 = fp_table[az_i][alt_i];
             var fp12 = fp_table[az_i][alt_i + 1];
@@ -351,5 +326,6 @@ namespace EddyLib.Radiation
 
             return fp;
         }
+
     }
 }
