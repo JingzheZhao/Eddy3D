@@ -600,9 +600,10 @@ namespace Eddy.Analytics
                     {
                         var getMethod = managementType.GetMethod("Get", Type.EmptyTypes);
                         var results = (System.Collections.IEnumerable)getMethod.Invoke(searcher, null);
+                        System.Reflection.PropertyInfo indexer = null;
                         foreach (var item in results)
                         {
-                            var indexer = item.GetType().GetProperty("Item", new[] { typeof(string) });
+                            if (indexer == null) indexer = item.GetType().GetProperty("Item", new[] { typeof(string) });
                             var val = indexer?.GetValue(item, new object[] { "PCSystemType" });
                             if (val == null) continue;
                             int type = Convert.ToInt32(val);
