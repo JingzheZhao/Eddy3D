@@ -372,6 +372,25 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                     Analytics.Analytics.GetAnalyticsEngine(_selectedEngine));
             }
 
+            bool hasExistingIterations = false;
+            if (runSimulation && !runMeshing && canRun)
+            {
+                foreach (var windDir in DOM.BCond.WindDirections)
+                {
+                    var caseDir = Path.Combine(baseWorkingDirectory, windDir.ToString());
+                    if (OpenFOAMHelpers.HasIterationFolders(caseDir))
+                    {
+                        hasExistingIterations = true;
+                        break;
+                    }
+                }
+                if (hasExistingIterations)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                        "Existing iteration results found. Continuing simulation from the last time step.");
+                }
+            }
+
             if (_selectedEngine == SimEngine.Docker)
             {
                 // Docker: launch scripts (.command on macOS, .bat on Windows)
@@ -396,7 +415,8 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 else if (runMeshing == false && runSimulation == true && canRun)
                 {
                     Utilities.DeletePhi(MeshSettings, DOM);
-                    OpenCommandFile(Path.Combine(scriptsDir, "run_sim_all" + dockerScriptExt));
+                    string simScript = hasExistingIterations ? "run_sim_continue_all" : "run_sim_all";
+                    OpenCommandFile(Path.Combine(scriptsDir, simScript + dockerScriptExt));
                 }
             }
             else
@@ -420,7 +440,8 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 else if (runMeshing == false && runSimulation == true && canRun)
                 {
                     Utilities.DeletePhi(MeshSettings, DOM);
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", "run_sim_all.bat"), taskComplete);
+                    string simBat = hasExistingIterations ? "run_sim_continue_all.bat" : "run_sim_all.bat";
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", simBat), taskComplete);
                 }
             }
 
