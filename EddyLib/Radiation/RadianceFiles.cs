@@ -35,14 +35,8 @@ namespace EddyLib
                     //    Array.ForEach(Directory.GetFiles(targetPath, "*.wea"), delegate (string path) { File.Delete(path); });
                     //}
 
-                    string arguments = "\"" + Path.GetFullPath(weatherFilePath) + "\" \"" +
-                                       Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea")) + "\"";
-
-                    Debug.WriteLine(arguments);
-
                     ProcessStartInfo processInfo = new ProcessStartInfo
                     {
-                        Arguments = arguments,
                         FileName = DefaultDirectoriesAndPaths.ResolveExePath(DefaultDirectoriesAndPaths.RadianceBinDir, "epw2wea"),
                         WorkingDirectory = DefaultDirectoriesAndPaths.RadianceBinDir,
                         UseShellExecute = false,
@@ -50,6 +44,9 @@ namespace EddyLib
                         RedirectStandardError = true,
                         CreateNoWindow = true
                     };
+
+                    processInfo.ArgumentList.Add(Path.GetFullPath(weatherFilePath));
+                    processInfo.ArgumentList.Add(Path.GetFullPath(Path.Combine(targetPath, epwdatname + @".wea")));
 
                     Process p = new Process
                     {
