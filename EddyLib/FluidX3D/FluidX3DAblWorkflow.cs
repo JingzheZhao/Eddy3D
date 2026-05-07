@@ -130,9 +130,19 @@ namespace EddyLib.FluidX3D
             string commandScriptPath = Path.Combine(scriptsDirectory, "run_fluidx3d.command");
             string batchScriptPath = Path.Combine(scriptsDirectory, "run_fluidx3d.bat");
             string windowsPlatformToolset = ResolveWindowsPlatformToolsetOverride(caseRoot);
-            File.WriteAllText(commandScriptPath, BuildMacLaunchScript(caseRoot, caseExportDirectory));
+            var options = new FileStreamOptions { Mode = FileMode.Create, Access = FileAccess.Write };
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+#pragma warning disable CA1416
+                options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute;
+#pragma warning restore CA1416
+            }
+            using (var fs = new FileStream(commandScriptPath, options))
+            using (var sw = new StreamWriter(fs))
+            {
+                sw.Write(BuildMacLaunchScript(caseRoot, caseExportDirectory));
+            }
             File.WriteAllText(batchScriptPath, BuildWindowsLaunchScript(caseRoot, caseExportDirectory, windowsPlatformToolset));
-            MakeExecutable(commandScriptPath);
 
             string readmePath = Path.Combine(workingRoot, "FluidX3D_Eddy_Readme.txt");
             File.WriteAllText(readmePath, BuildReadme(settings));
@@ -1390,35 +1400,6 @@ exit /b 0
             }
 
             return text + "f";
-        }
-
-        private static void MakeExecutable(string path)
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return;
-            }
-
-            try
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "/bin/chmod",
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                psi.ArgumentList.Add("+x");
-                psi.ArgumentList.Add(path);
-
-                using (Process process = Process.Start(psi))
-                {
-                    process?.WaitForExit();
-                }
-            }
-            catch
-            {
-                // If chmod fails, users can still run the script manually.
-            }
         }
 
         private static string RunProcess(string fileName, string workingDirectory, params string[] args)
