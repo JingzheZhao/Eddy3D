@@ -41,7 +41,7 @@ namespace EddyLib.UI
         private void UpdateStatus()
         {
             var elapsed = stopwatch.Elapsed;
-            TimeElapsed.Text = elapsed.ToString(@"hh\:mm\:ss");
+            TimeElapsed.Text = FormatTime(elapsed);
 
             string etaStr = "--:--:--";
             if (_progress > 0.001f && _progress < 1f)
@@ -49,7 +49,7 @@ namespace EddyLib.UI
                 double totalMs = elapsed.TotalMilliseconds / _progress;
                 double remainingMs = totalMs - elapsed.TotalMilliseconds;
                 var remaining = TimeSpan.FromMilliseconds(remainingMs);
-                etaStr = remaining.ToString(@"hh\:mm\:ss");
+                etaStr = FormatTime(remaining);
             }
             else if (_progress >= 1f)
             {
@@ -59,6 +59,11 @@ namespace EddyLib.UI
 
             string percent = FormatPercent(_progress).Trim();
             Title = $"{_baseTitle} - {percent} (ETA: {etaStr})";
+        }
+
+        private static string FormatTime(TimeSpan t)
+        {
+            return $"{(int)t.TotalHours:D2}:{t.Minutes:D2}:{t.Seconds:D2}";
         }
 
         public ProgressDialog(Func<CancellationTokenSource, Task> task, string title = "Simulation", double refreshRate = 1000)
@@ -127,11 +132,13 @@ namespace EddyLib.UI
 
             pbar = new Eto.Forms.ProgressBar { MaxValue = 100, Value = 0, Height = 14, ToolTip = "Simulation Progress" };
 
+            var secondaryColor = new Color(SystemColors.ControlText, 0.5f);
+
             var progressLabel = new Label
             {
                 Text = "PROGRESS",
                 Font = fontCaption,
-                TextColor = Color.FromArgb(128, 128, 128),
+                TextColor = secondaryColor,
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
@@ -139,7 +146,7 @@ namespace EddyLib.UI
             {
                 Text = "SIMULATION LOG",
                 Font = fontCaption,
-                TextColor = Color.FromArgb(128, 128, 128),
+                TextColor = secondaryColor,
             };
 
             StatusLog = new TextArea
@@ -231,10 +238,10 @@ namespace EddyLib.UI
             var statsRow = new DynamicLayout { Spacing = new Size(8, 0) };
             statsRow.BeginHorizontal();
             statsRow.Add(null, true, false);
-            statsRow.Add(new Label { Text = "Elapsed:", Font = SystemFonts.Label(11), TextColor = Color.FromArgb(128, 128, 128) }, false, false);
+            statsRow.Add(new Label { Text = "Elapsed:", Font = SystemFonts.Label(11), TextColor = secondaryColor }, false, false);
             statsRow.Add(TimeElapsed, false, false);
             statsRow.Add(new Drawable { Width = 12 }, false, false); // Spacer
-            statsRow.Add(new Label { Text = "Remaining:", Font = SystemFonts.Label(11), TextColor = Color.FromArgb(128, 128, 128) }, false, false);
+            statsRow.Add(new Label { Text = "Remaining:", Font = SystemFonts.Label(11), TextColor = secondaryColor }, false, false);
             statsRow.Add(TimeRemaining, false, false);
             statsRow.EndHorizontal();
             layout.Add(statsRow, true, false);
@@ -279,6 +286,7 @@ namespace EddyLib.UI
                         Status.TextColor = Colors.Red;
                         cancel.Text = "Close";
                         cancel.ToolTip = "Close this dialog (Esc, Enter)";
+                        DefaultButton = cancel;
                     }, null);
                 }
                 else
