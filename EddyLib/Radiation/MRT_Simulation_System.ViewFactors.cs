@@ -87,21 +87,27 @@ namespace EddyLib.Radiation
             // ⚡ Bolt: Additionally, perform .Distinct() on the Enum type BEFORE calling .ToString() to prevent redundant string allocations per element.
             UniqueSurfaceTypesInModel = Polys.Select(s => s.Type).Distinct().Select(t => t.ToString()).ToList();
 
-            // set up dictionary
-            for (int i = 0; i < Probes.Count; i++)
+            // ⚡ Bolt: Precompute Polygon Type mapping to an array to avoid O(Probes.Count * Polys.Count)
+            // string allocations and Dictionary hash lookups in the hot loop.
+            int[] polyTypeIndices = new int[Polys.Count];
+            for (int j = 0; j < Polys.Count; j++)
             {
-                Probes[i].VFtoMaterial = new Dictionary<string, double>();
-                for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
-                {
-                    Probes[i].VFtoMaterial.Add(UniqueSurfaceTypesInModel[j], 0);
-                }
+                polyTypeIndices[j] = UniqueSurfaceTypesInModel.IndexOf(Polys[j].Type.ToString());
             }
 
             for (int i = 0; i < Probes.Count; i++)
             {
+                Probes[i].VFtoMaterial = new Dictionary<string, double>(UniqueSurfaceTypesInModel.Count);
+
+                double[] tempMaterialVF = new double[UniqueSurfaceTypesInModel.Count];
                 for (int j = 0; j < Polys.Count; j++)
                 {
-                    Probes[i].VFtoMaterial[Polys[j].Type.ToString()] += Probes[i].VFtoPolys[j];
+                    tempMaterialVF[polyTypeIndices[j]] += Probes[i].VFtoPolys[j];
+                }
+
+                for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
+                {
+                    Probes[i].VFtoMaterial.Add(UniqueSurfaceTypesInModel[j], tempMaterialVF[j]);
                 }
             }
 

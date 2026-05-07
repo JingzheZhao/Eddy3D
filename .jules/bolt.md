@@ -9,3 +9,7 @@
 ## 2026-03-11 - Fast Angular Distance and Lookup Caching
 **Learning:** Vector-based trigonometry for calculating angular distances between directions is expensive due to multiple transcendental function calls (Sin, Cos, Atan2) and object allocations. When processing 8,760 hours of data with limited discrete input values (e.g., integer degrees), a simple lookup table is significantly faster than repeated searches.
 **Action:** Use modular arithmetic for angular distance between circular values: `int diff = Math.Abs(dir1 - dir2) % 360; return diff > 180 ? 360 - diff : diff;`. For discrete inputs like wind directions (0-359), use a 360-element array cache to store results of expensive calculations or searches.
+
+## 2024-05-25 - Avoid O(N*M) Dictionary Hash Lookups and Enum.ToString() String Allocations
+**Learning:** Using `Enum.ToString()` and string dictionaries inside nested O(N*M) loops creates massive redundant string allocations and lookup overhead, causing extreme garbage collection pressure.
+**Action:** Replace `Enum.ToString()` dictionary logic inside hot loops with an upfront mapping logic that indexes into simple arrays.
