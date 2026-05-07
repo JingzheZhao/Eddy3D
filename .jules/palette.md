@@ -90,3 +90,11 @@
 ## 2026-03-24 - [Ensure full error visibility in Logs]
 **Learning:** Redirecting only `Console.Out` to a UI log misses critical error information sent to `Console.Error`.
 **Action:** Always redirect both `Console.Out` and `Console.Error` to the UI log writer in progress dialogs to ensure all simulation feedback is captured. Additionally, set `Wrap = true` on the log text area to handle long lines and stack traces without horizontal scrolling.
+
+## 2026-03-31 - [Support Long-Running Durations in UI]
+**Learning:** Standard `TimeSpan` formatting (e.g., `hh\:mm\:ss`) wraps back to zero after 24 hours, which can mislead users during long-running simulations.
+**Action:** Use `TotalHours` (e.g., `$"{(int)t.TotalHours:D2}:{t.Minutes:D2}:{t.Seconds:D2}"`) when formatting durations for technical UI components to ensure accurate time tracking beyond a single day.
+
+## 2026-03-31 - [Theme-Aware Color De-emphasis]
+**Learning:** Hardcoding hex or RGB values for de-emphasized text (like "Elapsed:" labels) can lead to poor contrast in different system themes (Light vs Dark).
+**Action:** Use `SystemColors.ControlText` with a specific opacity (e.g., `new Color(SystemColors.ControlText, 0.5f)`) to create theme-aware secondary text colors that maintain appropriate contrast automatically.
