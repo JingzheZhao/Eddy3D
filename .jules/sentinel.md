@@ -52,3 +52,8 @@
 **Vulnerability:** Command injection in `MLModelCMP.cs` and `InstallEngines_Component.cs` via unsanitized HuggingFace tokens or repository paths concatenated into `curl` and `git` command strings.
 **Learning:** Concatenating credentials or paths into command strings is insecure even with `UseShellExecute = false`. Attackers can use spaces or shell metacharacters to inject additional arguments or commands.
 **Prevention:** Use `ProcessStartInfo.ArgumentList` to ensure arguments are passed as discrete tokens. For sensitive data like tokens, pass them via appropriate flags (e.g., `-H` for headers) within the `ArgumentList` to ensure they are handled safely by the OS.
+
+## 2024-05-25 - Atomic File Creation with Permissions
+**Vulnerability:** TOCTOU vulnerability due to creating scripts with default permissions via `File.WriteAllText` followed by executing an external `/bin/chmod +x` process.
+**Learning:** Creating files and subsequently modifying their permissions is not atomic. In multi-tenant environments or systems running background indexing processes, an attacker could interact with the file in between the time it is written and the permissions are set, potentially leading to unauthorized access, tampering, or execution of unexpected contents. Additionally, relying on `Process.Start` to shell out commands like `chmod` introduces dependencies on the environment's `PATH` and command availability.
+**Prevention:** In .NET 8, use `FileStreamOptions.UnixCreateMode` to specify Unix file permissions exactly when the file is created atomically. Ensure use of `FileStream` instead of `File.WriteAllText` and suppress platform compatibility warnings (`CA1416`) safely via conditional platform checks like `RuntimeInformation.IsOSPlatform(OSPlatform.Windows)`.

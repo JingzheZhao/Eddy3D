@@ -228,30 +228,18 @@ echo ""----------------------------------------""
             AppendMacTerminalCompletion(scriptBuilder);
             scriptContent = scriptBuilder.ToString();
 
-            File.WriteAllText(scriptPath, scriptContent);
-
-            // Make executable on Unix
+            var options = new FileStreamOptions { Mode = FileMode.Create, Access = FileAccess.Write };
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                try
-                {
-                    var chmodPsi = new ProcessStartInfo
-                    {
-                        FileName = "/bin/chmod",
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    };
-                    chmodPsi.ArgumentList.Add("+x");
-                    chmodPsi.ArgumentList.Add(scriptPath);
-                    using (var p = Process.Start(chmodPsi))
-                    {
-                        p?.WaitForExit();
-                    }
-                }
-                catch
-                {
-                    // Ignore chmod errors
-                }
+#pragma warning disable CA1416
+                options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute;
+#pragma warning restore CA1416
+            }
+
+            using (var fs = new FileStream(scriptPath, options))
+            using (var sw = new StreamWriter(fs))
+            {
+                sw.Write(scriptContent);
             }
         }
 
