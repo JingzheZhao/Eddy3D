@@ -13,3 +13,7 @@
 ## 2024-05-25 - Avoid O(N*M) Dictionary Hash Lookups and Enum.ToString() String Allocations
 **Learning:** Using `Enum.ToString()` and string dictionaries inside nested O(N*M) loops creates massive redundant string allocations and lookup overhead, causing extreme garbage collection pressure.
 **Action:** Replace `Enum.ToString()` dictionary logic inside hot loops with an upfront mapping logic that indexes into simple arrays.
+
+## 2024-05-26 - Outer Loop Parallelization and False Sharing
+**Learning:** Parallelizing the inner loop of a nested O(Hours * Sensors) simulation with trivial per-iteration work causes excessive task scheduling overhead and can lead to false sharing when multiple threads write to adjacent memory in the same row.
+**Action:** Parallelize the outer (temporal) loop instead of the inner (spatial) loop. This improves cache locality, allows hoisting temporal-invariant calculations (like solar projection factors), and ensures each thread writes to its own distinct row, eliminating false sharing.
