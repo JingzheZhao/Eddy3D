@@ -202,7 +202,7 @@ namespace Eddy
                 ? "https://github.com/NREL/EnergyPlus/releases/download/v9.4.0/EnergyPlus-9.4.0-998c4b761e-Darwin-macOS10.15-x86_64.dmg"
                 : "https://github.com/NREL/EnergyPlus/releases/download/v9.4.0/EnergyPlus-9.4.0-998c4b761e-Windows-x86_64.exe";
             string ext = IsMac ? ".dmg" : ".exe";
-            string tempFile = Path.Combine(Path.GetTempPath(), "EnergyPlus-9.4.0-Installer" + ext);
+            string tempFile = Path.Combine(Path.GetTempPath(), $"EnergyPlus-9.4.0-Installer-{Guid.NewGuid():N}{ext}");
 
             try
             {
@@ -250,7 +250,7 @@ namespace Eddy
 
             string archiveName = DefaultDirectoriesAndPaths.RadianceWindowsArchiveName;
             string url = GetRadianceReleaseUrl(archiveName);
-            string zipFile = Path.Combine(Path.GetTempPath(), archiveName);
+            string zipFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}-{archiveName}");
 
             string baseDir = DefaultDirectoriesAndPaths.Eddy3DInstallDir;
             string targetDir = Path.Combine(baseDir, DefaultDirectoriesAndPaths.RadianceWindowsFolderName);
@@ -288,7 +288,7 @@ namespace Eddy
                 ? DefaultDirectoriesAndPaths.RadianceMacOSArm64ArchiveName
                 : DefaultDirectoriesAndPaths.RadianceMacOSArchiveName;
             string url = GetRadianceReleaseUrl(archiveName);
-            string zipFile = Path.Combine(Path.GetTempPath(), archiveName);
+            string zipFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}-{archiveName}");
 
             string baseDir = DefaultDirectoriesAndPaths.Eddy3DInstallDir;
             string targetDir = Path.Combine(
@@ -377,7 +377,7 @@ namespace Eddy
         private string InstallBlueCfd()
         {
             string url = "https://github.com/blueCFD/Core/releases/download/blueCFD-Core-2020-1/blueCFD-Core-2020-1-win64-setup.exe";
-            string tempFile = Path.Combine(Path.GetTempPath(), "blueCFD-Core-2020-1-Installer.exe");
+            string tempFile = Path.Combine(Path.GetTempPath(), $"blueCFD-Core-2020-1-Installer-{Guid.NewGuid():N}.exe");
 
             try
             {
@@ -527,7 +527,7 @@ namespace Eddy
 
             string bootstrapperPath = Path.Combine(
                 Path.GetTempPath(),
-                FluidX3DAblWorkflow.WindowsBuildToolsBootstrapperFileName);
+                $"{Guid.NewGuid():N}-{FluidX3DAblWorkflow.WindowsBuildToolsBootstrapperFileName}");
             string installerArguments = FluidX3DAblWorkflow.GetWindowsBuildToolsInstallerArguments();
 
             try
