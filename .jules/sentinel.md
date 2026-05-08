@@ -62,3 +62,8 @@
 **Vulnerability:** Command injection in `Settings.cs` and `DockerRunner.cs` via unsanitized PowerShell commands and Docker image names concatenated into `ProcessStartInfo.Arguments`.
 **Learning:** Concatenating user-controlled or dynamically generated strings into the `Arguments` property is insecure, as shell metacharacters can be used to execute arbitrary commands. Furthermore, `Verb = "runas"` is ignored when `UseShellExecute` is `false`.
 **Prevention:** Always use `ProcessStartInfo.ArgumentList` to pass arguments as discrete, safely-handled tokens. For PowerShell, explicitly include `-NoProfile` and `-NonInteractive` to harden the execution environment and prevent it from hanging or executing profile-based scripts.
+
+## 2024-05-25 - Prevent Predictable Temp File TOCTOU during Installer Execution
+**Vulnerability:** Constructing predictable temporary file names (e.g., `$"EnergyPlus-9.4.0-Installer{ext}"` or `archiveName`) using `Path.GetTempPath()` and later downloading or writing to them is vulnerable to Time-of-Check to Time-of-Use (TOCTOU) and symlink attacks.
+**Learning:** Hardcoded or predictable strings passed to `Path.Combine(Path.GetTempPath(), ...)` allow an attacker to preemptively create symlinks or files with restricted permissions, intercepting or overwriting installer packages before they are executed or extracted.
+**Prevention:** Always ensure temporary file paths are inherently unpredictable by interpolating cryptographically strong identifiers, such as `Guid.NewGuid():N`, directly into the file name string before it is instantiated.
