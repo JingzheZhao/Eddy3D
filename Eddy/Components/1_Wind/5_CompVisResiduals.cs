@@ -1,4 +1,4 @@
-﻿using Eddy.Properties;
+using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using System;
@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -22,11 +21,10 @@ namespace Eddy
             Streamlit = 1
         }
 
-        private static readonly Uri GithubPagesViewerUri = new Uri("https://eddy3d-dev.github.io/Plot-OpenFOAM-Residuals/");
+        private static readonly Uri GithubPagesViewerUri = new Uri("https://residuals.eddy3d.com/");
         private static readonly Uri StreamlitViewerUri = new Uri("https://plot-openfoam-residuals.streamlit.app/");
 
         private ResidualViewerTarget _viewerTarget = ResidualViewerTarget.GithubPages;
-        private bool _lastRunState;
 
         public override GH_Exposure Exposure => GH_Exposure.quinary;
 
@@ -40,11 +38,16 @@ namespace Eddy
             : base("Plot Residuals", "Residuals",
                 @"Convergence Monitor
 
-Opens the selected residual viewer and the simulation residuals folder.
+Opens the selected residual viewer with the simulation data.
 
 " + EddyVersion.toString(),
                 EddyVersion.Name, "1 | Wind")
         {
+        }
+
+        public override void CreateAttributes()
+        {
+            Attributes = new ProbeRunButtonAttributes(this);
         }
 
         protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
@@ -100,10 +103,11 @@ Opens the selected residual viewer and the simulation residuals folder.
                 "Simulation result from Wind Simulation component.",
                 GH_ParamAccess.item);
 
-            pManager.AddBooleanParameter(
+            pManager.AddParameter(
+                new GH_ToggleParam("Plot", "Plot", "Click to open the residual plot viewer."),
                 "Plot", "Plot",
-                "Set to true to open the residual plot viewer and residuals folder.",
-                GH_ParamAccess.item, false);
+                "Click to open the residual plot viewer.",
+                GH_ParamAccess.item);
 
             pManager[1].Optional = true;
         }
@@ -127,32 +131,35 @@ Opens the selected residual viewer and the simulation residuals folder.
             OFResult result = null;
             if (!DA.GetData(0, ref result) || result == null)
             {
-                _lastRunState = false;
                 return;
             }
 
+            // Support both the built-in round button and an externally wired boolean.
+            // Only read DA.GetData when an external source is connected, so the
+            // toggle's own persistent data can't cause accidental re-triggers.
             bool run = false;
-            DA.GetData(1, ref run);
+            if (Params.Input[1].SourceCount > 0)
+            {
+                DA.GetData(1, ref run);
+            }
+            run = run || ConsumeToggleRun(1);
 
             if (!run)
             {
-                Message = "Toggle 'Run' to view";
-                _lastRunState = false;
                 return;
             }
-
-            if (_lastRunState)
-            {
-                Message = "Open";
-                return;
-            }
-
-            _lastRunState = true;
-            Message = "Open";
 
             try
             {
-                OpenViewerInBrowser(GetSelectedViewerUri());
+                string residualsFolder = GetResidualsFolder(result);
+                if (_viewerTarget == ResidualViewerTarget.GithubPages && !string.IsNullOrWhiteSpace(residualsFolder))
+                {
+                    ServeFileAndOpenBrowser(GetSelectedViewerUri(), residualsFolder);
+                }
+                else
+                {
+                    OpenViewerInBrowser(GetSelectedViewerUri());
+                }
             }
             catch (Exception ex)
             {
@@ -160,8 +167,32 @@ Opens the selected residual viewer and the simulation residuals folder.
                     GH_RuntimeMessageLevel.Warning,
                     string.Format("Could not open residual viewer: {0}", ex.Message));
             }
+        }
 
-            TryOpenResidualsFolder(result);
+        /// <summary>
+        /// Checks whether the toggle at the given input index was clicked,
+        /// and immediately resets it so it behaves like a momentary push-button
+        /// rather than a sticky toggle.
+        /// </summary>
+        private bool ConsumeToggleRun(int inputIndex)
+        {
+            if (inputIndex < 0
+                || inputIndex >= Params.Input.Count
+                || !(Params.Input[inputIndex] is GH_ToggleParam toggle)
+                || !toggle.Toggle)
+            {
+                return false;
+            }
+
+            // Reset immediately so any re-entrant or subsequent solution
+            // does not see the toggle as still "on".
+            toggle.Toggle = false;
+            toggle.PersistentData.Clear();
+            toggle.PersistentData.Append(new Grasshopper.Kernel.Types.GH_Boolean(false));
+
+            // Schedule a lightweight solution to refresh the UI rendering.
+            OnPingDocument()?.ScheduleSolution(5, _ => { });
+            return true;
         }
 
         private void SetViewerTarget(ResidualViewerTarget target)
@@ -196,30 +227,36 @@ Opens the selected residual viewer and the simulation residuals folder.
             }
         }
 
-        /// <summary>
-        /// Tries to open the most relevant residuals folder for the given result.
-        /// </summary>
-        private void TryOpenResidualsFolder(OFResult result)
+        private void ServeFileAndOpenBrowser(Uri baseUri, string folderPath)
         {
-            string residualsFolder = GetResidualsFolder(result);
-            if (string.IsNullOrWhiteSpace(residualsFolder))
+            string fileToServe = null;
+            var candidates = new[] { "residuals.dat", "residuals.log" };
+            foreach (var c in candidates)
             {
-                AddRuntimeMessage(
-                    GH_RuntimeMessageLevel.Warning,
-                    string.Format("Could not find a residuals folder under \"{0}\".", result.WorkingDirectory));
+                string p = Path.Combine(folderPath, c);
+                if (File.Exists(p))
+                {
+                    fileToServe = p;
+                    break;
+                }
+            }
+
+            if (fileToServe == null)
+            {
+                OpenViewerInBrowser(baseUri);
                 return;
             }
 
-            try
-            {
-                OpenFolder(residualsFolder);
-            }
-            catch (Exception ex)
-            {
-                AddRuntimeMessage(
-                    GH_RuntimeMessageLevel.Error,
-                    string.Format("Could not open folder: {0}", ex.Message));
-            }
+            // Read the file and Base64-encode it into the URL hash fragment.
+            // This bypasses all CORS / Private Network Access / mixed-content
+            // restrictions because hash fragments are handled entirely client-side.
+            byte[] fileBytes = File.ReadAllBytes(fileToServe);
+            string base64 = Convert.ToBase64String(fileBytes);
+            string fileName = Uri.EscapeDataString(Path.GetFileName(fileToServe));
+
+            string targetUrl = $"{baseUri.AbsoluteUri}#data={base64}&name={fileName}";
+
+            OpenViewerInBrowser(new Uri(targetUrl));
         }
 
         private static string GetResidualsFolder(OFResult result)
@@ -252,29 +289,6 @@ Opens the selected residual viewer and the simulation residuals folder.
             }
 
             return null;
-        }
-
-        private static void OpenFolder(string folderPath)
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                var psi = new ProcessStartInfo("explorer.exe") { UseShellExecute = false };
-                psi.ArgumentList.Add(folderPath);
-                Process.Start(psi);
-                return;
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                var psi = new ProcessStartInfo("open") { UseShellExecute = false };
-                psi.ArgumentList.Add(Path.GetFullPath(folderPath));
-                Process.Start(psi);
-                return;
-            }
-
-            var psiLinux = new ProcessStartInfo("xdg-open") { UseShellExecute = false };
-            psiLinux.ArgumentList.Add(folderPath);
-            Process.Start(psiLinux);
         }
 
         /// <summary>

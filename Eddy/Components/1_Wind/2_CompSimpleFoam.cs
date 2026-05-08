@@ -50,6 +50,11 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             EddyLib.Web.UpdateChecker.CheckForUpdateAsync();
         }
 
+        public override void CreateAttributes()
+        {
+            Attributes = new ProbeRunButtonAttributes(this);
+        }
+
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
         {
             base.AppendAdditionalComponentMenuItems(menu);
@@ -118,20 +123,20 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 GH_ParamAccess.item);
             pManager[3].Optional = true;
 
-            pManager.AddBooleanParameter(
+            pManager.AddParameter(
+                new GH_ToggleParam(GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick, GH_Strings.Common.RunMeshingDesc),
                 GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick,
-                GH_Strings.Common.RunMeshingDesc,
-                GH_ParamAccess.item, false);
+                GH_Strings.Common.RunMeshingDesc, GH_ParamAccess.item);
 
-            pManager.AddBooleanParameter(
+            pManager.AddParameter(
+                new GH_ToggleParam(GH_Strings.Common.MakeTrees, GH_Strings.Common.MakeTreesNick, GH_Strings.Common.MakeTreesDesc),
                 GH_Strings.Common.MakeTrees, GH_Strings.Common.MakeTreesNick,
-                GH_Strings.Common.MakeTreesDesc,
-                GH_ParamAccess.item, false);
+                GH_Strings.Common.MakeTreesDesc, GH_ParamAccess.item);
 
-            pManager.AddBooleanParameter(
+            pManager.AddParameter(
+                new GH_ToggleParam(GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick, GH_Strings.Common.RunSimulationDesc),
                 GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick,
-                GH_Strings.Common.RunSimulationDesc,
-                GH_ParamAccess.item, false);
+                GH_Strings.Common.RunSimulationDesc, GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -258,13 +263,9 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             }
             MeshSettings.SetDirectories(baseWorkingDirectory);
 
-            bool makeTrees = false;
-            bool runSimulation = false;
-            bool runMeshing = false;
-
-            DA.GetData(GH_Strings.Common.MakeTrees, ref makeTrees);
-            DA.GetData(GH_Strings.Common.RunSimulation, ref runSimulation);
-            DA.GetData(GH_Strings.Common.RunMeshing, ref runMeshing);
+            bool runMeshing = ConsumeToggleOrWired(DA, 4);
+            bool makeTrees = ConsumeToggleOrWired(DA, 5);
+            bool runSimulation = ConsumeToggleOrWired(DA, 6);
 
             if (!IsEngineSupportedOnCurrentPlatform(_selectedEngine))
             {
@@ -483,6 +484,43 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 simulationRemainingTime);
 
             canRun = true;
+        }
+
+        /// <summary>
+        /// Reads a run input from either a wired external source or the built-in
+        /// round toggle button. External sources are read via DA.GetData;
+        /// the toggle is consumed and immediately reset.
+        /// </summary>
+        private bool ConsumeToggleOrWired(IGH_DataAccess DA, int inputIndex)
+        {
+            bool run = false;
+            if (Params.Input[inputIndex].SourceCount > 0)
+            {
+                DA.GetData(inputIndex, ref run);
+            }
+            return run || ConsumeToggleRun(inputIndex);
+        }
+
+        /// <summary>
+        /// Checks whether the toggle at the given input index was clicked,
+        /// and immediately resets it so it behaves like a momentary push-button.
+        /// </summary>
+        private bool ConsumeToggleRun(int inputIndex)
+        {
+            if (inputIndex < 0
+                || inputIndex >= Params.Input.Count
+                || !(Params.Input[inputIndex] is GH_ToggleParam toggle)
+                || !toggle.Toggle)
+            {
+                return false;
+            }
+
+            toggle.Toggle = false;
+            toggle.PersistentData.Clear();
+            toggle.PersistentData.Append(new GH_Boolean(false));
+
+            OnPingDocument()?.ScheduleSolution(5, _ => { });
+            return true;
         }
 
         private string ResolveAutoWorkingDirectoryWhenDirIsUnwired(string workingDirInput)

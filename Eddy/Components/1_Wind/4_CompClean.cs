@@ -1,4 +1,4 @@
-﻿using Eddy.Properties;
+using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Parameters;
@@ -35,6 +35,11 @@ GH_Strings.Clean.Desc + EddyVersion.toString(),
         {
         }
 
+        public override void CreateAttributes()
+        {
+            Attributes = new ProbeRunButtonAttributes(this);
+        }
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -54,10 +59,12 @@ GH_Strings.Clean.Desc + EddyVersion.toString(),
             param.AddNamedValue("Simulation Directories", 1);
             param.AddNamedValue("Both", 2);
 
-            pManager.AddBooleanParameter(
+            pManager.AddParameter(
+                new GH_ToggleParam(GH_Strings.Clean.Run, GH_Strings.Clean.RunNick,
+                    "Click to delete directories. CAUTION: Cannot be undone."),
                 GH_Strings.Clean.Run, GH_Strings.Clean.RunNick,
-                "Set True to delete directories. CAUTION: Cannot be undone.",
-                GH_ParamAccess.item, false);
+                "Click to delete directories. CAUTION: Cannot be undone.",
+                GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -76,8 +83,6 @@ GH_Strings.Clean.Desc + EddyVersion.toString(),
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            bool Run = false;
-
             int Mode = 1;
 
             OFResult RES = null;
@@ -102,62 +107,86 @@ GH_Strings.Clean.Desc + EddyVersion.toString(),
             }
 
             DA.GetData(GH_Strings.Clean.Mode, ref Mode);
-            DA.GetData(GH_Strings.Clean.Run, ref Run);
 
-            if (Run)
+            // Only respond to an explicit button click, not to persistent data.
+            if (!ConsumeToggleRun(2))
             {
-                bool cleanSucceeded = true;
-
-                List<string> windDirDirectories =
-                    Directory.GetDirectories(workingDirectory, "*", SearchOption.TopDirectoryOnly)
-                             .Where(f => Regex.IsMatch(f, @"[\\/]\d+$"))
-                             .ToList();
-
-                string meshDirectory = Path.Combine(workingDirectory, "mesh");
-
-                if (Mode == 0)
-                {
-                    // Mesh-only clean
-                    cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanCase(meshDirectory);
-                }
-                else if (Mode == 1)
-                {
-                    // Clean OpenFOAM cases (preserve system/constant/0)
-                    foreach (string directory in windDirDirectories)
-                    {
-                        cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanCase(directory);
-                    }
-
-                    // Remove root-level probe cache binaries (<workingDir>/postProcessing/*.bin)
-                    cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanProbeCacheFiles(workingDirectory);
-                }
-                else
-                {
-                    // Clean mesh and cases
-                    cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanCase(meshDirectory);
-
-                    foreach (string directory in windDirDirectories)
-                    {
-                        cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanCase(directory);
-                    }
-
-                    // Remove root-level probe cache binaries (<workingDir>/postProcessing/*.bin)
-                    cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanProbeCacheFiles(workingDirectory);
-                }
-
-                if (!cleanSucceeded)
-                {
-                    AddRuntimeMessage(
-                        GH_RuntimeMessageLevel.Warning,
-                        "Clean completed with some deletion errors (possibly locked files).");
-                }
-
-                foreach (IGH_DocumentObject obj in Grasshopper.Instances.ActiveCanvas.Document.ActiveObjects())
-                {
-                    if (obj == null) continue;
-                    obj.ExpireSolution(true);
-                }
+                return;
             }
+
+            bool cleanSucceeded = true;
+
+            List<string> windDirDirectories =
+                Directory.GetDirectories(workingDirectory, "*", SearchOption.TopDirectoryOnly)
+                         .Where(f => Regex.IsMatch(f, @"[\\/]\d+$"))
+                         .ToList();
+
+            string meshDirectory = Path.Combine(workingDirectory, "mesh");
+
+            if (Mode == 0)
+            {
+                // Mesh-only clean
+                cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanCase(meshDirectory);
+            }
+            else if (Mode == 1)
+            {
+                // Clean OpenFOAM cases (preserve system/constant/0)
+                foreach (string directory in windDirDirectories)
+                {
+                    cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanCase(directory);
+                }
+
+                // Remove root-level probe cache binaries (<workingDir>/postProcessing/*.bin)
+                cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanProbeCacheFiles(workingDirectory);
+            }
+            else
+            {
+                // Clean mesh and cases
+                cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanCase(meshDirectory);
+
+                foreach (string directory in windDirDirectories)
+                {
+                    cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanCase(directory);
+                }
+
+                // Remove root-level probe cache binaries (<workingDir>/postProcessing/*.bin)
+                cleanSucceeded &= EddyLib.Utilities.FoamCleaner.CleanProbeCacheFiles(workingDirectory);
+            }
+
+            if (!cleanSucceeded)
+            {
+                AddRuntimeMessage(
+                    GH_RuntimeMessageLevel.Warning,
+                    "Clean completed with some deletion errors (possibly locked files).");
+            }
+
+            foreach (IGH_DocumentObject obj in Grasshopper.Instances.ActiveCanvas.Document.ActiveObjects())
+            {
+                if (obj == null) continue;
+                obj.ExpireSolution(true);
+            }
+        }
+
+        /// <summary>
+        /// Checks whether the toggle at the given input index was clicked,
+        /// and immediately resets it so it behaves like a momentary push-button.
+        /// </summary>
+        private bool ConsumeToggleRun(int inputIndex)
+        {
+            if (inputIndex < 0
+                || inputIndex >= Params.Input.Count
+                || !(Params.Input[inputIndex] is GH_ToggleParam toggle)
+                || !toggle.Toggle)
+            {
+                return false;
+            }
+
+            toggle.Toggle = false;
+            toggle.PersistentData.Clear();
+            toggle.PersistentData.Append(new GH_Boolean(false));
+
+            OnPingDocument()?.ScheduleSolution(5, _ => { });
+            return true;
         }
 
         /// <summary>
