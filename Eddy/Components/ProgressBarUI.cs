@@ -137,7 +137,22 @@ namespace Urbano.Simulation
             run.ContinueWith((r) =>
             {
                 isFinished = true;
-                if (uiThread != null) uiThread.Post((object state) => { Close(); }, null);
+                if (r.IsFaulted && r.Exception != null)
+                {
+                    var inner = r.Exception.Flatten().InnerException ?? r.Exception;
+                    if (uiThread != null) uiThread.Post(_ =>
+                    {
+                        Status.Text = $"Simulation failed: {inner.GetType().Name}: {inner.Message}";
+                        Status.TextColor = Colors.Red;
+                        cancel.Text = "Close";
+                        cancel.ToolTip = "Close this dialog (Esc, Enter)";
+                        DefaultButton = cancel;
+                    }, null);
+                }
+                else
+                {
+                    if (uiThread != null) uiThread.Post((object state) => { Close(); }, null);
+                }
             });
         }
     }
