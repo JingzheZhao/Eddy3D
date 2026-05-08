@@ -254,18 +254,20 @@ echo ""----------------------------------------""
                     "Docker not found. Please install Docker Desktop.");
             }
 
-            var args = string.Format("pull --platform {0} {1}", DockerConfig.Platform, _imageName);
-
             var psi = new ProcessStartInfo
             {
                 FileName = _dockerExe,
-                Arguments = args,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
                 WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
             };
+
+            psi.ArgumentList.Add("pull");
+            psi.ArgumentList.Add("--platform");
+            psi.ArgumentList.Add(DockerConfig.Platform);
+            psi.ArgumentList.Add(_imageName);
 
             DockerEnvironment.ConfigureDockerEnvironment(psi);
 
