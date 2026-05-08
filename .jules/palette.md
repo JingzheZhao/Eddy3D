@@ -98,3 +98,11 @@
 ## 2026-03-31 - [Theme-Aware Color De-emphasis]
 **Learning:** Hardcoding hex or RGB values for de-emphasized text (like "Elapsed:" labels) can lead to poor contrast in different system themes (Light vs Dark).
 **Action:** Use `SystemColors.ControlText` with a specific opacity (e.g., `new Color(SystemColors.ControlText, 0.5f)`) to create theme-aware secondary text colors that maintain appropriate contrast automatically.
+
+## 2026-05-08 - [Avoid Redundant Tooltips on Static Text]
+**Learning:** Adding `ToolTip` properties to static UI labels that already contain the descriptive text (e.g., adding a tooltip "Elapsed time" to a label reading "Elapsed:") is an accessibility anti-pattern. It creates redundant noise for screen reader users and unnecessary visual clutter for sighted users.
+**Action:** When adding accessibility context, never apply redundant tooltips to static text labels that visually describe their own purpose. Reserve tooltips for interactive elements (buttons, inputs) or contextually ambiguous icons/elements.
+
+## 2026-05-08 - [Graceful Error Handling in Progress Dialogs]
+**Learning:** Silently closing a progress dialog (e.g., `ProgressDialog` in Eto.Forms) when a background simulation task throws an exception leaves users confused, as they cannot see the error message or copy the associated logs.
+**Action:** Always intercept task faults in the continuation block (`ContinueWith`), keep the progress window open, update the status label to explicitly display the error message (e.g., using `Colors.Red`), and rename the active button to "Close" to ensure the failure state is clear and actionable.
