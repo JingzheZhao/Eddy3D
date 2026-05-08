@@ -68,6 +68,10 @@
 **Learning:** Custom interactive regions in Grasshopper `GH_ComponentAttributes` (like dropdown buttons or custom controls) feel unresponsive if they don't provide visual hover feedback. Implementing `RespondToMouseMove` to change the cursor to `GH_Hand` significantly improves the perceived quality of the UI.
 **Action:** For all custom `GH_ComponentAttributes` with interactive bounds, override `RespondToMouseMove` and use the cached reflection pattern to call `AttachCursor(sender, "GH_Hand")`.
 
+## 2026-03-24 - [Dynamic Feedback for Async Operations in Grasshopper Buttons]
+**Learning:** For components triggering async operations (like template syncing) via custom button attributes, static button labels leave users uncertain about the process state. Dynamically updating button text and palette (e.g., using `GH_Palette.Blue` for active tasks and `GH_Palette.Warning` for updates) provides immediate, clear visual feedback without obstructing the workspace.
+**Action:** Implement dynamic `ButtonText` and `ButtonPalette` properties in custom component attributes to allow components to signal background activity or available updates directly on the button element.
+
 ## 2026-03-30 - [Provide Call-to-Actions in Component Empty States]
 **Learning:** Empty states on Grasshopper canvas drawings that simply state "No data" or describe a missing state (e.g., "Idle", "Missing result") leave users guessing what to do next.
 **Action:** When designing empty states for custom canvas drawings, always supplement the status description with a clear, actionable instruction (e.g., "Enable 'Live' toggle to monitor" or "Connect a valid simulation result"). This improves the clarity of error messages and provides a helpful call-to-action.

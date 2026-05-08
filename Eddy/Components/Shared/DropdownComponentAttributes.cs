@@ -130,6 +130,19 @@ namespace Eddy
                         _attachCursorMethod.Invoke(Grasshopper.Instances.CursorServer, new object[] { sender, "GH_Hand" });
                         return GH_ObjectResponse.Handled;
                     }
+                    else
+                    {
+                        // Fallback using dynamic to bypass compilation dependency on System.Windows.Forms.Control
+                        try
+                        {
+                            ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(sender, "GH_Hand");
+                            return GH_ObjectResponse.Handled;
+                        }
+                        catch
+                        {
+                            // Ignore failure
+                        }
+                    }
                 }
             }
             return base.RespondToMouseMove(sender, e);
