@@ -37,6 +37,11 @@ namespace Eddy
         {
         }
 
+        public override void CreateAttributes()
+        {
+            Attributes = new ProbeRunButtonAttributes(this);
+        }
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -52,9 +57,18 @@ namespace Eddy
             pManager.AddGenericParameter(GH_Strings.Common.RunSettings, GH_Strings.Common.RunSettingsNick, GH_Strings.Common.RunSettingsDesc, GH_ParamAccess.item);
             pManager[3].Optional = true;
 
-            pManager.AddBooleanParameter(GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick, GH_Strings.Common.RunMeshingDesc, GH_ParamAccess.item, false);
-            pManager.AddBooleanParameter(GH_Strings.Common.MakeTrees, GH_Strings.Common.MakeTreesNick, GH_Strings.Common.MakeTreesDesc, GH_ParamAccess.item, false);
-            pManager.AddBooleanParameter(GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick, GH_Strings.Common.RunSimulationDesc, GH_ParamAccess.item, false);
+            pManager.AddParameter(
+                new GH_ToggleParam(GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick, GH_Strings.Common.RunMeshingDesc),
+                GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick,
+                GH_Strings.Common.RunMeshingDesc, GH_ParamAccess.item);
+            pManager.AddParameter(
+                new GH_ToggleParam(GH_Strings.Common.MakeTrees, GH_Strings.Common.MakeTreesNick, GH_Strings.Common.MakeTreesDesc),
+                GH_Strings.Common.MakeTrees, GH_Strings.Common.MakeTreesNick,
+                GH_Strings.Common.MakeTreesDesc, GH_ParamAccess.item);
+            pManager.AddParameter(
+                new GH_ToggleParam(GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick, GH_Strings.Common.RunSimulationDesc),
+                GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick,
+                GH_Strings.Common.RunSimulationDesc, GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -191,13 +205,9 @@ namespace Eddy
 
             #region START PROCESSES
 
-            bool makeTrees = false;
-            bool runSimulation = false;
-            bool runMeshing = false;
-
-            DA.GetData(GH_Strings.Common.MakeTrees, ref makeTrees);
-            DA.GetData(GH_Strings.Common.RunSimulation, ref runSimulation);
-            DA.GetData(GH_Strings.Common.RunMeshing, ref runMeshing);
+            bool runMeshing = ConsumeToggleRun(4);
+            bool makeTrees = ConsumeToggleRun(5);
+            bool runSimulation = ConsumeToggleRun(6);
 
             if (makeTrees == true && canRun)
             {
@@ -233,6 +243,28 @@ namespace Eddy
             DA.SetData(GH_Strings.Common.Result, RES);
 
             canRun = true;
+        }
+
+        /// <summary>
+        /// Checks whether the toggle at the given input index was clicked,
+        /// and immediately resets it so it behaves like a momentary push-button.
+        /// </summary>
+        private bool ConsumeToggleRun(int inputIndex)
+        {
+            if (inputIndex < 0
+                || inputIndex >= Params.Input.Count
+                || !(Params.Input[inputIndex] is GH_ToggleParam toggle)
+                || !toggle.Toggle)
+            {
+                return false;
+            }
+
+            toggle.Toggle = false;
+            toggle.PersistentData.Clear();
+            toggle.PersistentData.Append(new GH_Boolean(false));
+
+            OnPingDocument()?.ScheduleSolution(5, _ => { });
+            return true;
         }
 
         /// <summary>
