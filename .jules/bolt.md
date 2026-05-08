@@ -17,6 +17,10 @@
 **Learning:** In C#, using reflection (`GetType().GetProperty()`) inside a loop over a homogeneous collection introduces unnecessary overhead and garbage collection pressure because the `PropertyInfo` object remains identical across iterations.
 **Action:** Always hoist `PropertyInfo` retrieval out of the loop and cache it for subsequent iterations when the object types are consistent, significantly improving execution speed.
 
+## 2025-05-24 - Single-Call Multi-Value Optimization
+**Learning:** Calling multiple methods that perform overlapping complex calculations (e.g., calling `solarelevation` and `solarazimuth` separately) in a high-frequency loop (like 8,760 hours/year) introduces significant redundant mathematical overhead.
+**Action:** Merge overlapping logic into a single method (e.g., `GetSolarPosition`) that returns all required values at once, and combine this with `Parallel.For` for embarrassingly parallel tasks like independent hourly calculations.
+
 ## 2024-05-26 - Outer Loop Parallelization and False Sharing
 **Learning:** Parallelizing the inner loop of a nested O(Hours * Sensors) simulation with trivial per-iteration work causes excessive task scheduling overhead and can lead to false sharing when multiple threads write to adjacent memory in the same row.
 **Action:** Parallelize the outer (temporal) loop instead of the inner (spatial) loop. This improves cache locality, allows hoisting temporal-invariant calculations (like solar projection factors), and ensures each thread writes to its own distinct row, eliminating false sharing.
