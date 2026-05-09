@@ -94,8 +94,7 @@ namespace EddyLib.UI
                 Wrap = WrapMode.Word,
                 Font = fontBody,
                 Height = 44, // Room for 2 lines
-                TextColor = SystemColors.ControlText,
-                ToolTip = "Current simulation status"
+                TextColor = SystemColors.ControlText
             };
 
             TimeElapsed = new Label
@@ -103,8 +102,7 @@ namespace EddyLib.UI
                 Text = "00:00:00",
                 VerticalAlignment = VerticalAlignment.Center,
                 Font = fontMono,
-                TextColor = SystemColors.ControlText,
-                ToolTip = "Time elapsed since simulation started"
+                TextColor = SystemColors.ControlText
             };
 
             TimeRemaining = new Label
@@ -112,8 +110,7 @@ namespace EddyLib.UI
                 Text = "--:--:--",
                 VerticalAlignment = VerticalAlignment.Center,
                 Font = fontMono,
-                TextColor = SystemColors.ControlText,
-                ToolTip = "Estimated time remaining"
+                TextColor = SystemColors.ControlText
             };
 
             ProgressPercent = new Label
@@ -121,8 +118,7 @@ namespace EddyLib.UI
                 Text = "  0%",
                 VerticalAlignment = VerticalAlignment.Center,
                 Font = fontTitle, // Use same size as title for emphasis
-                TextColor = SystemColors.Highlight,
-                ToolTip = "Simulation Progress Percentage"
+                TextColor = SystemColors.Highlight
             };
 
             stopwatch = Stopwatch.StartNew();
