@@ -61,10 +61,10 @@ namespace Urbano.Simulation
             ShowInTaskbar = true;
 
             // controls
-            Status = new Label() { Text = "Starting simulation...", ToolTip = "Current simulation status", Wrap = WrapMode.Word };
+            Status = new Label() { Text = "Starting simulation...", Wrap = WrapMode.Word };
 
-            TimeElapsed = new Label { Text = "Elapsed: 00:00:00", VerticalAlignment = VerticalAlignment.Center, ToolTip = "Time elapsed since simulation started" };
-            TimeRemaining = new Label { Text = "Remaining: --:--:--", VerticalAlignment = VerticalAlignment.Center, ToolTip = "Estimated time remaining" };
+            TimeElapsed = new Label { Text = "Elapsed: 00:00:00", VerticalAlignment = VerticalAlignment.Center };
+            TimeRemaining = new Label { Text = "Remaining: --:--:--", VerticalAlignment = VerticalAlignment.Center };
             stopwatch = Stopwatch.StartNew();
             timer = new UITimer { Interval = 1.0 };
             timer.Elapsed += (s, e) =>
