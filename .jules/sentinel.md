@@ -67,3 +67,7 @@
 **Vulnerability:** Constructing predictable temporary file names (e.g., `$"EnergyPlus-9.4.0-Installer{ext}"` or `archiveName`) using `Path.GetTempPath()` and later downloading or writing to them is vulnerable to Time-of-Check to Time-of-Use (TOCTOU) and symlink attacks.
 **Learning:** Hardcoded or predictable strings passed to `Path.Combine(Path.GetTempPath(), ...)` allow an attacker to preemptively create symlinks or files with restricted permissions, intercepting or overwriting installer packages before they are executed or extracted.
 **Prevention:** Always ensure temporary file paths are inherently unpredictable by interpolating cryptographically strong identifiers, such as `Guid.NewGuid():N`, directly into the file name string before it is instantiated.
+## 2026-05-09 - Prevent TOCTOU vulnerabilities in file creation
+**Vulnerability:** File.WriteAllText followed by external chmod call creates a TOCTOU vulnerability and command injection risk.
+**Learning:** In .NET 8, use FileStreamOptions.UnixCreateMode to atomically create executable files with the desired permissions.
+**Prevention:** Avoid external chmod processes and set permissions directly during file creation using UnixCreateMode.
