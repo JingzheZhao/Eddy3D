@@ -324,7 +324,6 @@ namespace EddyLib.UI
             chained?.Write(value);
             if (uiContext != null) uiContext.Post((object state) =>
             {
-                dialog.Status.Text = value;
                 dialog.StatusLog.Append(value, true);
             }, null);
         }
@@ -343,7 +342,10 @@ namespace EddyLib.UI
                 }
                 else
                 {
-                    dialog.Status.Text = value;
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        dialog.Status.Text = value;
+                    }
                     dialog.StatusLog.Append(value + Environment.NewLine, true);
                 }
             }, null);

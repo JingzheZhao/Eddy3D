@@ -110,3 +110,11 @@
 ## 2026-05-08 - [Graceful Error Handling in Progress Dialogs]
 **Learning:** Silently closing a progress dialog (e.g., `ProgressDialog` in Eto.Forms) when a background simulation task throws an exception leaves users confused, as they cannot see the error message or copy the associated logs.
 **Action:** Always intercept task faults in the continuation block (`ContinueWith`), keep the progress window open, update the status label to explicitly display the error message (e.g., using `Colors.Red`), and rename the active button to "Close" to ensure the failure state is clear and actionable.
+
+## 2026-05-09 - [Theme-Aware Rendering in Grasshopper Attributes]
+**Learning:** Hardcoding black colors for interactive hints or icons in custom Grasshopper component attributes makes them nearly invisible in Rhino 8's Dark Mode or high-contrast themes.
+**Action:** Always use `SystemColors.ControlText` for rendering interactive elements like dropdown arrows or button backgrounds to ensure they automatically adapt to the user's theme.
+
+## 2026-05-09 - [Prevent UI Flickering in Status Labels]
+**Learning:** Updating a single-line status label with every character written to the console (e.g., incremental progress dots) causes rapid flickering and renders the text unreadable.
+**Action:** In `ProgressWriter` implementations, redirect incremental `Write` output only to the log area and reserve `Status` label updates for full `WriteLine` calls. Additionally, check for `IsNullOrWhiteSpace` to prevent clearing the status during empty line breaks.
