@@ -81,7 +81,7 @@ namespace Eddy
                 if (param.SourceCount > 0) continue;
 
                 // Draw a subtle button background so it's clear it's a clickable target
-                using (var bgBrush = new SolidBrush(Color.FromArgb((int)(alpha * 0.15f), 0, 0, 0)))
+                using (var bgBrush = new SolidBrush(Color.FromArgb((int)(alpha * 0.15f), SystemColors.ControlText)))
                 {
                     var rect = new RectangleF(r.X, r.Y, r.Width, r.Height);
                     graphics.FillRectangle(bgBrush, rect);
@@ -99,7 +99,7 @@ namespace Eddy
                     new PointF(cx, cy + s * 0.7f)
                 };
                 
-                using var brush = new SolidBrush(Color.FromArgb((int)(alpha * 0.8f), 0, 0, 0));
+                using var brush = new SolidBrush(Color.FromArgb((int)(alpha * 0.8f), SystemColors.ControlText));
                 graphics.FillPolygon(brush, pts);
             }
 
