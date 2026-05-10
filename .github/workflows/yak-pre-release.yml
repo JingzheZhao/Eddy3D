@@ -15,14 +15,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: Eddy3D
-
-      - name: Checkout MetaBlock (sibling, required for bundling)
-        uses: actions/checkout@v4
-        with:
-          repository: Eddy3D-Dev/MetaBlock
-          path: MetaBlock
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
@@ -33,7 +25,7 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          $content = Get-Content 'Eddy3D/EddyLib/GlobalSettings/EddyVersion.cs' -Raw
+          $content = Get-Content 'EddyLib/GlobalSettings/EddyVersion.cs' -Raw
           $match = [regex]::Match($content, 'ProductVersion\s*=\s*"([^"]+)"')
           if (-not $match.Success) {
             throw 'Could not read EddyVersion.ProductVersion from EddyLib/GlobalSettings/EddyVersion.cs'
@@ -50,22 +42,22 @@ jobs:
           "source_version=$fullVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Build plugin
-        run: dotnet build Eddy3D/Eddy/Eddy.csproj -c Release
+        run: dotnet build Eddy/Eddy.csproj -c Release
 
       - name: Prepare Yak package contents
         shell: pwsh
         run: |
-          $buildDir = 'Eddy3D/Eddy/bin/Release/net8.0-windows'
+          $buildDir = 'Eddy/bin/Release/net8.0-windows'
           if (-not (Test-Path (Join-Path $buildDir 'Eddy.gha'))) {
             throw "Expected build output was not found in $buildDir"
           }
           if (-not (Test-Path (Join-Path $buildDir 'MetaBlock/api.py'))) {
-            throw "MetaBlock folder was not bundled. Check that the MetaBlock checkout step ran."
+            throw "MetaBlock folder was not bundled."
           }
 
-          (Get-Content Eddy3D/manifest.yml -Raw) -replace '(?m)^version:\s*.+$', 'version: ${{ steps.version.outputs.version }}' | Set-Content Eddy3D/manifest.yml
-          Copy-Item Eddy3D/manifest.yml (Join-Path $buildDir 'manifest.yml') -Force
-          Copy-Item 'Eddy3D/Eddy/Resources/Eddy3D.png' (Join-Path $buildDir 'Eddy3D.png') -Force
+          (Get-Content manifest.yml -Raw) -replace '(?m)^version:\s*.+$', 'version: ${{ steps.version.outputs.version }}' | Set-Content manifest.yml
+          Copy-Item manifest.yml (Join-Path $buildDir 'manifest.yml') -Force
+          Copy-Item 'Eddy/Resources/Eddy3D.png' (Join-Path $buildDir 'Eddy3D.png') -Force
 
       - name: Download Yak CLI
         shell: pwsh
@@ -76,7 +68,7 @@ jobs:
         id: yak_package
         shell: pwsh
         run: |
-          $buildDir = Resolve-Path 'Eddy3D/Eddy/bin/Release/net8.0-windows'
+          $buildDir = Resolve-Path 'Eddy/bin/Release/net8.0-windows'
           Push-Location $buildDir
           try {
             & "$env:GITHUB_WORKSPACE\yak.exe" build --platform win

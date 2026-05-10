@@ -3,7 +3,6 @@ using Rhino.Geometry;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
@@ -214,81 +213,19 @@ namespace Eddy
             });
         }
 
-        private const string MetaBlockZipUrl = "https://github.com/Eddy3D-Dev/MetaBlock/archive/refs/heads/main.zip";
-
         private static string ResolveBundledMetaBlockPath()
         {
-            // 1. Local build / dev: MetaBlock folder copied next to Eddy.gha
             string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            if (!string.IsNullOrEmpty(assemblyDir))
-            {
-                string bundled = Path.Combine(assemblyDir, "MetaBlock");
-                if (File.Exists(Path.Combine(bundled, "api.py")))
-                    return bundled;
-            }
+            if (string.IsNullOrEmpty(assemblyDir)) return null;
 
-            // 2. End-user fallback: download zip from GitHub into %APPDATA%\Eddy3D\MetaBlock
-            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            if (string.IsNullOrEmpty(appData)) return null;
-
-            string userPath = Path.Combine(appData, "Eddy3D", "MetaBlock");
-            if (File.Exists(Path.Combine(userPath, "api.py")))
-                return userPath;
-
-            try
-            {
-                AppendServerLog($"Downloading MetaBlock from {MetaBlockZipUrl} ...");
-                Directory.CreateDirectory(Path.GetDirectoryName(userPath));
-
-                string tempZip = Path.Combine(Path.GetTempPath(), "MetaBlock_" + Guid.NewGuid().ToString("N") + ".zip");
-
-                byte[] data = Task.Run(async () =>
-                {
-                    using var client = new HttpClient { Timeout = TimeSpan.FromMinutes(2) };
-                    client.DefaultRequestHeaders.UserAgent.ParseAdd("Eddy3D-MetaBlock");
-                    return await client.GetByteArrayAsync(MetaBlockZipUrl);
-                }).GetAwaiter().GetResult();
-
-                File.WriteAllBytes(tempZip, data);
-
-                string extractTemp = Path.Combine(Path.GetTempPath(), "MetaBlock_extract_" + Guid.NewGuid().ToString("N"));
-                Directory.CreateDirectory(extractTemp);
-                ZipFile.ExtractToDirectory(tempZip, extractTemp);
-
-                // Zip contains a single root folder like "MetaBlock-main"
-                var rootDirs = Directory.GetDirectories(extractTemp);
-                if (rootDirs.Length == 1)
-                {
-                    if (Directory.Exists(userPath))
-                        Directory.Delete(userPath, true);
-                    Directory.Move(rootDirs[0], userPath);
-                }
-
-                try { File.Delete(tempZip); } catch { }
-                try { Directory.Delete(extractTemp, true); } catch { }
-
-                if (File.Exists(Path.Combine(userPath, "api.py")))
-                {
-                    AppendServerLog($"MetaBlock installed at {userPath}");
-                    return userPath;
-                }
-            }
-            catch (Exception ex)
-            {
-                AppendServerLog($"Download failed: {ex.Message}");
-            }
-
-            return null;
+            string bundled = Path.Combine(assemblyDir, "MetaBlock");
+            return File.Exists(Path.Combine(bundled, "api.py")) ? bundled : null;
         }
 
         private void StartServer(string projectPath)
         {
             if (_serverProcess != null && !_serverProcess.HasExited)
                 return;
-
-            _serverStartStatus = "Pulling latest from git...";
-            ScheduleStatusRefresh();
-            GitPull(projectPath);
 
             string uv = ResolveExecutable("uv");
             if (uv == null)
