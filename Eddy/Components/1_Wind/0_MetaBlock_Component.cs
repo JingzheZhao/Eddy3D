@@ -135,8 +135,13 @@ namespace Eddy
 
             if (!run)
             {
-                if (!startServer)
+                bool serverUp = _serverProcess != null && !_serverProcess.HasExited;
+                if (startServer && serverUp)
+                    DA.SetData(1, _serverStartStatus ?? "Server running. Set Run to true to process.");
+                else if (!startServer)
                     DA.SetData(1, "Set Run to true to process.");
+                else
+                    DA.SetData(1, _serverStartStatus ?? "Server is not running.");
                 return;
             }
 
