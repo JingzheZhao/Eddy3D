@@ -475,21 +475,26 @@ Dz = sin(Ralt);
         {
             if (!File.Exists(illFileName)) return new float[0][]; // Safety handle
 
-            string[] illLines = File.ReadAllLines(illFileName);
+            // Bolt: Replaced File.ReadAllLines with File.ReadLines for lazy evaluation,
+            // preventing LOH allocations. Lines are processed using PLINQ to maintain
+            // parallel processing speed without loading the entire file as a string array first.
             int skip = 0;
-            for (int i = 0; i < illLines.Length; i++)
+            foreach (var line in File.ReadLines(illFileName))
             {
-                if (illLines[i].Contains("FORMAT")) { skip = i + 2; break; }
+                if (line.Contains("FORMAT")) { skip += 2; break; }
+                skip++;
             }
 
-            var data = new float[illLines.Length - skip][];
-            Parallel.For(skip, illLines.Length, i =>
-            {
-                var parts = illLines[i].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                data[i - skip] = parts.Select(s => float.Parse(s, CultureInfo.InvariantCulture)).ToArray();
-            });
-
-            return data;
+            return File.ReadLines(illFileName)
+                       .Skip(skip)
+                       .AsParallel()
+                       .AsOrdered()
+                       .Select(line =>
+                       {
+                           var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                           return parts.Select(s => float.Parse(s, CultureInfo.InvariantCulture)).ToArray();
+                       })
+                       .ToArray();
         }
 
         private void LogError(string context, string error)
