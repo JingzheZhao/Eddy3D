@@ -38,10 +38,9 @@ namespace Eddy
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "M", "Input meshes (will be merged and combined)", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Min Length", "L", "Vertex weld tolerance in model units. Two vertices closer than this are merged. Default 0.1 (10 cm for meter-unit models). Larger = more aggressive cleanup, smaller = preserves finer detail.", GH_ParamAccess.item, 0.1);
+            pManager.AddNumberParameter("Min Length", "L", "Vertex weld tolerance in model units. Two vertices closer than this are merged. Default 0.1 (10 cm for meter-unit models).", GH_ParamAccess.item, 0.1);
             pManager.AddTextParameter("API URL", "URL", "MetaBlock API base URL", GH_ParamAccess.item, "http://localhost:8000");
-            pManager.AddBooleanParameter("Start Server", "Start", "Start the local MetaBlock server via uv (uses MetaBlock folder bundled next to Eddy.gha)", GH_ParamAccess.item, false);
-            pManager.AddBooleanParameter("Run", "Run", "Send the mesh to the API and retrieve the combined solid", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Run", "Run", "Process the mesh — auto-starts the server on first run", GH_ParamAccess.item, false);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -55,7 +54,6 @@ namespace Eddy
             var meshes = new System.Collections.Generic.List<Mesh>();
             double minLength = 0.1;
             string url = "http://localhost:8000";
-            bool startServer = false;
             bool run = false;
 
             if (!DA.GetDataList(0, meshes) || meshes.Count == 0) return;
@@ -71,8 +69,10 @@ namespace Eddy
             mesh.UnifyNormals();
             mesh.Compact();
             DA.GetData(2, ref url);
-            DA.GetData(3, ref startServer);
-            DA.GetData(4, ref run);
+            DA.GetData(3, ref run);
+
+            // Auto-start: when Run is true and no server is running, start it locally.
+            bool startServer = run && (_serverProcess == null || _serverProcess.HasExited) && !_serverStarting;
 
             if (string.IsNullOrWhiteSpace(url))
                 url = "http://localhost:8000";
@@ -139,12 +139,9 @@ namespace Eddy
             if (!run)
             {
                 bool serverUp = _serverProcess != null && !_serverProcess.HasExited;
-                if (startServer && serverUp)
-                    DA.SetData(1, _serverStartStatus ?? "Server running. Set Run to true to process.");
-                else if (!startServer)
-                    DA.SetData(1, "Set Run to true to process.");
-                else
-                    DA.SetData(1, _serverStartStatus ?? "Server is not running.");
+                DA.SetData(1, serverUp
+                    ? (_serverStartStatus ?? "Server running. Set Run to true to process.")
+                    : "Set Run to true to process — server will auto-start.");
                 return;
             }
 
