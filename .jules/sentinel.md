@@ -72,3 +72,8 @@
 **Vulnerability:** Command injection via breakout from quoted arguments in shell commands (e.g., `cmd.exe /c MKLINK /J "path"`) when user-controlled paths contain double quotes.
 **Learning:** Even when wrapping arguments in quotes, attackers can use the same quote character to terminate the literal and inject shell metacharacters (e.g., `"path" & malicious_command & "`).
 **Prevention:** Implement a centralized `Utilities.ValidatePathForShell` utility that blacklists shell metacharacters including single and double quotes, and apply it to all user-controlled paths before they are passed to shell-based operations.
+
+## 2026-05-09 - Prevent TOCTOU vulnerabilities in file creation
+**Vulnerability:** File.WriteAllText followed by external chmod call creates a TOCTOU vulnerability and command injection risk.
+**Learning:** In .NET 8, use FileStreamOptions.UnixCreateMode to atomically create executable files with the desired permissions.
+**Prevention:** Avoid external chmod processes and set permissions directly during file creation using UnixCreateMode.
