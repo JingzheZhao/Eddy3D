@@ -118,3 +118,7 @@
 ## 2026-05-09 - [Prevent UI Flickering in Status Labels]
 **Learning:** Updating a single-line status label with every character written to the console (e.g., incremental progress dots) causes rapid flickering and renders the text unreadable.
 **Action:** In `ProgressWriter` implementations, redirect incremental `Write` output only to the log area and reserve `Status` label updates for full `WriteLine` calls. Additionally, check for `IsNullOrWhiteSpace` to prevent clearing the status during empty line breaks.
+
+## 2026-05-10 - [Visual Hover Feedback for Custom Interactive Regions]
+**Learning:** In custom `GH_ComponentAttributes`, interactive regions like dropdown buttons or clickable areas feel static and unresponsive if they don't provide visual feedback on hover.
+**Action:** Implement hover state tracking in custom attributes. Use a boolean or index field to track the hovered state, update it in `RespondToMouseMove`, and call `sender.Invalidate()` when the state changes. In `Render`, use a more prominent background or highlight color for the hovered element.

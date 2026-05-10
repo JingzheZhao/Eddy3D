@@ -44,5 +44,32 @@ namespace EddyLib
             }
             return true;
         }
+
+        /// <summary>
+        /// Validates that a path does not contain characters that could be used for shell injection.
+        /// </summary>
+        /// <param name="path">The path to validate.</param>
+        /// <exception cref="ArgumentException">Thrown when the path contains shell metacharacters.</exception>
+        public static void ValidatePathForShell(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return;
+
+            // Shell metacharacters that are dangerous on Windows and Unix-like systems.
+            // On Windows, backslash is a path separator, but on Unix it is a metacharacter.
+            char[] metachars;
+            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+            {
+                metachars = new[] { '&', '|', ';', '$', '`', '<', '>', '(', ')', '[', ']', '{', '}', '*', '?', '!', '\n', '\r', '\'', '"' };
+            }
+            else
+            {
+                metachars = new[] { '&', '|', ';', '$', '`', '<', '>', '(', ')', '[', ']', '{', '}', '*', '?', '!', '\n', '\r', '\\', '\'', '"' };
+            }
+
+            if (path.IndexOfAny(metachars) != -1)
+            {
+                throw new ArgumentException("Path contains invalid shell metacharacters: " + path);
+            }
+        }
     }
 }

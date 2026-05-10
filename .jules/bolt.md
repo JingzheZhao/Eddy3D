@@ -24,3 +24,7 @@
 ## 2024-05-26 - Outer Loop Parallelization and False Sharing
 **Learning:** Parallelizing the inner loop of a nested O(Hours * Sensors) simulation with trivial per-iteration work causes excessive task scheduling overhead and can lead to false sharing when multiple threads write to adjacent memory in the same row.
 **Action:** Parallelize the outer (temporal) loop instead of the inner (spatial) loop. This improves cache locality, allows hoisting temporal-invariant calculations (like solar projection factors), and ensures each thread writes to its own distinct row, eliminating false sharing.
+
+## 2024-05-27 - Vectorization of Hot Arithmetic Loops
+**Learning:** For large array-based calculations (e.g., MRT accumulation over 8,760 hours), manual SIMD vectorization using `System.Numerics.Vector<T>` significantly outperforms scalar loops. For mixed-precision arithmetic (e.g., `double[]` to `float[]`), `Vector.Narrow` allows for efficient vectorized conversion and accumulation.
+**Action:** Use `Vector<T>` for hot loops involving simple arithmetic on large arrays. Ensure proper handling of hardware acceleration checks and remaining elements.

@@ -67,6 +67,12 @@
 **Vulnerability:** Constructing predictable temporary file names (e.g., `$"EnergyPlus-9.4.0-Installer{ext}"` or `archiveName`) using `Path.GetTempPath()` and later downloading or writing to them is vulnerable to Time-of-Check to Time-of-Use (TOCTOU) and symlink attacks.
 **Learning:** Hardcoded or predictable strings passed to `Path.Combine(Path.GetTempPath(), ...)` allow an attacker to preemptively create symlinks or files with restricted permissions, intercepting or overwriting installer packages before they are executed or extracted.
 **Prevention:** Always ensure temporary file paths are inherently unpredictable by interpolating cryptographically strong identifiers, such as `Guid.NewGuid():N`, directly into the file name string before it is instantiated.
+
+## 2026-03-10 - Secure Shell Path Validation
+**Vulnerability:** Command injection via breakout from quoted arguments in shell commands (e.g., `cmd.exe /c MKLINK /J "path"`) when user-controlled paths contain double quotes.
+**Learning:** Even when wrapping arguments in quotes, attackers can use the same quote character to terminate the literal and inject shell metacharacters (e.g., `"path" & malicious_command & "`).
+**Prevention:** Implement a centralized `Utilities.ValidatePathForShell` utility that blacklists shell metacharacters including single and double quotes, and apply it to all user-controlled paths before they are passed to shell-based operations.
+
 ## 2026-05-09 - Prevent TOCTOU vulnerabilities in file creation
 **Vulnerability:** File.WriteAllText followed by external chmod call creates a TOCTOU vulnerability and command injection risk.
 **Learning:** In .NET 8, use FileStreamOptions.UnixCreateMode to atomically create executable files with the desired permissions.
