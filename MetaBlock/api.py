@@ -44,15 +44,20 @@ def health():
 
 
 @app.post("/combine", response_class=Response)
-async def combine(file: UploadFile = File(...), mode: str = "auto"):
+async def combine(file: UploadFile = File(...), mode: str = "auto", min_length: float = 0.1):
     """
     mode:
-      - "auto" (default): try whole-mesh pymeshfix first, fall back to per-piece reconstruct
-      - "complex": whole-mesh pymeshfix only (best for CAD parts)
-      - "urban": per-piece reconstruct only (best for many independent buildings)
+      - "auto" (default): try urban first, fall back to complex
+      - "complex": whole-mesh pymeshfix (best for CAD parts)
+      - "urban": per-piece reconstruct (best for buildings)
+    min_length: vertex weld tolerance in model units (default 0.1 = 10 cm for meter-unit models).
+                Vertices closer than this distance are merged together.
     """
     if not file.filename.endswith(".stl"):
         raise HTTPException(status_code=400, detail="Only STL files are supported")
+
+    if min_length <= 0:
+        raise HTTPException(status_code=400, detail="min_length must be positive")
 
     data = await file.read()
 
@@ -61,8 +66,14 @@ async def combine(file: UploadFile = File(...), mode: str = "auto"):
     except Exception as e:
         raise HTTPException(status_code=422, detail=f"Failed to parse STL: {e}")
 
+    # Convert min_length (a tolerance distance) to digits_vertex (decimal places).
+    # digits = round(-log10(min_length)). e.g. 0.1 -> 1, 0.01 -> 2, 1.0 -> 0
+    import math
+    digits = max(0, round(-math.log10(min_length)))
+    print(f"[combine] min_length={min_length} -> digits_vertex={digits}", flush=True)
+
     welded = raw.copy()
-    welded.merge_vertices(digits_vertex=MERGE_DIGITS)
+    welded.merge_vertices(digits_vertex=digits)
     welded = clean(welded)
 
     def _stl_response(mesh_obj, stats_dict):

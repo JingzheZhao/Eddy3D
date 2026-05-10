@@ -38,6 +38,7 @@ namespace Eddy
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddMeshParameter("Mesh", "M", "Input meshes (will be merged and combined)", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Min Length", "L", "Vertex weld tolerance in model units. Two vertices closer than this are merged. Default 0.1 (10 cm for meter-unit models). Larger = more aggressive cleanup, smaller = preserves finer detail.", GH_ParamAccess.item, 0.1);
             pManager.AddTextParameter("API URL", "URL", "MetaBlock API base URL", GH_ParamAccess.item, "http://localhost:8000");
             pManager.AddBooleanParameter("Start Server", "Start", "Start the local MetaBlock server via uv (uses MetaBlock folder bundled next to Eddy.gha)", GH_ParamAccess.item, false);
             pManager.AddBooleanParameter("Run", "Run", "Send the mesh to the API and retrieve the combined solid", GH_ParamAccess.item, false);
@@ -52,11 +53,13 @@ namespace Eddy
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             var meshes = new System.Collections.Generic.List<Mesh>();
+            double minLength = 0.1;
             string url = "http://localhost:8000";
             bool startServer = false;
             bool run = false;
 
             if (!DA.GetDataList(0, meshes) || meshes.Count == 0) return;
+            DA.GetData(1, ref minLength);
 
             Mesh mesh = new Mesh();
             foreach (var m in meshes) if (m != null) mesh.Append(m);
@@ -67,9 +70,9 @@ namespace Eddy
             mesh.Weld(Math.PI);
             mesh.UnifyNormals();
             mesh.Compact();
-            DA.GetData(1, ref url);
-            DA.GetData(2, ref startServer);
-            DA.GetData(3, ref run);
+            DA.GetData(2, ref url);
+            DA.GetData(3, ref startServer);
+            DA.GetData(4, ref run);
 
             if (string.IsNullOrWhiteSpace(url))
                 url = "http://localhost:8000";
@@ -195,7 +198,8 @@ namespace Eddy
                         return;
                     }
 
-                    var (resultBytes, statsHeader) = await PostStlWithStatsAsync(baseUrl + "/combine?mode=urban", stlBytes);
+                    string requestUrl = $"{baseUrl}/combine?mode=urban&min_length={minLength.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+                    var (resultBytes, statsHeader) = await PostStlWithStatsAsync(requestUrl, stlBytes);
                     Mesh combined = StlToMesh(resultBytes);
                     _resultMesh = combined;
                     _resultStatus = string.IsNullOrEmpty(statsHeader)
