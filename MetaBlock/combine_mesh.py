@@ -1,7 +1,7 @@
 import trimesh
 from pathlib import Path
 import numpy as np
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import multiprocessing
 
 INPUT = "input.stl"
@@ -128,7 +128,7 @@ def tree_union(parts):
         remainder = [level[-1]] if len(level) % 2 == 1 else []
 
         results = []
-        with ProcessPoolExecutor(max_workers=cpu_count) as executor:
+        with ThreadPoolExecutor(max_workers=cpu_count) as executor:
             futures = {executor.submit(try_union, a, b): i for i, (a, b) in enumerate(pairs)}
             ordered = [None] * len(pairs)
             for future in as_completed(futures):
