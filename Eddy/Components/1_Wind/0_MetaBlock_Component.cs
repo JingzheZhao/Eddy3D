@@ -22,6 +22,8 @@ namespace Eddy
         private Mesh _resultMesh;
         private string _resultStatus;
         private string _resultError;
+        private bool _serverStarting;
+        private string _serverStartStatus;
 
         public MetaBlockComponent()
             : base("MetaBlock", "MetaBlock", "Combines a multi-part mesh into a single CFD-ready solid via the MetaBlock API", "Eddy3D", "1 | Wind")
@@ -31,6 +33,7 @@ namespace Eddy
         public override GH_Exposure Exposure => GH_Exposure.primary;
 
         protected override System.Drawing.Bitmap Icon => Properties.Resources.Eddy_metaBlock;
+
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
@@ -57,6 +60,13 @@ namespace Eddy
 
             Mesh mesh = new Mesh();
             foreach (var m in meshes) if (m != null) mesh.Append(m);
+
+            // Mirror Rhino's "Join" behavior — weld matching vertices across appended meshes
+            // so trimesh.split() sees properly connected components rather than isolated islands.
+            mesh.Vertices.CombineIdentical(true, true);
+            mesh.Weld(Math.PI);
+            mesh.UnifyNormals();
+            mesh.Compact();
             DA.GetData(1, ref url);
             DA.GetData(2, ref startServer);
             DA.GetData(3, ref run);
@@ -66,7 +76,7 @@ namespace Eddy
             if (!url.StartsWith("http://") && !url.StartsWith("https://"))
                 url = "http://" + url;
 
-            if (startServer)
+            if (startServer && !_serverStarting && (_serverProcess == null || _serverProcess.HasExited))
             {
                 string apiPath = ResolveBundledMetaBlockPath();
                 if (apiPath == null)
@@ -75,26 +85,52 @@ namespace Eddy
                     return;
                 }
 
-                try
+                bool firstRun = !Directory.Exists(Path.Combine(apiPath, ".venv"));
+                if (firstRun)
                 {
-                    bool firstRun = !Directory.Exists(Path.Combine(apiPath, ".venv"));
-                    if (firstRun)
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
-                            "First run: installing Python environment (this can take 1–2 minutes). Subsequent starts are instant.");
-                    }
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                        "First run: installing Python environment (this can take 1–2 minutes). Subsequent starts are instant.");
+                }
 
-                    StartServer(apiPath);
-                    DA.SetData(1, firstRun
-                        ? $"First-time setup: installing environment at {apiPath}\\.venv ..."
-                        : $"Server started from {apiPath}");
-                }
-                catch (Exception ex)
+                _serverStarting = true;
+                _serverStartStatus = firstRun
+                    ? $"Starting server (first-time install at {apiPath}\\.venv) ..."
+                    : $"Starting server from {apiPath} ...";
+                DA.SetData(1, _serverStartStatus);
+
+                var startDoc = OnPingDocument();
+                Task.Run(() =>
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message);
-                    DA.SetData(1, $"Server start failed: {ex.Message}");
-                    return;
-                }
+                    try
+                    {
+                        StartServer(apiPath);
+                        _serverStartStatus = $"Server started from {apiPath}";
+                    }
+                    catch (Exception ex)
+                    {
+                        _serverStartStatus = $"Server start failed: {ex.Message}";
+                    }
+                    finally
+                    {
+                        _serverStarting = false;
+                        if (startDoc != null)
+                            Rhino.RhinoApp.InvokeOnUiThread(new Action(() =>
+                            {
+                                startDoc.ScheduleSolution(1, d => ExpireSolution(false));
+                            }));
+                    }
+                });
+                return;
+            }
+
+            if (_serverStarting)
+            {
+                string tail = GetServerLogTail();
+                string status = _serverStartStatus ?? "Starting server...";
+                if (!string.IsNullOrWhiteSpace(tail))
+                    status += "\n--- log ---\n" + tail;
+                DA.SetData(1, status);
+                return;
             }
 
             if (!run)
@@ -154,10 +190,12 @@ namespace Eddy
                         return;
                     }
 
-                    byte[] resultBytes = await PostStlAsync(baseUrl + "/combine", stlBytes);
+                    var (resultBytes, statsHeader) = await PostStlWithStatsAsync(baseUrl + "/combine?mode=urban", stlBytes);
                     Mesh combined = StlToMesh(resultBytes);
                     _resultMesh = combined;
-                    _resultStatus = $"OK — {combined.Faces.Count} faces";
+                    _resultStatus = string.IsNullOrEmpty(statsHeader)
+                        ? $"OK — {combined.Faces.Count} faces"
+                        : $"OK — {combined.Faces.Count} faces\nStats: {statsHeader}";
 
                     Analytics.Analytics.TrackEvent("MetaBlock", "combine");
                 }
@@ -187,11 +225,13 @@ namespace Eddy
             return null;
         }
 
-        private static void StartServer(string projectPath)
+        private void StartServer(string projectPath)
         {
             if (_serverProcess != null && !_serverProcess.HasExited)
                 return;
 
+            _serverStartStatus = "Pulling latest from git...";
+            ScheduleStatusRefresh();
             GitPull(projectPath);
 
             string uv = ResolveExecutable("uv");
@@ -200,8 +240,13 @@ namespace Eddy
 
             lock (_serverLogLock) _serverLog.Clear();
 
+            _serverStartStatus = "Syncing Python environment (uv sync)...";
+            ScheduleStatusRefresh();
             // Force venv to match pyproject (handles new deps after a plugin update)
             RunBlocking(uv, "sync", projectPath, 180000);
+
+            _serverStartStatus = "Launching uvicorn server...";
+            ScheduleStatusRefresh();
 
             var psi = new ProcessStartInfo
             {
@@ -221,6 +266,24 @@ namespace Eddy
             _serverProcess.ErrorDataReceived += (_, e) => { if (e.Data != null) AppendServerLog(e.Data); };
             _serverProcess.BeginOutputReadLine();
             _serverProcess.BeginErrorReadLine();
+
+            _serverStartStatus = "Waiting for /health to come up...";
+            ScheduleStatusRefresh();
+            string baseUrl = "http://localhost:8000";
+            bool ready = Task.Run(() => WaitForHealthAsync(baseUrl + "/health", TimeSpan.FromSeconds(120))).GetAwaiter().GetResult();
+            _serverStartStatus = ready
+                ? $"Server ready at {baseUrl} (PID {_serverProcess.Id})"
+                : "Server process started but /health did not respond within 120s. See log tail.";
+        }
+
+        private void ScheduleStatusRefresh()
+        {
+            var doc = OnPingDocument();
+            if (doc == null) return;
+            Rhino.RhinoApp.InvokeOnUiThread(new Action(() =>
+            {
+                doc.ScheduleSolution(1, d => ExpireSolution(false));
+            }));
         }
 
         private static void AppendServerLog(string line)
@@ -328,6 +391,12 @@ namespace Eddy
 
         private static async Task<byte[]> PostStlAsync(string endpoint, byte[] stlBytes)
         {
+            var (bytes, _) = await PostStlWithStatsAsync(endpoint, stlBytes);
+            return bytes;
+        }
+
+        private static async Task<(byte[] bytes, string stats)> PostStlWithStatsAsync(string endpoint, byte[] stlBytes)
+        {
             using var content = new MultipartFormDataContent();
             var fileContent = new ByteArrayContent(stlBytes);
             fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
@@ -341,7 +410,12 @@ namespace Eddy
                 throw new Exception($"API returned {(int)response.StatusCode}: {body}");
             }
 
-            return await response.Content.ReadAsByteArrayAsync();
+            string stats = response.Headers.TryGetValues("X-MetaBlock-Stats", out var values)
+                ? string.Join("", values)
+                : "";
+
+            byte[] bytes = await response.Content.ReadAsByteArrayAsync();
+            return (bytes, stats);
         }
 
         private static byte[] MeshToStl(Mesh mesh)
