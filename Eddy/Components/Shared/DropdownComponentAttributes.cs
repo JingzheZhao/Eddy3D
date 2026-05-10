@@ -38,6 +38,7 @@ namespace Eddy
 
         private readonly DropdownDef[] _defs;
         private readonly System.Collections.Generic.Dictionary<int, RectangleF> _btnBounds = new();
+        private int _hoveredParamIndex = -1;
 
         private static System.Reflection.MethodInfo _attachCursorMethod;
         private static bool _attachCursorMethodSearched = false;
@@ -81,7 +82,8 @@ namespace Eddy
                 if (param.SourceCount > 0) continue;
 
                 // Draw a subtle button background so it's clear it's a clickable target
-                using (var bgBrush = new SolidBrush(Color.FromArgb((int)(alpha * 0.15f), SystemColors.ControlText)))
+                float bgAlpha = (def.ParamIndex == _hoveredParamIndex) ? 0.3f : 0.15f;
+                using (var bgBrush = new SolidBrush(Color.FromArgb((int)(alpha * bgAlpha), SystemColors.ControlText)))
                 {
                     var rect = new RectangleF(r.X, r.Y, r.Width, r.Height);
                     graphics.FillRectangle(bgBrush, rect);
@@ -108,6 +110,7 @@ namespace Eddy
 
         public override GH_ObjectResponse RespondToMouseMove(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
+            int newHover = -1;
             foreach (var def in _defs)
             {
                 if (!_btnBounds.TryGetValue(def.ParamIndex, out var r)) continue;
@@ -118,6 +121,8 @@ namespace Eddy
                 var clickRect = new RectangleF(r.X - 2f, r.Y - 2f, r.Width + 4f, r.Height + 4f);
                 if (clickRect.Contains(e.CanvasLocation))
                 {
+                    newHover = def.ParamIndex;
+
                     if (!_attachCursorMethodSearched)
                     {
                         var cursorServerType = Grasshopper.Instances.CursorServer.GetType();
@@ -128,7 +133,6 @@ namespace Eddy
                     if (_attachCursorMethod != null)
                     {
                         _attachCursorMethod.Invoke(Grasshopper.Instances.CursorServer, new object[] { sender, "GH_Hand" });
-                        return GH_ObjectResponse.Handled;
                     }
                     else
                     {
@@ -136,16 +140,23 @@ namespace Eddy
                         try
                         {
                             ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(sender, "GH_Hand");
-                            return GH_ObjectResponse.Handled;
                         }
                         catch
                         {
                             // Ignore failure
                         }
                     }
+                    break;
                 }
             }
-            return base.RespondToMouseMove(sender, e);
+
+            if (newHover != _hoveredParamIndex)
+            {
+                _hoveredParamIndex = newHover;
+                sender.Invalidate();
+            }
+
+            return newHover != -1 ? GH_ObjectResponse.Handled : base.RespondToMouseMove(sender, e);
         }
 
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
@@ -172,6 +183,7 @@ namespace Eddy
 
         private void ShowMenu(GH_Canvas canvas, DropdownDef def, RectangleF bounds)
         {
+            _hoveredParamIndex = -1;
             var intParam = Owner.Params.Input[def.ParamIndex] as Param_Integer;
             if (intParam == null) return;
 
