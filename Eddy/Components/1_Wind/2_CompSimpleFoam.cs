@@ -1045,17 +1045,10 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             return null;
         }
 
-        private static bool IsPathSafe(string path)
-        {
-            if (string.IsNullOrEmpty(path)) return false;
-            char[] metachars = new[] { '&', '|', ';', '$', '`', '\'', '"', '\n', '\r', '<', '>' };
-            return path.IndexOfAny(metachars) == -1;
-        }
-
         private static void OpenCommandFile(string path)
         {
             if (!System.IO.File.Exists(path)) return;
-            if (!IsPathSafe(path)) return;
+            Utilities.ValidatePathForShell(path);
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
