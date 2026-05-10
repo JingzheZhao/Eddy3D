@@ -10,6 +10,9 @@ namespace EddyLib
     {
         public static void Create(string simDir, string meshDir)
         {
+            Utilities.ValidatePathForShell(simDir);
+            Utilities.ValidatePathForShell(meshDir);
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 if (Directory.Exists(simDir))
@@ -63,6 +66,8 @@ namespace EddyLib
 
         public static void Delete(string simDir)
         {
+            Utilities.ValidatePathForShell(simDir);
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Windows: use cmd.exe rd to remove directory junction
