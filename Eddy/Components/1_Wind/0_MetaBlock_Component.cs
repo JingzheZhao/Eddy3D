@@ -97,7 +97,7 @@ namespace Eddy
 
                 _serverStarting = true;
                 _serverStartStatus = firstRun
-                    ? $"Starting server (first-time install at {apiPath}\\.venv) ..."
+                    ? $"Starting server (first-time install at {Path.Combine(apiPath, ".venv")}) ..."
                     : $"Starting server from {apiPath} ...";
                 DA.SetData(1, _serverStartStatus);
 
@@ -235,28 +235,21 @@ namespace Eddy
 
             string uv = ResolveExecutable("uv");
             if (uv == null)
-                throw new Exception("'uv' was not found on PATH. Install uv (https://astral.sh/uv) or add it to PATH.");
+                throw new Exception(
+                    "'uv' was not found. Install uv (https://astral.sh/uv) or add it to PATH. " +
+                    $"Current PATH: {Environment.GetEnvironmentVariable("PATH") ?? ""}");
 
             lock (_serverLogLock) _serverLog.Clear();
 
             _serverStartStatus = "Syncing Python environment (uv sync)...";
             ScheduleStatusRefresh();
             // Force venv to match pyproject (handles new deps after a plugin update)
-            RunBlocking(uv, "sync", projectPath, 180000);
+            RunBlocking(uv, projectPath, 180000, "sync");
 
             _serverStartStatus = "Launching uvicorn server...";
             ScheduleStatusRefresh();
 
-            var psi = new ProcessStartInfo
-            {
-                FileName = uv,
-                Arguments = "run api.py",
-                WorkingDirectory = projectPath,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-            };
+            var psi = CreateStartInfo(uv, projectPath, true, "run", "api.py");
 
             _serverProcess = Process.Start(psi)
                 ?? throw new Exception("Failed to start uv process.");
@@ -308,7 +301,7 @@ namespace Eddy
                 ? new[] { ".exe", ".cmd", ".bat", "" }
                 : new[] { "" };
 
-            foreach (string dir in pathEnv.Split(Path.PathSeparator))
+            foreach (string dir in EnumerateExecutableSearchPaths(pathEnv))
             {
                 if (string.IsNullOrWhiteSpace(dir)) continue;
                 foreach (string ext in exts)
@@ -317,28 +310,163 @@ namespace Eddy
                     if (File.Exists(full)) return full;
                 }
             }
+
+            if (!OperatingSystem.IsWindows())
+            {
+                string fromShell = ResolveExecutableFromLoginShell(name);
+                if (!string.IsNullOrWhiteSpace(fromShell) && File.Exists(fromShell))
+                    return fromShell;
+            }
+
             return null;
         }
 
-        private static void RunBlocking(string fileName, string args, string workingDir, int timeoutMs)
+        private static System.Collections.Generic.IEnumerable<string> EnumerateExecutableSearchPaths(string pathEnv)
         {
+            var seen = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+
+            foreach (string dir in pathEnv.Split(Path.PathSeparator))
+            {
+                if (string.IsNullOrWhiteSpace(dir)) continue;
+                if (seen.Add(dir)) yield return dir;
+            }
+
+            if (!OperatingSystem.IsWindows())
+            {
+                string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                if (string.IsNullOrWhiteSpace(home))
+                    home = Environment.GetEnvironmentVariable("HOME") ?? "";
+
+                string[] macFallbacks =
+                {
+                    Path.Combine(home, ".local", "bin"),
+                    Path.Combine(home, ".cargo", "bin"),
+                    "/opt/homebrew/bin",
+                    "/usr/local/bin",
+                    "/opt/local/bin",
+                };
+
+                foreach (string dir in macFallbacks)
+                {
+                    if (string.IsNullOrWhiteSpace(dir)) continue;
+                    if (seen.Add(dir)) yield return dir;
+                }
+            }
+        }
+
+        private static string ResolveExecutableFromLoginShell(string name)
+        {
+            string shell = Environment.GetEnvironmentVariable("SHELL");
+            if (string.IsNullOrWhiteSpace(shell) || !File.Exists(shell))
+                shell = File.Exists("/bin/zsh") ? "/bin/zsh" : "/bin/sh";
+
             var psi = new ProcessStartInfo
             {
-                FileName = fileName,
-                Arguments = args,
-                WorkingDirectory = workingDir,
+                FileName = shell,
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };
+            psi.ArgumentList.Add("-lc");
+            psi.ArgumentList.Add($"command -v {ShellQuote(name)}");
+
+            try
+            {
+                using var proc = Process.Start(psi);
+                if (proc == null) return null;
+
+                string stdout = proc.StandardOutput.ReadToEnd().Trim();
+                proc.StandardError.ReadToEnd();
+                if (!proc.WaitForExit(5000))
+                {
+                    try { proc.Kill(entireProcessTree: true); } catch { }
+                    return null;
+                }
+
+                if (proc.ExitCode != 0 || string.IsNullOrWhiteSpace(stdout))
+                    return null;
+
+                string[] lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                return lines.Length > 0 ? lines[0] : null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static string ShellQuote(string value)
+        {
+            return $"'{value.Replace("'", "'\\''")}'";
+        }
+
+        private static ProcessStartInfo CreateStartInfo(string fileName, string workingDir, bool redirectOutput, params string[] args)
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = fileName,
+                WorkingDirectory = workingDir,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = redirectOutput,
+                RedirectStandardError = redirectOutput,
+            };
+
+            if (OperatingSystem.IsWindows() && IsWindowsCommandScript(fileName))
+            {
+                psi.FileName = Environment.GetEnvironmentVariable("ComSpec") ?? "cmd.exe";
+                psi.ArgumentList.Add("/d");
+                psi.ArgumentList.Add("/s");
+                psi.ArgumentList.Add("/c");
+                psi.ArgumentList.Add(BuildWindowsCommandLine(fileName, args));
+                return psi;
+            }
+
+            foreach (string arg in args)
+                psi.ArgumentList.Add(arg);
+
+            return psi;
+        }
+
+        private static bool IsWindowsCommandScript(string fileName)
+        {
+            string ext = Path.GetExtension(fileName);
+            return ext.Equals(".cmd", StringComparison.OrdinalIgnoreCase)
+                || ext.Equals(".bat", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string BuildWindowsCommandLine(string fileName, string[] args)
+        {
+            var parts = new System.Collections.Generic.List<string> { QuoteWindowsCommandPart(fileName) };
+            foreach (string arg in args)
+                parts.Add(QuoteWindowsCommandPart(arg));
+            return string.Join(" ", parts);
+        }
+
+        private static string QuoteWindowsCommandPart(string value)
+        {
+            return "\"" + value.Replace("\"", "\\\"") + "\"";
+        }
+
+        private static void RunBlocking(string fileName, string workingDir, int timeoutMs, params string[] args)
+        {
+            string commandLabel = $"{Path.GetFileName(fileName)} {string.Join(" ", args)}".Trim();
+            var psi = CreateStartInfo(fileName, workingDir, true, args);
             using var proc = Process.Start(psi);
-            if (proc == null) return;
+            if (proc == null) throw new Exception($"Failed to start {commandLabel}.");
             proc.OutputDataReceived += (_, e) => { if (e.Data != null) AppendServerLog(e.Data); };
             proc.ErrorDataReceived += (_, e) => { if (e.Data != null) AppendServerLog(e.Data); };
             proc.BeginOutputReadLine();
             proc.BeginErrorReadLine();
-            proc.WaitForExit(timeoutMs);
+            if (!proc.WaitForExit(timeoutMs))
+            {
+                try { proc.Kill(entireProcessTree: true); } catch { }
+                throw new TimeoutException($"{commandLabel} timed out after {timeoutMs / 1000}s.\n{GetServerLogTail()}");
+            }
+
+            if (proc.ExitCode != 0)
+                throw new Exception($"{commandLabel} failed with exit code {proc.ExitCode}.\n{GetServerLogTail()}");
         }
 
         private static void GitPull(string projectPath)
