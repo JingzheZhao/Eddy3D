@@ -82,6 +82,9 @@ namespace EddyLib
                 return mappedForeignPath;
             }
 
+            // Validate that the path does not contain shell metacharacters before resolving as a local path.
+            Utilities.ValidatePathForShell(trimmed);
+
             // Check if this is a simple name (no path separators, no drive letter)
             bool isSimpleName = !ContainsAnyDirectorySeparator(trimmed)
                              && !LooksLikeWindowsDrivePath(trimmed)
