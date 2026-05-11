@@ -28,3 +28,7 @@
 ## 2024-05-27 - Vectorization of Hot Arithmetic Loops
 **Learning:** For large array-based calculations (e.g., MRT accumulation over 8,760 hours), manual SIMD vectorization using `System.Numerics.Vector<T>` significantly outperforms scalar loops. For mixed-precision arithmetic (e.g., `double[]` to `float[]`), `Vector.Narrow` allows for efficient vectorized conversion and accumulation.
 **Action:** Use `Vector<T>` for hot loops involving simple arithmetic on large arrays. Ensure proper handling of hardware acceleration checks and remaining elements.
+
+## 2026-05-11 - Allocation-Free Geometry Kernels + Single-Pass Per-Probe Loops
+**Learning:** View-factor hot loops paid for two avoidable costs: (1) `new Plane(centroid, normal).DistanceTo(pt)` allocates a struct just to compute one signed dot product, and (2) the compute / aggregate / normalize phases were separate passes that hurt cache locality and added `Parallel.For` orchestration overhead. Additionally, dividing by an unguarded accumulator sum produces `Infinity`/`NaN` for any probe that sees no polygons.
+**Action:** Replace `Plane.DistanceTo` with `n · (p - origin)` and `r.Length` with `dv.X*dv.X + dv.Y*dv.Y + dv.Z*dv.Z`; collapse trivially-1 `cosTheta` factors (when `probe_n = dv/r`). Merge per-probe allocation, math, and normalization into a single `Parallel.For` iteration. Always guard `1.0 / total` with `if (total > 0)` to avoid NaN propagation. Parallelize `FindPolysSeenByProbes` over polygons, preserving the old "leave unchanged when accumulator is zero" semantics.
