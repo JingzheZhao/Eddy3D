@@ -91,6 +91,7 @@ namespace Eddy
         private static bool _attachCursorMethodSearched;
 
         private readonly Dictionary<GH_ToggleParam, RectangleF> _toggleBounds = new Dictionary<GH_ToggleParam, RectangleF>();
+        private GH_ToggleParam _hoveredToggle;
 
         public ProbeRunButtonAttributes(GH_Component owner)
             : base(owner)
@@ -102,6 +103,7 @@ namespace Eddy
             base.Layout();
 
             _toggleBounds.Clear();
+            _hoveredToggle = null;
             foreach (GH_ToggleParam toggleParam in FindToggleParams())
             {
                 RectangleF toggleBounds = FindToggleBounds(toggleParam);
@@ -135,7 +137,9 @@ namespace Eddy
             {
                 GH_Palette palette = Owner.Locked ? GH_Palette.Locked : GH_Palette.Black;
                 GH_Capsule capsule = GH_Capsule.CreateCapsule(entry.Value, palette, ToggleRadius, 0);
-                capsule.Render(graphics, Selected, Owner.Locked, Owner.Hidden);
+
+                bool isHovered = !Owner.Locked && entry.Key == _hoveredToggle;
+                capsule.Render(graphics, Selected || isHovered, Owner.Locked, Owner.Hidden);
                 capsule.Dispose();
 
                 if (entry.Key.Toggle)
@@ -150,13 +154,31 @@ namespace Eddy
 
         public override GH_ObjectResponse RespondToMouseMove(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
-            bool hovered = _toggleBounds.Values.Any(bounds => bounds.Contains(e.CanvasLocation));
-            if (hovered)
+            GH_ToggleParam newHover = null;
+            if (!Owner.Locked)
             {
-                AttachHandCursor(sender);
+                foreach (KeyValuePair<GH_ToggleParam, RectangleF> entry in _toggleBounds)
+                {
+                    // We expand the click target slightly for ease of use
+                    var clickRect = entry.Value;
+                    clickRect.Inflate(2f, 2f);
+
+                    if (clickRect.Contains(e.CanvasLocation))
+                    {
+                        newHover = entry.Key;
+                        AttachHandCursor(sender);
+                        break;
+                    }
+                }
             }
 
-            return hovered ? GH_ObjectResponse.Handled : base.RespondToMouseMove(sender, e);
+            if (newHover != _hoveredToggle)
+            {
+                _hoveredToggle = newHover;
+                sender.Invalidate();
+            }
+
+            return _hoveredToggle != null ? GH_ObjectResponse.Handled : base.RespondToMouseMove(sender, e);
         }
 
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
@@ -168,7 +190,11 @@ namespace Eddy
 
             foreach (KeyValuePair<GH_ToggleParam, RectangleF> entry in _toggleBounds)
             {
-                if (entry.Value.Contains(e.CanvasLocation))
+                // We expand the click target slightly for ease of use
+                var clickRect = entry.Value;
+                clickRect.Inflate(2f, 2f);
+
+                if (clickRect.Contains(e.CanvasLocation))
                 {
                     entry.Key.SetToggle(!entry.Key.Toggle);
                     return GH_ObjectResponse.Handled;

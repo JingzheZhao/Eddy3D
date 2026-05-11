@@ -122,3 +122,7 @@
 ## 2026-05-10 - [Visual Hover Feedback for Custom Interactive Regions]
 **Learning:** In custom `GH_ComponentAttributes`, interactive regions like dropdown buttons or clickable areas feel static and unresponsive if they don't provide visual feedback on hover.
 **Action:** Implement hover state tracking in custom attributes. Use a boolean or index field to track the hovered state, update it in `RespondToMouseMove`, and call `sender.Invalidate()` when the state changes. In `Render`, use a more prominent background or highlight color for the hovered element.
+
+## 2026-05-11 - [Inflate Hit Targets for Small UI Controls]
+**Learning:** Small interactive controls in Grasshopper (like 10px toggles) can be difficult to hit precisely, especially for users with motor impairments. Inflating the hit-test rectangle by a few pixels (e.g., 2px) in `RespondToMouseMove` and `RespondToMouseDown` significantly improves the usability and accessibility of these controls without changing the visual design.
+**Action:** For small interactive regions in custom `GH_ComponentAttributes`, always use `RectangleF.Inflate(2f, 2f)` when performing hit-testing to provide a more forgiving interaction area.
