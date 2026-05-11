@@ -47,7 +47,7 @@ namespace Urbano.Simulation
             var remaining = totalEstimated - elapsed;
             if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
 
-            TimeRemaining.Text = "Remaining: " + remaining.ToString(@"hh\:mm\:ss");
+            TimeRemaining.Text = $"Remaining: {(int)remaining.TotalHours:D2}:{remaining.Minutes:D2}:{remaining.Seconds:D2}";
         }
 
         public ProgressDialog(Func<CancellationTokenSource, Task> task, double refreshRate = 1000)
@@ -69,7 +69,7 @@ namespace Urbano.Simulation
             timer = new UITimer { Interval = 1.0 };
             timer.Elapsed += (s, e) =>
             {
-                TimeElapsed.Text = "Elapsed: " + stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
+                TimeElapsed.Text = $"Elapsed: {(int)stopwatch.Elapsed.TotalHours:D2}:{stopwatch.Elapsed.Minutes:D2}:{stopwatch.Elapsed.Seconds:D2}";
                 UpdateTimeRemaining();
             };
             timer.Start();
