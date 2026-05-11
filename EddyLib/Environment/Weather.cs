@@ -167,27 +167,31 @@ namespace EddyLib
             }
 
             Console.WriteLine("Calculating: Solar Geometry");
-            SolarElevation = new List<double>(epwNoHeader.Length);
-            SolarAzi = new List<double>(epwNoHeader.Length);
+            // Bolt optimization: Parallelized solar geometry calculation and reduced redundant calls.
+            // Using temporary arrays for thread-safe concurrent writing before populating Lists.
+            double[] elevations = new double[epwNoHeader.Length];
+            double[] azimuths = new double[epwNoHeader.Length];
 
             var sg = new SolarGeometry();
 
-            for (int i = 0; i < yr.Length; i++)
+            System.Threading.Tasks.Parallel.For(0, yr.Length, i =>
             {
-                double _el = sg.solarelevation(Latitude, Longitude, yr[i], mo[i], dy[i], hr[i], 0, 0, TimeZone, 0);
-                double _az = sg.solarazimuth(Latitude, Longitude, yr[i], mo[i], dy[i], hr[i], 0, 0, TimeZone, 0);
+                sg.GetSolarPosition(Latitude, Longitude, yr[i], mo[i], dy[i], hr[i], 0, 0, TimeZone, 0, out double _el, out double _az);
 
                 if (_el > 0)
                 {
-                    SolarElevation.Add(_el);
-                    SolarAzi.Add(_az);
+                    elevations[i] = _el;
+                    azimuths[i] = _az;
                 }
                 else
                 {
-                    SolarElevation.Add(0);
-                    SolarAzi.Add(0);
+                    elevations[i] = 0;
+                    azimuths[i] = 0;
                 }
-            }
+            });
+
+            SolarElevation = new List<double>(elevations);
+            SolarAzi = new List<double>(azimuths);
         }
 
         public string ClassifyClimateZone(string epwFilePath, string workingDirToSaveCSV)

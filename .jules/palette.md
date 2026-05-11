@@ -68,6 +68,10 @@
 **Learning:** Custom interactive regions in Grasshopper `GH_ComponentAttributes` (like dropdown buttons or custom controls) feel unresponsive if they don't provide visual hover feedback. Implementing `RespondToMouseMove` to change the cursor to `GH_Hand` significantly improves the perceived quality of the UI.
 **Action:** For all custom `GH_ComponentAttributes` with interactive bounds, override `RespondToMouseMove` and use the cached reflection pattern to call `AttachCursor(sender, "GH_Hand")`.
 
+## 2026-03-24 - [Dynamic Feedback for Async Operations in Grasshopper Buttons]
+**Learning:** For components triggering async operations (like template syncing) via custom button attributes, static button labels leave users uncertain about the process state. Dynamically updating button text and palette (e.g., using `GH_Palette.Blue` for active tasks and `GH_Palette.Warning` for updates) provides immediate, clear visual feedback without obstructing the workspace.
+**Action:** Implement dynamic `ButtonText` and `ButtonPalette` properties in custom component attributes to allow components to signal background activity or available updates directly on the button element.
+
 ## 2026-03-30 - [Provide Call-to-Actions in Component Empty States]
 **Learning:** Empty states on Grasshopper canvas drawings that simply state "No data" or describe a missing state (e.g., "Idle", "Missing result") leave users guessing what to do next.
 **Action:** When designing empty states for custom canvas drawings, always supplement the status description with a clear, actionable instruction (e.g., "Enable 'Live' toggle to monitor" or "Connect a valid simulation result"). This improves the clarity of error messages and provides a helpful call-to-action.
@@ -98,3 +102,27 @@
 ## 2026-03-31 - [Theme-Aware Color De-emphasis]
 **Learning:** Hardcoding hex or RGB values for de-emphasized text (like "Elapsed:" labels) can lead to poor contrast in different system themes (Light vs Dark).
 **Action:** Use `SystemColors.ControlText` with a specific opacity (e.g., `new Color(SystemColors.ControlText, 0.5f)`) to create theme-aware secondary text colors that maintain appropriate contrast automatically.
+
+## 2026-05-08 - [Avoid Redundant Tooltips on Static Text]
+**Learning:** Adding `ToolTip` properties to static UI labels that already contain the descriptive text (e.g., adding a tooltip "Elapsed time" to a label reading "Elapsed:") is an accessibility anti-pattern. It creates redundant noise for screen reader users and unnecessary visual clutter for sighted users.
+**Action:** When adding accessibility context, never apply redundant tooltips to static text labels that visually describe their own purpose. Reserve tooltips for interactive elements (buttons, inputs) or contextually ambiguous icons/elements.
+
+## 2026-05-08 - [Graceful Error Handling in Progress Dialogs]
+**Learning:** Silently closing a progress dialog (e.g., `ProgressDialog` in Eto.Forms) when a background simulation task throws an exception leaves users confused, as they cannot see the error message or copy the associated logs.
+**Action:** Always intercept task faults in the continuation block (`ContinueWith`), keep the progress window open, update the status label to explicitly display the error message (e.g., using `Colors.Red`), and rename the active button to "Close" to ensure the failure state is clear and actionable.
+
+## 2026-05-09 - [Theme-Aware Rendering in Grasshopper Attributes]
+**Learning:** Hardcoding black colors for interactive hints or icons in custom Grasshopper component attributes makes them nearly invisible in Rhino 8's Dark Mode or high-contrast themes.
+**Action:** Always use `SystemColors.ControlText` for rendering interactive elements like dropdown arrows or button backgrounds to ensure they automatically adapt to the user's theme.
+
+## 2026-05-09 - [Prevent UI Flickering in Status Labels]
+**Learning:** Updating a single-line status label with every character written to the console (e.g., incremental progress dots) causes rapid flickering and renders the text unreadable.
+**Action:** In `ProgressWriter` implementations, redirect incremental `Write` output only to the log area and reserve `Status` label updates for full `WriteLine` calls. Additionally, check for `IsNullOrWhiteSpace` to prevent clearing the status during empty line breaks.
+
+## 2026-05-10 - [Visual Hover Feedback for Custom Interactive Regions]
+**Learning:** In custom `GH_ComponentAttributes`, interactive regions like dropdown buttons or clickable areas feel static and unresponsive if they don't provide visual feedback on hover.
+**Action:** Implement hover state tracking in custom attributes. Use a boolean or index field to track the hovered state, update it in `RespondToMouseMove`, and call `sender.Invalidate()` when the state changes. In `Render`, use a more prominent background or highlight color for the hovered element.
+
+## 2026-05-11 - [Inflate Hit Targets for Small UI Controls]
+**Learning:** Small interactive controls in Grasshopper (like 10px toggles) can be difficult to hit precisely, especially for users with motor impairments. Inflating the hit-test rectangle by a few pixels (e.g., 2px) in `RespondToMouseMove` and `RespondToMouseDown` significantly improves the usability and accessibility of these controls without changing the visual design.
+**Action:** For small interactive regions in custom `GH_ComponentAttributes`, always use `RectangleF.Inflate(2f, 2f)` when performing hit-testing to provide a more forgiving interaction area.

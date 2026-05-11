@@ -11,6 +11,11 @@ on:
       - main
       - dev
 
+# Cancel any in-progress run for the same ref when a new push lands
+concurrency:
+  group: ci-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: windows-latest

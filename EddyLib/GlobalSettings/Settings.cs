@@ -39,13 +39,16 @@ namespace EddyLib
         {
             var psi = new ProcessStartInfo(PowerShellPath)
             {
-                Verb = "runas",
                 CreateNoWindow = true,
-                Arguments = command,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 UseShellExecute = false
             };
+
+            psi.ArgumentList.Add("-NoProfile");
+            psi.ArgumentList.Add("-NonInteractive");
+            psi.ArgumentList.Add("-Command");
+            psi.ArgumentList.Add(command);
 
             using (var process = new Process { StartInfo = psi })
             {

@@ -10,6 +10,9 @@ namespace EddyLib.UI
 {
     public class Eddy_ComponentButtonAttributes : Eddy_ComponentAttributes
     {
+        public string ButtonText { get; set; } = "Select Template";
+        public GH_Palette ButtonPalette { get; set; } = GH_Palette.Black;
+
         public Eddy_ComponentButtonAttributes(GH_Component component) : base(component)
         {
         }
@@ -37,7 +40,7 @@ namespace EddyLib.UI
 
             if (channel == GH_CanvasChannel.Objects)
             {
-                GH_Capsule button = GH_Capsule.CreateTextCapsule(ButtonBounds, ButtonBounds, GH_Palette.Black, "Select Template", 2, 0);
+                GH_Capsule button = GH_Capsule.CreateTextCapsule(ButtonBounds, ButtonBounds, ButtonPalette, ButtonText, 2, 0);
                 button.Render(graphics, Selected, false, false);
                 button.Dispose();
             }

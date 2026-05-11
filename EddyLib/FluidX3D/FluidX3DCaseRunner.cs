@@ -449,7 +449,6 @@ namespace EddyLib.FluidX3D
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    EnsureExecutableUnix(fullScriptPath);
                     var psi = new ProcessStartInfo
                     {
                         FileName = "/usr/bin/open",
@@ -482,37 +481,5 @@ namespace EddyLib.FluidX3D
             }
         }
 
-        private static void EnsureExecutableUnix(string filePath)
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return;
-            }
-
-            var chmodPsi = new ProcessStartInfo
-            {
-                FileName = "/bin/chmod",
-                UseShellExecute = false,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            };
-            chmodPsi.ArgumentList.Add("+x");
-            chmodPsi.ArgumentList.Add(filePath);
-
-            using (Process process = Process.Start(chmodPsi))
-            {
-                if (process == null)
-                {
-                    throw new InvalidOperationException("Failed to start chmod for " + filePath);
-                }
-
-                string stdErr = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                if (process.ExitCode != 0)
-                {
-                    throw new InvalidOperationException("chmod failed for " + filePath + ": " + stdErr.Trim());
-                }
-            }
-        }
     }
 }

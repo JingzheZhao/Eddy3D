@@ -510,6 +510,16 @@ namespace EddyLib.Strings
             return sb.ToString();
         }
 
+        public static string RunSimContinueOnly(OFBaseDomain DOM, OFMeshSettings MeshSettings)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (int i in DOM.BCond.WindDirections)
+            {
+                sb.AppendLine("call \"%~dp0" + i + "_run_sim_continue.bat\"");
+            }
+            return sb.ToString();
+        }
+
         public static string RunPostProcessU_Only(OFBaseDomain DOM, OFMeshSettings MeshSettings)
         {
             StringBuilder sb = new StringBuilder();

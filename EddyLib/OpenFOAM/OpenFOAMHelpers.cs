@@ -56,6 +56,45 @@ namespace EddyLib.OpenFOAM
         }
 
         /// <summary>
+        /// Checks whether a case directory contains any non-zero time-step iteration
+        /// folders, indicating a previous simulation run that can be continued.
+        /// Handles both single-CPU layout (numeric folders in the case root) and
+        /// multi-CPU layout (numeric folders inside processorX directories).
+        /// </summary>
+        public static bool HasIterationFolders(string caseDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(caseDirectory) || !Directory.Exists(caseDirectory))
+                return false;
+
+            foreach (var dir in Directory.GetDirectories(caseDirectory))
+            {
+                if (IsNonZeroIterationFolder(Path.GetFileName(dir)))
+                    return true;
+            }
+
+            foreach (var dir in Directory.GetDirectories(caseDirectory, "processor*"))
+            {
+                var procName = Path.GetFileName(dir);
+                if (procName == null || !Regex.IsMatch(procName, @"^processor\d+$", RegexOptions.IgnoreCase))
+                    continue;
+                foreach (var subDir in Directory.GetDirectories(dir))
+                {
+                    if (IsNonZeroIterationFolder(Path.GetFileName(subDir)))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsNonZeroIterationFolder(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return false;
+            return name.All(char.IsDigit) && int.TryParse(name, out int val) && val > 0;
+        }
+
+        /// <summary>
         /// Gets the last iteration number from a simulation directory.
         /// </summary>
         public static int GetLastIterationFromDirectory(string simWorkingDirectory)
