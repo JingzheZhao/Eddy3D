@@ -1,4 +1,4 @@
-﻿using Eto.Drawing;
+using Eto.Drawing;
 using Eto.Forms;
 using System.Diagnostics;
 using System;
@@ -14,201 +14,320 @@ namespace EddyLib.UI
         public Label Status;
         public TextArea StatusLog;
         private Label TimeElapsed;
+        private Label TimeRemaining;
+        private Label ProgressPercent;
         private Stopwatch stopwatch;
         private UITimer timer;
 
         public bool Canceled = false;
         private bool isFinished = false;
-        private ProgressBar pbar;
+        private Eto.Forms.ProgressBar pbar;
+        private string _baseTitle;
+        private float _progress = 0f;
 
         public float Progress
         {
-            get { return pbar.Progress; }
+            get { return _progress; }
             set
             {
-                pbar.Progress = value;
-                pbar.Invalidate();
-                Title = $"Simulation Progress - {(int)(value * 100)}%";
+                _progress = Math.Clamp(value, 0f, 1f);
+                pbar.Value = (int)(_progress * 100);
+                string percent = FormatPercent(_progress);
+                ProgressPercent.Text = percent;
+                UpdateStatus();
             }
         }
 
-        public ProgressDialog(Func<CancellationTokenSource, Task> task, double refreshRate = 1000)
+        private void UpdateStatus()
         {
-            Title = "Simulation Progress - 0%";
-            //Icon = Icon.FromResource("Properties.Resources.eddy_icon.png");
-            ClientSize = new Size(450, 250);
-            MinimumSize = new Size(450, 250);
+            var elapsed = stopwatch.Elapsed;
+            TimeElapsed.Text = FormatTime(elapsed);
+
+            string etaStr = "--:--:--";
+            if (_progress > 0.001f && _progress < 1f)
+            {
+                double totalMs = elapsed.TotalMilliseconds / _progress;
+                double remainingMs = totalMs - elapsed.TotalMilliseconds;
+                var remaining = TimeSpan.FromMilliseconds(remainingMs);
+                etaStr = FormatTime(remaining);
+            }
+            else if (_progress >= 1f)
+            {
+                etaStr = "00:00:00";
+            }
+            TimeRemaining.Text = etaStr;
+
+            string percent = FormatPercent(_progress).Trim();
+            Title = $"{_baseTitle} - {percent} (ETA: {etaStr})";
+        }
+
+        private static string FormatTime(TimeSpan t)
+        {
+            return $"{(int)t.TotalHours:D2}:{t.Minutes:D2}:{t.Seconds:D2}";
+        }
+
+        public ProgressDialog(Func<CancellationTokenSource, Task> task, string title = "Simulation", double refreshRate = 1000)
+        {
+            _baseTitle = title;
+            Title = $"{_baseTitle} - 0%";
+            ClientSize = new Size(640, 520);
+            MinimumSize = new Size(580, 440);
             Resizable = true;
             ShowInTaskbar = true;
 
-            // controls
-            Status = new Label() { Text = "Starting simulation...", ToolTip = "Current simulation status", Wrap = WrapMode.Word };
-            StatusLog = new TextArea() { Height = 150, ReadOnly = true, Font = Fonts.Monospace(10), ToolTip = "Detailed simulation log output" };
+            // --- Typography ---
+            var fontTitle = SystemFonts.Bold(18);
+            var fontBody = SystemFonts.Label(12);
+            var fontCaption = SystemFonts.Bold(10);
+            var fontMono = Fonts.Monospace(11);
 
-            TimeElapsed = new Label { Text = "Elapsed: 00:00:00", VerticalAlignment = VerticalAlignment.Center, ToolTip = "Time elapsed since simulation started" };
+            var titleLabel = new Label
+            {
+                Text = title,
+                Font = fontTitle,
+                TextColor = SystemColors.ControlText
+            };
+
+            Status = new Label
+            {
+                Text = "Initializing...",
+                Wrap = WrapMode.Word,
+                Font = fontBody,
+                Height = 44, // Room for 2 lines
+                TextColor = SystemColors.ControlText
+            };
+
+            TimeElapsed = new Label
+            {
+                Text = "00:00:00",
+                VerticalAlignment = VerticalAlignment.Center,
+                Font = fontMono,
+                TextColor = SystemColors.ControlText
+            };
+
+            TimeRemaining = new Label
+            {
+                Text = "--:--:--",
+                VerticalAlignment = VerticalAlignment.Center,
+                Font = fontMono,
+                TextColor = SystemColors.ControlText
+            };
+
+            ProgressPercent = new Label
+            {
+                Text = "  0%",
+                VerticalAlignment = VerticalAlignment.Center,
+                Font = fontTitle, // Use same size as title for emphasis
+                TextColor = SystemColors.Highlight
+            };
+
             stopwatch = Stopwatch.StartNew();
-            timer = new UITimer { Interval = 1.0 };
-            timer.Elapsed += (s, e) => { TimeElapsed.Text = "Elapsed: " + stopwatch.Elapsed.ToString(@"hh\:mm\:ss"); };
+            timer = new UITimer { Interval = refreshRate / 1000.0 };
+            timer.Elapsed += (s, e) => { UpdateStatus(); };
             timer.Start();
 
-            pbar = new ProgressBar { ToolTip = "Simulation Progress" };
-            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation (Esc)" };
-            AbortButton = cancel;
-            var copyLog = new Button { Text = "Copy Log", ToolTip = "Copy the simulation log to clipboard (Enter)" };
-            DefaultButton = copyLog; // Map the Enter key to the Copy Log action when focused
-            var cts = new CancellationTokenSource();
-            var uiThread = SynchronizationContext.Current;
+            pbar = new Eto.Forms.ProgressBar { MaxValue = 100, Value = 0, Height = 14, ToolTip = "Simulation Progress" };
 
-            // events
+            var secondaryColor = new Color(SystemColors.ControlText, 0.5f);
+
+            var progressLabel = new Label
+            {
+                Text = "PROGRESS",
+                Font = fontCaption,
+                TextColor = secondaryColor,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+
+            var logHeaderLabel = new Label
+            {
+                Text = "SIMULATION LOG",
+                Font = fontCaption,
+                TextColor = secondaryColor,
+            };
+
+            StatusLog = new TextArea
+            {
+                ReadOnly = true,
+                Font = fontMono,
+                SpellCheck = false,
+                Wrap = true,
+                BackgroundColor = SystemColors.ControlBackground,
+                TextColor = SystemColors.ControlText,
+                ToolTip = "Simulation Log Output"
+            };
+
+            var copyLog = new Button { Text = "Copy Log", ToolTip = "Copy simulation log to clipboard (Enter)" };
+            var cancel = new Button { Text = "Cancel", ToolTip = "Abort the current simulation (Esc)" };
+            
+            DefaultButton = copyLog;
+            AbortButton = cancel;
+
+            var cts = new CancellationTokenSource();
+            var uiContext = SynchronizationContext.Current;
+
             cancel.Click += (s, e) =>
             {
-                if (MessageBox.Show(this, "Are you sure you want to abort the simulation?", "Abort Simulation", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.Yes)
+                if (isFinished)
+                {
+                    Close();
+                    return;
+                }
+
+                if (MessageBox.Show(this, "Abort the simulation?", "Confirm", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.Yes)
                 {
                     Canceled = true;
                     Close();
                 }
             };
+
             copyLog.Click += (s, e) =>
             {
                 try
                 {
                     Clipboard.Instance.Text = StatusLog.Text;
                     copyLog.Text = "Copied!";
-                    Task.Delay(2000).ContinueWith((t) =>
-                    {
-                        if (uiThread != null) uiThread.Post((object state) => { copyLog.Text = "Copy Log"; }, null);
-                    });
+                    Task.Delay(2000).ContinueWith(_ =>
+                        uiContext?.Post(_ => { copyLog.Text = "Copy Log"; }, null));
                 }
-                catch (Exception)
+                catch
                 {
-                    copyLog.Text = "Failed!";
-                    Task.Delay(2000).ContinueWith((t) =>
-                    {
-                        if (uiThread != null) uiThread.Post((object state) => { copyLog.Text = "Copy Log"; }, null);
-                    });
+                    copyLog.Text = "Failed";
+                    Task.Delay(2000).ContinueWith(_ =>
+                        uiContext?.Post(_ => { copyLog.Text = "Copy Log"; }, null));
                 }
             };
+
             Closing += (s, e) =>
             {
                 if (!isFinished && !Canceled)
                 {
-                    if (MessageBox.Show(this, "Are you sure you want to abort the simulation?", "Abort Simulation", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.No)
+                    if (MessageBox.Show(this, "Abort the simulation?", "Confirm", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.No)
                     {
                         e.Cancel = true;
                         return;
                     }
                     Canceled = true;
                 }
-
-                if (!e.Cancel) cts.Cancel();
-                if (!e.Cancel) timer.Stop();
+                if (!e.Cancel) { cts.Cancel(); timer.Stop(); }
             };
 
-            // layout
-            var layout = new DynamicLayout { Padding = 10, Spacing = new Size(5, 5) };
-            layout.BeginVertical();
+            // --- Layout ---
+            var layout = new DynamicLayout { Padding = new Padding(24), Spacing = new Size(0, 10) };
+
+            // Header Section
+            layout.Add(titleLabel, true, false);
+            layout.Add(Status, true, false);
+            
+            // Progress Section
+            layout.BeginVertical(spacing: new Size(0, 4));
+            var progressHeader = new DynamicLayout { Spacing = new Size(8, 0) };
+            progressHeader.BeginHorizontal();
+            progressHeader.Add(progressLabel, false, false);
+            progressHeader.Add(null, true, false);
+            progressHeader.Add(ProgressPercent, false, false);
+            progressHeader.EndHorizontal();
+            layout.Add(progressHeader, true, false);
             layout.Add(pbar, true, false);
             layout.EndVertical();
-            layout.BeginVertical();
-            layout.BeginHorizontal();
-            layout.Add(new Spinner { Height = 20, Enabled = true, ToolTip = "Simulation is running" }, false, false);
-            layout.Add(new Drawable { Width = 5 }, false, false);
-            layout.Add(Status, true, false);
-            layout.Add(TimeElapsed, false, false);
-            layout.EndHorizontal();
-            layout.EndVertical();
-            layout.BeginVertical();
-            layout.Add(StatusLog, true, true);
-            layout.EndVertical();
 
-            layout.BeginVertical();
-            layout.Add(null, true, true);
-            layout.BeginHorizontal();
-            layout.Add(null, true, false);
-            layout.Add(copyLog, false, false);
-            layout.Add(cancel, false, false);
-            layout.EndHorizontal();
-            layout.EndVertical();
+            // Stats Row
+            var statsRow = new DynamicLayout { Spacing = new Size(8, 0) };
+            statsRow.BeginHorizontal();
+            statsRow.Add(null, true, false);
+            statsRow.Add(new Label { Text = "Elapsed:", Font = SystemFonts.Label(11), TextColor = secondaryColor }, false, false);
+            statsRow.Add(TimeElapsed, false, false);
+            statsRow.Add(new Drawable { Width = 12 }, false, false); // Spacer
+            statsRow.Add(new Label { Text = "Remaining:", Font = SystemFonts.Label(11), TextColor = secondaryColor }, false, false);
+            statsRow.Add(TimeRemaining, false, false);
+            statsRow.EndHorizontal();
+            layout.Add(statsRow, true, false);
+
+            // Log Section (Expands)
+            layout.Add(logHeaderLabel, true, false);
+            layout.Add(StatusLog, true, true);
+
+            // Action Row
+            var buttonRow = new DynamicLayout { Spacing = new Size(12, 0) };
+            buttonRow.BeginHorizontal();
+            buttonRow.Add(null, true, false);
+            buttonRow.Add(copyLog, false, false);
+            buttonRow.Add(cancel, false, false);
+            buttonRow.EndHorizontal();
+            layout.Add(buttonRow, true, false);
+
             Content = layout;
 
-            // set output to write to status label
-            Console.SetOut(new ProgressWriter(this, SynchronizationContext.Current));
+            // Redirect Console.Out and Console.Error through ProgressWriter, keeping previous writers in chain
+            var previousOut = Console.Out;
+            var previousError = Console.Error;
+            Console.SetOut(new ProgressWriter(this, uiContext, previousOut));
+            Console.SetError(new ProgressWriter(this, uiContext, previousError));
 
-            // start task
             var run = task(cts);
 
-            // when finished, close dialog
             run.ContinueWith((r) =>
             {
                 isFinished = true;
-                if (uiThread != null) uiThread.Send((object state) => { Close(); }, null);
+                timer.Stop();
+
+                if (r.IsFaulted && r.Exception != null)
+                {
+                    var inner = r.Exception.Flatten().InnerException ?? r.Exception;
+                    Console.Error.WriteLine($"Simulation failed: {inner.GetType().Name}: {inner.Message}");
+                    if (inner.StackTrace != null) Console.Error.WriteLine(inner.StackTrace);
+
+                    if (uiContext != null) uiContext.Post(_ =>
+                    {
+                        Status.Text = "Simulation failed. See log for details.";
+                        Status.TextColor = Colors.Red;
+                        cancel.Text = "Close";
+                        cancel.ToolTip = "Close this dialog (Esc, Enter)";
+                        DefaultButton = cancel;
+                    }, null);
+                }
+                else
+                {
+                    if (uiContext != null) uiContext.Post((object state) => { Close(); }, null);
+                }
+
+                Console.SetOut(previousOut);
+                Console.SetError(previousError);
             });
         }
-    }
 
-    public class ProgressBar : Drawable
-    {
-        public float Progress; // 0-1
-        private Color backColor = SystemColors.Control;
-        private Color fillColor = SystemColors.Highlight;
-
-        public ProgressBar()
+        private static string FormatPercent(float value)
         {
-            Height = 20;
-            Width = 100;
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            var rect = new RectangleF(Size);
-            var fullRect = rect;
-            e.Graphics.FillRectangle(new SolidBrush(backColor), rect);
-            float w = Progress > 1 ? 1 : Progress;
-            if (w < 0) w = 0;
-
-            if (w > 0)
-            {
-                rect.Width *= w;
-                e.Graphics.FillRectangle(new SolidBrush(fillColor), rect);
-            }
-
-            // Draw percentage text
-            string text = $"{(int)(w * 100)}%";
-            var font = SystemFonts.Label();
-            var textSize = e.Graphics.MeasureString(font, text);
-            var textLocation = new PointF(
-                fullRect.X + (fullRect.Width - textSize.Width) / 2,
-                fullRect.Y + (fullRect.Height - textSize.Height) / 2
-            );
-            e.Graphics.DrawText(font, Colors.Black, textLocation + new SizeF(1, 1), text);
-            e.Graphics.DrawText(font, Colors.White, textLocation, text);
+            return $"{(int)(value * 100),3}%";
         }
     }
 
     public class ProgressWriter : TextWriter
     {
         private ProgressDialog dialog;
-        private SynchronizationContext context;
+        private SynchronizationContext uiContext;
+        private TextWriter chained;
         public const string ProgressKey = "{%} ";
 
-        public ProgressWriter(ProgressDialog prog_dialog, SynchronizationContext ui_context)
+        public ProgressWriter(ProgressDialog prog_dialog, SynchronizationContext ui_context, TextWriter chained = null)
         {
             dialog = prog_dialog;
-            context = ui_context;
+            uiContext = ui_context;
+            this.chained = chained;
         }
 
         public override void Write(string value)
         {
-            if (context != null) context.Send((object state) =>
+            chained?.Write(value);
+            if (uiContext != null) uiContext.Post((object state) =>
             {
-                dialog.Status.Text = value;
-                dialog.StatusLog.Append(value + Environment.NewLine, true);
+                dialog.StatusLog.Append(value, true);
             }, null);
         }
 
         public override void WriteLine(string value)
         {
-            if (context != null) context.Send((object state) =>
+            chained?.WriteLine(value);
+            if (uiContext != null) uiContext.Post((object state) =>
             {
                 if (value.StartsWith(ProgressKey))
                 {
@@ -219,7 +338,10 @@ namespace EddyLib.UI
                 }
                 else
                 {
-                    dialog.Status.Text = value;
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        dialog.Status.Text = value;
+                    }
                     dialog.StatusLog.Append(value + Environment.NewLine, true);
                 }
             }, null);

@@ -1,5 +1,6 @@
 ﻿using Eddy.Properties;
 using EddyLib;
+using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
 using System;
 using System.Collections.Generic;
@@ -81,6 +82,20 @@ namespace Eddy
             }
 
             // Output Messages
+            if (Attributes is EddyLib.UI.Eddy_ComponentButtonAttributes buttonAttributes)
+            {
+                if (updateAvailable)
+                {
+                    buttonAttributes.ButtonText = "Update Available!";
+                    buttonAttributes.ButtonPalette = GH_Palette.Warning;
+                }
+                else
+                {
+                    buttonAttributes.ButtonText = "Select Template";
+                    buttonAttributes.ButtonPalette = GH_Palette.Black;
+                }
+            }
+
             if (updateAvailable) AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Template update available. Right-click to sync.");
             else if (cache.Files.Count == 0 && errorMessage == null && !isFetching) AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Syncing templates from GitHub...");
 
@@ -187,6 +202,11 @@ namespace Eddy
             externalFetchStates[inputUrl] = true;
 
             this.Message = "Downloading...";
+            if (Attributes is EddyLib.UI.Eddy_ComponentButtonAttributes buttonAttributes)
+            {
+                buttonAttributes.ButtonText = "Downloading...";
+                buttonAttributes.ButtonPalette = GH_Palette.Blue;
+            }
             Grasshopper.Instances.ActiveCanvas?.Refresh();
 
             try
@@ -225,6 +245,11 @@ namespace Eddy
             {
                 externalFetchStates[inputUrl] = false;
                 this.Message = null;
+                if (Attributes is EddyLib.UI.Eddy_ComponentButtonAttributes bAtt)
+                {
+                    bAtt.ButtonText = "Select Template";
+                    bAtt.ButtonPalette = GH_Palette.Black;
+                }
                 Rhino.RhinoApp.InvokeOnUiThread((Action)delegate { this.ExpireSolution(true); });
             }
         }
@@ -278,6 +303,11 @@ namespace Eddy
             isFetching = true;
             errorMessage = null;
             updateAvailable = false;
+            if (Attributes is EddyLib.UI.Eddy_ComponentButtonAttributes buttonAttributes)
+            {
+                buttonAttributes.ButtonText = "Syncing...";
+                buttonAttributes.ButtonPalette = GH_Palette.Blue;
+            }
             try
             {
                 using (var lister = new GitHubFileLister())
@@ -314,6 +344,11 @@ namespace Eddy
             finally
             {
                 isFetching = false;
+                if (Attributes is EddyLib.UI.Eddy_ComponentButtonAttributes bAtt)
+                {
+                    bAtt.ButtonText = "Select Template";
+                    bAtt.ButtonPalette = GH_Palette.Black;
+                }
                 this.ExpireSolution(true);
             }
         }
@@ -441,6 +476,11 @@ namespace Eddy
             EventHandler ev = async (sender, e) =>
             {
                 this.Message = "Downloading...";
+                if (Attributes is EddyLib.UI.Eddy_ComponentButtonAttributes buttonAttributes)
+                {
+                    buttonAttributes.ButtonText = "Downloading...";
+                    buttonAttributes.ButtonPalette = GH_Palette.Blue;
+                }
                 Grasshopper.Instances.ActiveCanvas?.Refresh();
 
                 var success = await EnsureTemplateDownloadedAsync(file);
@@ -459,6 +499,11 @@ namespace Eddy
 
                 await Task.Delay(2000);
                 this.Message = null;
+                if (Attributes is EddyLib.UI.Eddy_ComponentButtonAttributes buttonAttributes2)
+                {
+                    buttonAttributes2.ButtonText = "Select Template";
+                    buttonAttributes2.ButtonPalette = GH_Palette.Black;
+                }
                 Grasshopper.Instances.ActiveCanvas?.Refresh();
             };
 

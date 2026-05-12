@@ -122,40 +122,27 @@ GH_Strings.ABL.Desc + EddyVersion.toString(),
 
             DA.GetData(GH_Strings.ABL.EPW, ref epwFilePath);
 
-            // Auto-download EPW if URL provided
-            if (epwFilePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(epwFilePath) && epwFilePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
             {
+                this.Message = "Downloading...";
+                Grasshopper.Instances.ActiveCanvas?.Refresh();
                 try
                 {
-                    string fileName = Path.GetFileName(new Uri(epwFilePath).AbsolutePath);
-                    string localDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Eddy3D\Weather");
-                    string localPath = Path.Combine(localDir, fileName);
-
-                    if (!File.Exists(localPath))
-                    {
-                        this.Message = "Downloading...";
-                        Grasshopper.Instances.ActiveCanvas?.Refresh();
-                        try
-                        {
-                            Task.Run(async () => await FileDownloader.DownloadFileAsync(epwFilePath, localPath)).Wait();
-                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Downloaded weather file to: {localPath}");
-                        }
-                        finally
-                        {
-                            this.Message = null;
-                            Grasshopper.Instances.ActiveCanvas?.Refresh();
-                        }
-                    }
-                    else
-                    {
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Using existing cached weather file: {localPath}");
-                    }
+                    var (localPath, downloaded) = FileDownloader.ResolveEpwPath(epwFilePath);
                     epwFilePath = localPath;
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                        downloaded ? $"Downloaded weather file to: {localPath}"
+                                   : $"Using cached weather file: {localPath}");
                 }
                 catch (Exception ex)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Failed to download weather file: {ex.Message}");
                     return;
+                }
+                finally
+                {
+                    this.Message = null;
+                    Grasshopper.Instances.ActiveCanvas?.Refresh();
                 }
             }
 
@@ -179,7 +166,9 @@ GH_Strings.ABL.Desc + EddyVersion.toString(),
 
             // Check if anything causes a 0 BC
 
-            if (BCC.BCs.Where(v => v.epsilon == 0).Any() || BCC.BCs.Where(v => v.k == 0).Any() || BCC.BCs.Where(v => v.omega == 0).Any())
+            // Bolt: Replaced chained .Where().Any() with a single .Any() evaluating all conditions.
+            // This reduces memory allocations (no intermediate iterators) and reduces traversal from O(3N) to O(N).
+            if (BCC.BCs.Any(v => v.epsilon == 0 || v.k == 0 || v.omega == 0))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Something is causing a turbulence boundary condition to be 0, please change the setup of the simulation domain."); return;
             }

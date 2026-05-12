@@ -1,0 +1,16 @@
+[project]
+name = "metablock"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "trimesh",
+    "manifold3d",
+    "numpy",
+    "scipy",
+    "networkx",
+    "pymeshfix",
+    "pyvista",
+    "fastapi",
+    "uvicorn",
+    "python-multipart",
+]

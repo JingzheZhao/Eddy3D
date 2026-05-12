@@ -44,6 +44,9 @@ jobs:
           if (-not (Test-Path (Join-Path $buildDir 'Eddy.gha'))) {
             throw "Expected build output was not found in $buildDir"
           }
+          if (-not (Test-Path (Join-Path $buildDir 'MetaBlock/api.py'))) {
+            throw "MetaBlock folder was not bundled."
+          }
 
           (Get-Content manifest.yml -Raw) -replace '(?m)^version:\s*.+$', 'version: ${{ steps.version.outputs.version }}' | Set-Content manifest.yml
           Copy-Item manifest.yml (Join-Path $buildDir 'manifest.yml') -Force

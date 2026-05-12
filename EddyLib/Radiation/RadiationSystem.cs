@@ -166,14 +166,14 @@ namespace EddyLib.Radiation
             // cnt ... | rcalc ... >> sunsOut
             // cnt 144...
             int cntNum = 144 * skySubDivDirect * skySubDivDirect + 1;
-            string reinsrc = Path.Combine(DefaultDirectoriesAndPaths.RadianceLibDir, "reinsrc.cal");
+            string reinsrc = GetReinhartSourceCalPath(radout);
 
             // Using shell for complex pipe append >> ? Or just Command.PipeTo
             // cnt | rcalc
             using (var stream = new FileStream(sunsOut, FileMode.Append, FileAccess.Write))
             {
-                var cmdCnt = Command.Run(Path.Combine(DefaultDirectoriesAndPaths.RadianceBinDir, "cnt"), new[] { cntNum.ToString() }, options => options.WorkingDirectory(BaseWorkingDir));
-                var cmdRcalc = Command.Run(Path.Combine(DefaultDirectoriesAndPaths.RadianceBinDir, "rcalc"),
+                var cmdCnt = Command.Run(DefaultDirectoriesAndPaths.ResolveExePath(DefaultDirectoriesAndPaths.RadianceBinDir, "cnt"), new[] { cntNum.ToString() }, options => options.WorkingDirectory(BaseWorkingDir));
+                var cmdRcalc = Command.Run(DefaultDirectoriesAndPaths.ResolveExePath(DefaultDirectoriesAndPaths.RadianceBinDir, "rcalc"),
                     new[] { "-e", "MF:4", "-f", reinsrc, "-e", "Rbin=recno", "-o", "solar source sun 0 0 4 ${Dx} ${Dy} ${Dz} 0.533" },
                     options => options.WorkingDirectory(BaseWorkingDir));
 
@@ -237,6 +237,48 @@ namespace EddyLib.Radiation
                 Probes.Select(x => x.Normal.Value).ToList());
         }
 
+        private static string GetReinhartSourceCalPath(string fallbackDir)
+        {
+            string installedPath = Path.Combine(DefaultDirectoriesAndPaths.RadianceLibDir, "reinsrc.cal");
+            if (File.Exists(installedPath))
+            {
+                return installedPath;
+            }
+
+            Directory.CreateDirectory(fallbackDir);
+            string fallbackPath = Path.Combine(fallbackDir, "reinsrc.cal");
+            if (!File.Exists(fallbackPath))
+            {
+                File.WriteAllText(fallbackPath, ReinhartSourceCal);
+            }
+            return fallbackPath;
+        }
+
+        private const string ReinhartSourceCal = @"{ Compute Reinhart sky directions from bin number }
+DEGREE : PI/180;
+x1 = .5; x2 = .5;
+alpha : 90/(MF*7 + .5);
+tnaz(r) : select(r, 30, 30, 24, 24, 18, 12, 6);
+rnaz(r) : if(r-(7*MF-.5), 1, MF*tnaz(floor((r+.5)/MF) + 1));
+raccum(r) : if(r-.5, rnaz(r-1) + raccum(r-1), 0);
+RowMax : 7*MF + 1;
+Rmax : raccum(RowMax);
+Rfindrow(r, rem) : if(rem-rnaz(r)-.5, Rfindrow(r+1, rem-rnaz(r)), r);
+Rrow = if(Rbin-(Rmax-.5), RowMax-1, Rfindrow(0, Rbin));
+Rcol = Rbin - raccum(Rrow) - 1;
+Razi_width = 2*PI / rnaz(Rrow);
+RAH : alpha*DEGREE;
+Razi = if(Rbin-.5, (Rcol + x2 - .5)*Razi_width, 2*PI*x2);
+Ralt = if(Rbin-.5, (Rrow + x1)*RAH, asin(-x1));
+Romega = if(.5-Rbin, 2*PI, if(Rmax-.5-Rbin,
+    Razi_width*(sin(RAH*(Rrow+1)) - sin(RAH*Rrow)),
+    2*PI*(1 - cos(RAH/2)) ) );
+cos_ralt = cos(Ralt);
+Dx = sin(Razi)*cos_ralt;
+Dy = cos(Razi)*cos_ralt;
+Dz = sin(Ralt);
+";
+
         private Dictionary<string, string> GetRadianceEnvironment()
         {
 
@@ -245,9 +287,11 @@ namespace EddyLib.Radiation
             string radlib = DefaultDirectoriesAndPaths.RadianceLibDir;
 
             var env = new Dictionary<string, string>();
+            char sep = Path.PathSeparator;
             string path = Environment.GetEnvironmentVariable("PATH") ?? "";
-            env["PATH"] = $".;{radlib};{radbin};{path}";
-            env["RAYPATH"] = $".;{radlib};{radbin};" + (Environment.GetEnvironmentVariable("RAYPATH") ?? "");
+            string rayPath = Environment.GetEnvironmentVariable("RAYPATH") ?? "";
+            env["PATH"] = $".{sep}{radlib}{sep}{radbin}{sep}{path}";
+            env["RAYPATH"] = $".{sep}{radlib}{sep}{radbin}{sep}{rayPath}";
             return env;
         }
 
@@ -259,8 +303,7 @@ namespace EddyLib.Radiation
         private bool RunCommandRedirect(string command, string[] args, string workingDir, Dictionary<string, string> env, CancellationToken ct, ref int stepCnt, int steps, string desc, string redirectInput = null, string redirectOutput = null)
         {
             Console.WriteLine($"{desc}...");
-            string exePath = Path.Combine(DefaultDirectoriesAndPaths.RadianceBinDir, command + ".exe");
-            if (!File.Exists(exePath)) exePath = command; // Fallback or global
+            string exePath = DefaultDirectoriesAndPaths.ResolveExePath(DefaultDirectoriesAndPaths.RadianceBinDir, command);
 
             var cmd = Command.Run(exePath, args, options =>
             {
@@ -296,8 +339,8 @@ namespace EddyLib.Radiation
                 foreach (var kvp in env) o.EnvironmentVariable(kvp.Key, kvp.Value);
             };
 
-            string exe1 = Path.Combine(DefaultDirectoriesAndPaths.RadianceBinDir, stage1.cmd + ".exe");
-            string exe2 = Path.Combine(DefaultDirectoriesAndPaths.RadianceBinDir, stage2.cmd + ".exe");
+            string exe1 = DefaultDirectoriesAndPaths.ResolveExePath(DefaultDirectoriesAndPaths.RadianceBinDir, stage1.cmd);
+            string exe2 = DefaultDirectoriesAndPaths.ResolveExePath(DefaultDirectoriesAndPaths.RadianceBinDir, stage2.cmd);
 
             var c1 = Command.Run(exe1, stage1.args, opts);
             var c2 = Command.Run(exe2, stage2.args, opts);
@@ -432,21 +475,26 @@ namespace EddyLib.Radiation
         {
             if (!File.Exists(illFileName)) return new float[0][]; // Safety handle
 
-            string[] illLines = File.ReadAllLines(illFileName);
+            // Bolt: Replaced File.ReadAllLines with File.ReadLines for lazy evaluation,
+            // preventing LOH allocations. Lines are processed using PLINQ to maintain
+            // parallel processing speed without loading the entire file as a string array first.
             int skip = 0;
-            for (int i = 0; i < illLines.Length; i++)
+            foreach (var line in File.ReadLines(illFileName))
             {
-                if (illLines[i].Contains("FORMAT")) { skip = i + 2; break; }
+                if (line.Contains("FORMAT")) { skip += 2; break; }
+                skip++;
             }
 
-            var data = new float[illLines.Length - skip][];
-            Parallel.For(skip, illLines.Length, i =>
-            {
-                var parts = illLines[i].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                data[i - skip] = parts.Select(s => float.Parse(s, CultureInfo.InvariantCulture)).ToArray();
-            });
-
-            return data;
+            return File.ReadLines(illFileName)
+                       .Skip(skip)
+                       .AsParallel()
+                       .AsOrdered()
+                       .Select(line =>
+                       {
+                           var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                           return parts.Select(s => float.Parse(s, CultureInfo.InvariantCulture)).ToArray();
+                       })
+                       .ToArray();
         }
 
         private void LogError(string context, string error)

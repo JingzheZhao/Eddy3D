@@ -15,6 +15,7 @@ namespace Urbano.Simulation
     {
         public Label Status;
         private Label TimeElapsed;
+        private Label TimeRemaining;
         private Stopwatch stopwatch;
         private UITimer timer;
 
@@ -29,7 +30,24 @@ namespace Urbano.Simulation
                 pbar.Progress = value;
                 pbar.Invalidate();
                 Title = $"Simulation Progress - {(int)(value * 100)}%";
+                UpdateTimeRemaining();
             }
+        }
+
+        private void UpdateTimeRemaining()
+        {
+            if (Progress <= 0 || Progress >= 1)
+            {
+                TimeRemaining.Text = "Remaining: --:--:--";
+                return;
+            }
+
+            var elapsed = stopwatch.Elapsed;
+            var totalEstimated = TimeSpan.FromTicks((long)(elapsed.Ticks / Progress));
+            var remaining = totalEstimated - elapsed;
+            if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
+
+            TimeRemaining.Text = $"Remaining: {(int)remaining.TotalHours:D2}:{remaining.Minutes:D2}:{remaining.Seconds:D2}";
         }
 
         public ProgressDialog(Func<CancellationTokenSource, Task> task, double refreshRate = 1000)
@@ -43,12 +61,17 @@ namespace Urbano.Simulation
             ShowInTaskbar = true;
 
             // controls
-            Status = new Label() { Text = "Starting simulation...", ToolTip = "Current simulation status", Wrap = WrapMode.Word };
+            Status = new Label() { Text = "Starting simulation...", Wrap = WrapMode.Word };
 
-            TimeElapsed = new Label { Text = "Elapsed: 00:00:00", VerticalAlignment = VerticalAlignment.Center, ToolTip = "Time elapsed since simulation started" };
+            TimeElapsed = new Label { Text = "Elapsed: 00:00:00", VerticalAlignment = VerticalAlignment.Center };
+            TimeRemaining = new Label { Text = "Remaining: --:--:--", VerticalAlignment = VerticalAlignment.Center };
             stopwatch = Stopwatch.StartNew();
             timer = new UITimer { Interval = 1.0 };
-            timer.Elapsed += (s, e) => { TimeElapsed.Text = "Elapsed: " + stopwatch.Elapsed.ToString(@"hh\:mm\:ss"); };
+            timer.Elapsed += (s, e) =>
+            {
+                TimeElapsed.Text = $"Elapsed: {(int)stopwatch.Elapsed.TotalHours:D2}:{stopwatch.Elapsed.Minutes:D2}:{stopwatch.Elapsed.Seconds:D2}";
+                UpdateTimeRemaining();
+            };
             timer.Start();
 
             pbar = new ProgressBar { ToolTip = "Simulation Progress" };
@@ -94,6 +117,8 @@ namespace Urbano.Simulation
             layout.Add(new Drawable { Width = 5 }, false, false);
             layout.Add(Status, true, false);
             layout.Add(TimeElapsed, false, false);
+            layout.Add(new Drawable { Width = 5 }, false, false);
+            layout.Add(TimeRemaining, false, false);
             layout.EndHorizontal();
             layout.EndVertical();
             layout.BeginVertical();
@@ -112,7 +137,22 @@ namespace Urbano.Simulation
             run.ContinueWith((r) =>
             {
                 isFinished = true;
-                if (uiThread != null) uiThread.Send((object state) => { Close(); }, null);
+                if (r.IsFaulted && r.Exception != null)
+                {
+                    var inner = r.Exception.Flatten().InnerException ?? r.Exception;
+                    if (uiThread != null) uiThread.Post(_ =>
+                    {
+                        Status.Text = $"Simulation failed: {inner.GetType().Name}: {inner.Message}";
+                        Status.TextColor = Colors.Red;
+                        cancel.Text = "Close";
+                        cancel.ToolTip = "Close this dialog (Esc, Enter)";
+                        DefaultButton = cancel;
+                    }, null);
+                }
+                else
+                {
+                    if (uiThread != null) uiThread.Post((object state) => { Close(); }, null);
+                }
             });
         }
     }
@@ -171,7 +211,7 @@ namespace Urbano.Simulation
 
         public override void Write(string value)
         {
-            if (context != null) context.Send((object state) =>
+            if (context != null) context.Post((object state) =>
             {
                 dialog.Status.Text = value;
             }, null);
@@ -179,7 +219,7 @@ namespace Urbano.Simulation
 
         public override void WriteLine(string value)
         {
-            if (context != null) context.Send((object state) =>
+            if (context != null) context.Post((object state) =>
             {
                 if (value.StartsWith(ProgressKey))
                 {

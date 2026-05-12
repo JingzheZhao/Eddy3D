@@ -50,6 +50,11 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             EddyLib.Web.UpdateChecker.CheckForUpdateAsync();
         }
 
+        public override void CreateAttributes()
+        {
+            Attributes = new ProbeRunButtonAttributes(this);
+        }
+
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
         {
             base.AppendAdditionalComponentMenuItems(menu);
@@ -118,20 +123,20 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 GH_ParamAccess.item);
             pManager[3].Optional = true;
 
-            pManager.AddBooleanParameter(
+            pManager.AddParameter(
+                new GH_ToggleParam(GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick, GH_Strings.Common.RunMeshingDesc),
                 GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick,
-                GH_Strings.Common.RunMeshingDesc,
-                GH_ParamAccess.item, false);
+                GH_Strings.Common.RunMeshingDesc, GH_ParamAccess.item);
 
-            pManager.AddBooleanParameter(
+            pManager.AddParameter(
+                new GH_ToggleParam(GH_Strings.Common.MakeTrees, GH_Strings.Common.MakeTreesNick, GH_Strings.Common.MakeTreesDesc),
                 GH_Strings.Common.MakeTrees, GH_Strings.Common.MakeTreesNick,
-                GH_Strings.Common.MakeTreesDesc,
-                GH_ParamAccess.item, false);
+                GH_Strings.Common.MakeTreesDesc, GH_ParamAccess.item);
 
-            pManager.AddBooleanParameter(
+            pManager.AddParameter(
+                new GH_ToggleParam(GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick, GH_Strings.Common.RunSimulationDesc),
                 GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick,
-                GH_Strings.Common.RunSimulationDesc,
-                GH_ParamAccess.item, false);
+                GH_Strings.Common.RunSimulationDesc, GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -258,13 +263,9 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
             }
             MeshSettings.SetDirectories(baseWorkingDirectory);
 
-            bool makeTrees = false;
-            bool runSimulation = false;
-            bool runMeshing = false;
-
-            DA.GetData(GH_Strings.Common.MakeTrees, ref makeTrees);
-            DA.GetData(GH_Strings.Common.RunSimulation, ref runSimulation);
-            DA.GetData(GH_Strings.Common.RunMeshing, ref runMeshing);
+            bool runMeshing = ConsumeToggleOrWired(DA, 4);
+            bool makeTrees = ConsumeToggleOrWired(DA, 5);
+            bool runSimulation = ConsumeToggleOrWired(DA, 6);
 
             if (!IsEngineSupportedOnCurrentPlatform(_selectedEngine))
             {
@@ -372,6 +373,25 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                     Analytics.Analytics.GetAnalyticsEngine(_selectedEngine));
             }
 
+            bool hasExistingIterations = false;
+            if (runSimulation && !runMeshing && canRun)
+            {
+                foreach (var windDir in DOM.BCond.WindDirections)
+                {
+                    var caseDir = Path.Combine(baseWorkingDirectory, windDir.ToString());
+                    if (OpenFOAMHelpers.HasIterationFolders(caseDir))
+                    {
+                        hasExistingIterations = true;
+                        break;
+                    }
+                }
+                if (hasExistingIterations)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                        "Existing iteration results found. Continuing simulation from the last time step.");
+                }
+            }
+
             if (_selectedEngine == SimEngine.Docker)
             {
                 // Docker: launch scripts (.command on macOS, .bat on Windows)
@@ -396,7 +416,8 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 else if (runMeshing == false && runSimulation == true && canRun)
                 {
                     Utilities.DeletePhi(MeshSettings, DOM);
-                    OpenCommandFile(Path.Combine(scriptsDir, "run_sim_all" + dockerScriptExt));
+                    string simScript = hasExistingIterations ? "run_sim_continue_all" : "run_sim_all";
+                    OpenCommandFile(Path.Combine(scriptsDir, simScript + dockerScriptExt));
                 }
             }
             else
@@ -420,7 +441,8 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 else if (runMeshing == false && runSimulation == true && canRun)
                 {
                     Utilities.DeletePhi(MeshSettings, DOM);
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", "run_sim_all.bat"), taskComplete);
+                    string simBat = hasExistingIterations ? "run_sim_continue_all.bat" : "run_sim_all.bat";
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", simBat), taskComplete);
                 }
             }
 
@@ -462,6 +484,43 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 simulationRemainingTime);
 
             canRun = true;
+        }
+
+        /// <summary>
+        /// Reads a run input from either a wired external source or the built-in
+        /// round toggle button. External sources are read via DA.GetData;
+        /// the toggle is consumed and immediately reset.
+        /// </summary>
+        private bool ConsumeToggleOrWired(IGH_DataAccess DA, int inputIndex)
+        {
+            bool run = false;
+            if (Params.Input[inputIndex].SourceCount > 0)
+            {
+                DA.GetData(inputIndex, ref run);
+            }
+            return run || ConsumeToggleRun(inputIndex);
+        }
+
+        /// <summary>
+        /// Checks whether the toggle at the given input index was clicked,
+        /// and immediately resets it so it behaves like a momentary push-button.
+        /// </summary>
+        private bool ConsumeToggleRun(int inputIndex)
+        {
+            if (inputIndex < 0
+                || inputIndex >= Params.Input.Count
+                || !(Params.Input[inputIndex] is GH_ToggleParam toggle)
+                || !toggle.Toggle)
+            {
+                return false;
+            }
+
+            toggle.Toggle = false;
+            toggle.PersistentData.Clear();
+            toggle.PersistentData.Append(new GH_Boolean(false));
+
+            OnPingDocument()?.ScheduleSolution(5, _ => { });
+            return true;
         }
 
         private string ResolveAutoWorkingDirectoryWhenDirIsUnwired(string workingDirInput)
@@ -989,6 +1048,7 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
         private static void OpenCommandFile(string path)
         {
             if (!System.IO.File.Exists(path)) return;
+            Utilities.ValidatePathForShell(path);
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

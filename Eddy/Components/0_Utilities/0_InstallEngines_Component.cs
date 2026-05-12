@@ -202,7 +202,7 @@ namespace Eddy
                 ? "https://github.com/NREL/EnergyPlus/releases/download/v9.4.0/EnergyPlus-9.4.0-998c4b761e-Darwin-macOS10.15-x86_64.dmg"
                 : "https://github.com/NREL/EnergyPlus/releases/download/v9.4.0/EnergyPlus-9.4.0-998c4b761e-Windows-x86_64.exe";
             string ext = IsMac ? ".dmg" : ".exe";
-            string tempFile = Path.Combine(Path.GetTempPath(), "EnergyPlus-9.4.0-Installer" + ext);
+            string tempFile = Path.Combine(Path.GetTempPath(), $"EnergyPlus-9.4.0-Installer-{Guid.NewGuid():N}{ext}");
 
             try
             {
@@ -248,11 +248,12 @@ namespace Eddy
                 return InstallRadianceMacOS();
             }
 
-            string url = "https://github.com/LBNL-ETA/Radiance/releases/download/012cb178/Radiance_012cb178_Windows.zip";
-            string zipFile = Path.Combine(Path.GetTempPath(), "Radiance_012cb178_Windows.zip");
+            string archiveName = DefaultDirectoriesAndPaths.RadianceWindowsArchiveName;
+            string url = GetRadianceReleaseUrl(archiveName);
+            string zipFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}-{archiveName}");
 
             string baseDir = DefaultDirectoriesAndPaths.Eddy3DInstallDir;
-            string targetDir = Path.Combine(baseDir, "Radiance_012cb178_Windows");
+            string targetDir = Path.Combine(baseDir, DefaultDirectoriesAndPaths.RadianceWindowsFolderName);
 
             try
             {
@@ -282,11 +283,19 @@ namespace Eddy
 
         private string InstallRadianceMacOS()
         {
-            string url = "https://github.com/LBNL-ETA/Radiance/releases/download/012cb178/Radiance_012cb178_OSX.zip";
-            string zipFile = Path.Combine(Path.GetTempPath(), "Radiance_012cb178_OSX.zip");
+            bool isArm64 = RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
+            string archiveName = isArm64
+                ? DefaultDirectoriesAndPaths.RadianceMacOSArm64ArchiveName
+                : DefaultDirectoriesAndPaths.RadianceMacOSArchiveName;
+            string url = GetRadianceReleaseUrl(archiveName);
+            string zipFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}-{archiveName}");
 
             string baseDir = DefaultDirectoriesAndPaths.Eddy3DInstallDir;
-            string targetDir = Path.Combine(baseDir, "Radiance_012cb178_OSX");
+            string targetDir = Path.Combine(
+                baseDir,
+                isArm64
+                    ? DefaultDirectoriesAndPaths.RadianceMacOSArm64FolderName
+                    : DefaultDirectoriesAndPaths.RadianceMacOSFolderName);
 
             try
             {
@@ -333,6 +342,11 @@ namespace Eddy
             }
         }
 
+        private static string GetRadianceReleaseUrl(string archiveName)
+        {
+            return $"https://github.com/LBNL-ETA/Radiance/releases/download/{DefaultDirectoriesAndPaths.RadianceReleaseTag}/{archiveName}";
+        }
+
         private string InstallDocker()
         {
             try
@@ -363,7 +377,7 @@ namespace Eddy
         private string InstallBlueCfd()
         {
             string url = "https://github.com/blueCFD/Core/releases/download/blueCFD-Core-2024-1/blueCFD-Core-2024-1-win64-setup.exe";
-            string tempFile = Path.Combine(Path.GetTempPath(), "blueCFD-Core-2024-1-Installer.exe");
+            string tempFile = Path.Combine(Path.GetTempPath(), $"blueCFD-Core-2024-1-Installer-{Guid.NewGuid():N}.exe");
 
             try
             {
@@ -513,7 +527,7 @@ namespace Eddy
 
             string bootstrapperPath = Path.Combine(
                 Path.GetTempPath(),
-                FluidX3DAblWorkflow.WindowsBuildToolsBootstrapperFileName);
+                $"{Guid.NewGuid():N}-{FluidX3DAblWorkflow.WindowsBuildToolsBootstrapperFileName}");
             string installerArguments = FluidX3DAblWorkflow.GetWindowsBuildToolsInstallerArguments();
 
             try
@@ -556,12 +570,16 @@ namespace Eddy
                 var psi = new ProcessStartInfo
                 {
                     FileName = "git",
-                    Arguments = "-C \"" + repositoryRoot + "\" rev-parse HEAD",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
+
+                psi.ArgumentList.Add("-C");
+                psi.ArgumentList.Add(repositoryRoot);
+                psi.ArgumentList.Add("rev-parse");
+                psi.ArgumentList.Add("HEAD");
 
                 using (var process = Process.Start(psi))
                 {

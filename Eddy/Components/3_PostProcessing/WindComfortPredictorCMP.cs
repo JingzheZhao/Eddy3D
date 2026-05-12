@@ -123,19 +123,54 @@ namespace Eddy
             double peakFactor = GetPeakFactor((WindComfortHelper.PedCmftMetric)metricInt);
 
             // ── Automated Scenario Link ───────────────────────────────────────────
-            EddyLib.BCs.ABL linkedBC = null;
-            if (DA.GetData(8, ref linkedBC) && linkedBC != null)
+            object bcRaw = null;
+            bool bcLinked = DA.GetData(8, ref bcRaw) && bcRaw != null;
+            if (bcLinked)
             {
-                zRef = linkedBC.zref;
-                z0 = linkedBC.z0;
-                uRefSim = linkedBC.URef;
-                
-                if (linkedBC.SimulatedDirections != null && linkedBC.SimulatedDirections.Count > 0)
+                // Unwrap GH_ObjectWrapper if the generic parameter wraps it
+                if (bcRaw is Grasshopper.Kernel.Types.GH_ObjectWrapper wrapper)
+                    bcRaw = wrapper.Value;
+
+                EddyLib.BCs.BC firstBC = null;
+                EddyLib.BCs.BCCollection bcColl = null;
+
+                if (bcRaw is EddyLib.BCs.BCCollection bcc && bcc.BCs.Count > 0)
                 {
-                    windDirs = new List<double>(linkedBC.SimulatedDirections);
+                    bcColl = bcc;
+                    firstBC = bcc.BCs[0];
+                    // Extract wind directions from the collection
+                    windDirs = bcc.WindDirections.Select(d => (double)d).ToList();
+                    // Use EPW path from the collection if available and user didn't override
+                    if (!string.IsNullOrEmpty(bcc.epwFilePath) && (string.IsNullOrEmpty(epwPath) || !System.IO.File.Exists(epwPath)))
+                        epwPath = bcc.epwFilePath;
+                }
+                else if (bcRaw is EddyLib.BCs.ABL linkedABL)
+                {
+                    firstBC = linkedABL;
+                    if (linkedABL.SimulatedDirections != null && linkedABL.SimulatedDirections.Count > 0)
+                        windDirs = new List<double>(linkedABL.SimulatedDirections);
+                    if (!string.IsNullOrEmpty(linkedABL.EPWPath) && (string.IsNullOrEmpty(epwPath) || !System.IO.File.Exists(epwPath)))
+                        epwPath = linkedABL.EPWPath;
+                }
+                else if (bcRaw is EddyLib.BCs.BC linkedBC)
+                {
+                    firstBC = linkedBC;
+                    if (linkedBC.SimulatedDirections != null && linkedBC.SimulatedDirections.Count > 0)
+                        windDirs = new List<double>(linkedBC.SimulatedDirections);
                 }
 
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, $"Using automated Boundary Conditions: Uref={uRefSim}, zref={zRef}, z0={z0}");
+                if (firstBC != null)
+                {
+                    z0 = firstBC.z0;
+                    uRefSim = firstBC.URef;
+
+                    if (firstBC is EddyLib.BCs.ABL ablTyped)
+                        zRef = ablTyped.zref;
+
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                        $"Using automated Boundary Conditions: Uref={uRefSim}, zref={zRef}, z0={z0}" +
+                        (bcColl != null ? $", {bcColl.BCs.Count} direction(s)" : ""));
+                }
             }
 
             if (windDirs == null || windDirs.Count == 0)
@@ -148,6 +183,7 @@ namespace Eddy
                 DA.GetData(3, ref zRef);
                 DA.GetData(4, ref z0);
             }
+
 
             if (speedTree.PathCount == 0 || windDirs.Count == 0) return;
 

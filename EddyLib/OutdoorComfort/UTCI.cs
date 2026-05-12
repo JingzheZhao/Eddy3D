@@ -112,6 +112,14 @@ namespace EddyLib
             var humcondition = new int[numberOfHours, numberOfProbes];
             var valuesAnnualPercentage = new double[numberOfProbes];
 
+            // Bolt: Precompute vapor pressure for 8760 hours to avoid redundant Math.Exp/Log calls in the hot loop.
+            // For 1,000 probes, this reduces expensive transcendental math calls by 99.9%.
+            double[] hourlyPa = new double[numberOfHours];
+            for (int hour = 0; hour < numberOfHours; hour++)
+            {
+                hourlyPa[hour] = CalcPa(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour]);
+            }
+
             using (var progress = new ASCIIProgressBar())
             {
                 Parallel.For(0, numberOfProbes, probe =>
@@ -121,48 +129,44 @@ namespace EddyLib
 
                     // Bolt: Precalculate wind profile multiplier for this probe to avoid 8760 redundant Math.Log evaluations
                     double windProfileMultiplier = Math.Log(10 / 0.01) / Math.Log(Probes[probe].Z / 0.01);
+                    int comfortableHours = 0;
 
                     for (int hour = 0; hour < numberOfHours; hour++)
                     {
-                        uncertaintyWindArray[hour, probe] = false;
-                        uncertaintyMRTArray[hour, probe] = false;
-
                         // Check for extreme MRTs
-
                         double resultingMRT = mrt.Values[hour, probe];
 
                         if (resultingMRT < weather.DryBulbTemp[hour] - 30) { resultingMRT = weather.DryBulbTemp[hour] - 30; uncertaintyMRTArray[hour, probe] = true; }
-                        if (resultingMRT > weather.DryBulbTemp[hour] + 70) { resultingMRT = weather.DryBulbTemp[hour] + 70; uncertaintyMRTArray[hour, probe] = true; }
+                        else if (resultingMRT > weather.DryBulbTemp[hour] + 70) { resultingMRT = weather.DryBulbTemp[hour] + 70; uncertaintyMRTArray[hour, probe] = true; }
 
                         // Check for extreme Windspeeds
-
                         double resultingWindSpeedforUTCI = wf.ValuesTemporalAtProbingHeight[hour, probe];
 
                         if (resultingWindSpeedforUTCI > 17) { resultingWindSpeedforUTCI = 17; uncertaintyWindArray[hour, probe] = true; }
-                        if (resultingWindSpeedforUTCI < 0.5) { resultingWindSpeedforUTCI = 0.5; uncertaintyWindArray[hour, probe] = true; }
+                        else if (resultingWindSpeedforUTCI < 0.5) { resultingWindSpeedforUTCI = 0.5; uncertaintyWindArray[hour, probe] = true; }
 
                         // lift to 10 m height as required
-
                         var resultingWindSpeedforUTCI_At10 = resultingWindSpeedforUTCI * windProfileMultiplier;
 
-                        utci[hour, probe] = CalcUTCI(weather.DryBulbTemp[hour], weather.RelativeHumidity[hour], resultingWindSpeedforUTCI_At10, resultingMRT);
-                    }
-                });
+                        // Bolt: Use precomputed Pa and consolidate calculation, rounding, and condition pass into a single loop.
+                        // This significantly improves cache locality and reduces memory traffic compared to multiple sequential passes.
+                        double val = CalcUTCI_WithPa(weather.DryBulbTemp[hour], hourlyPa[hour], resultingWindSpeedforUTCI_At10, resultingMRT);
 
-                // Apply rounding in a separate pass to avoid Math.Round in the hot loop
-                if (truncateBy >= 0)
-                {
-                    Parallel.For(0, numberOfProbes, probe =>
-                    {
-                        for (int hour = 0; hour < numberOfHours; hour++)
+                        if (truncateBy >= 0)
                         {
-                            utci[hour, probe] = Math.Round(utci[hour, probe], truncateBy);
+                            val = Math.Round(val, truncateBy);
                         }
-                    });
-                }
 
-                humcondition = CalcConditionOfPerson(utci);
-                valuesAnnualPercentage = CalcAnnualComfortableHours(humcondition);
+                        utci[hour, probe] = val;
+                        int cond = CalcConditionOfPerson(val);
+                        humcondition[hour, probe] = cond;
+                        if (cond == 0)
+                        {
+                            comfortableHours++;
+                        }
+                    }
+                    valuesAnnualPercentage[probe] = (double)comfortableHours / numberOfHours;
+                });
             }//end using prog bar
 
             Console.WriteLine(Utilities.ConvertComputeTimes(sw.ElapsedMilliseconds));

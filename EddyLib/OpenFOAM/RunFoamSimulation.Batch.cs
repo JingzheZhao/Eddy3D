@@ -49,6 +49,8 @@ namespace EddyLib
                 Strings.BatFiles.Run(domain, meshSettings));
             DictFileWriter.WriteBatchFile(scriptsDir, "run_sim_all.bat",
                 Strings.BatFiles.RunSimOnly(domain, meshSettings));
+            DictFileWriter.WriteBatchFile(scriptsDir, "run_sim_continue_all.bat",
+                Strings.BatFiles.RunSimContinueOnly(domain, meshSettings));
             DictFileWriter.WriteBatchFile(scriptsDir, "run_postprocess_U_all.bat",
                 Strings.BatFiles.RunPostProcessU_Only(domain, meshSettings));
             DictFileWriter.WriteBatchFile(scriptsDir, "run_make_trees.bat",
@@ -115,6 +117,17 @@ namespace EddyLib
             }
             WriteDockerScript(scriptsDir, "run_sim_all", simAllCmds, workDir, "Simulation (all directions)");
 
+            // Continue simulation for all wind directions (sequential)
+            var simContinueAllCmds = new List<string>();
+            for (int i = 0; i < domain.BCond.WindDirections.Count; i++)
+            {
+                int windDir = domain.BCond.WindDirections[i];
+                if (i > 0) simContinueAllCmds.Add("cd " + DockerConfig.CaseMountPoint);
+                simContinueAllCmds.Add(string.Format("cd {0}", windDir));
+                AddSimulationContinueCommands(simContinueAllCmds, runSettings);
+            }
+            WriteDockerScript(scriptsDir, "run_sim_continue_all", simContinueAllCmds, workDir, "Continue Simulation (all directions)");
+
             // Mesh + Sim combined
             var runAllCmds = new List<string>();
             runAllCmds.AddRange(meshCmds);
@@ -144,6 +157,12 @@ namespace EddyLib
                     AddSimulationCommands(cmds, runSettings);
                     WriteDockerScript(scriptsDir, string.Format("{0}_run_sim", windDir), cmds, workDir,
                         string.Format("Simulation (dir {0})", windDir));
+
+                    var continueCmds = new List<string>();
+                    continueCmds.Add(string.Format("cd {0}", windDir));
+                    AddSimulationContinueCommands(continueCmds, runSettings);
+                    WriteDockerScript(scriptsDir, string.Format("{0}_run_sim_continue", windDir), continueCmds, workDir,
+                        string.Format("Continue Simulation (dir {0})", windDir));
                 }
                 else
                 {
@@ -202,6 +221,22 @@ namespace EddyLib
                 if (runSettings.potentialFoamInit)
                     cmds.Add("potentialFoam");
                 cmds.Add(WithDockerLog("foamRun -solver incompressibleFluid", SimulationLogFileName));
+            }
+        }
+
+        private static void AddSimulationContinueCommands(List<string> cmds, OFRunSettings runSettings)
+        {
+            cmds.Add("foamDictionary system/controlDict -entry startFrom -set latestTime");
+            if (runSettings.CPUs > 1)
+            {
+                cmds.Add(WithDockerLog(
+                    string.Format("mpiexec -np {0} simpleFoam -parallel", runSettings.CPUs),
+                    SimulationLogFileName));
+                cmds.Add("reconstructPar -latestTime");
+            }
+            else
+            {
+                cmds.Add(WithDockerLog("simpleFoam", SimulationLogFileName));
             }
         }
 

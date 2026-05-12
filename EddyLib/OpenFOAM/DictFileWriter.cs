@@ -89,26 +89,33 @@ namespace EddyLib.OpenFOAM
         public static void WriteCommandFile(string directory, string fileName, string content)
         {
             var path = Path.Combine(directory, fileName);
-            WriteDict(path, content);
 
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                try
+                if (!string.IsNullOrWhiteSpace(directory))
                 {
-                    var psi = new ProcessStartInfo
-                    {
-                        FileName = "/bin/chmod",
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    };
-                    psi.ArgumentList.Add("+x");
-                    psi.ArgumentList.Add(path);
-                    using (var p = Process.Start(psi))
-                    {
-                        p?.WaitForExit();
-                    }
+                    Directory.CreateDirectory(directory);
                 }
-                catch { }
+
+#pragma warning disable CA1416
+                var options = new FileStreamOptions
+                {
+                    Mode = FileMode.Create,
+                    Access = FileAccess.Write,
+                    Share = FileShare.None,
+                    UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+                                     UnixFileMode.GroupRead | UnixFileMode.GroupExecute |
+                                     UnixFileMode.OtherRead | UnixFileMode.OtherExecute
+                };
+
+                using var stream = new FileStream(path, options);
+                using var writer = new StreamWriter(stream);
+                writer.Write(content);
+#pragma warning restore CA1416
+            }
+            else
+            {
+                WriteDict(path, content);
             }
         }
     }

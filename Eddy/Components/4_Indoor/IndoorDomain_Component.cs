@@ -405,11 +405,8 @@ Requires connected walls, inlets, outlets, and optional heat sources.
 
             Console.WriteLine("Run Eddy Simulation...");
 
-            var runIndoorEddy = Command.Run("cmd.exe", new[] { "" },
-  options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(cts.Token));
-            runIndoorEddy.StandardInput.WriteLine("cd " + this.BaseWorkingDir);
-            runIndoorEddy.StandardInput.WriteLine(allBat);
-            runIndoorEddy.StandardInput.WriteLine("exit");
+            var runIndoorEddy = Command.Run("cmd.exe", new[] { "/c", allBat },
+                options => options.WorkingDirectory(this.BaseWorkingDir).CancellationToken(cts.Token));
 
             int cnt = 0;
 

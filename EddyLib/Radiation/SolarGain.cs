@@ -18,17 +18,38 @@ namespace EddyLib.Radiation
                 Values[h] = new float[numberOfSensors];
             }
 
-            System.Threading.Tasks.Parallel.For(0, numberOfSensors, p =>
+            // Bolt optimization: Parallelize the outer loop (hours) and keep the inner loop (sensors) sequential.
+            // This avoids the overhead of managing tasks for trivial inner loop work and prevents false sharing
+            // by ensuring each thread writes to its own set of memory (the entire 'h' row).
+            // Hoisting hour-invariant calculations (solar elevation, projection factor) out of the inner loop
+            // significantly reduces redundant trigonometric and mathematical calls.
+            System.Threading.Tasks.Parallel.For(0, numberOfHours, h =>
             {
-                for (int h = 0; h < numberOfHours; h++)
+                double solarElevation = weather.SolarElevation[h];
+                double rad = Utilities.Deg2Rad(solarElevation);
+                double fp = Get_fp_cylinder(rad);
+
+                // Precalculate coefficients for the ERF calculation to minimize operations in the inner loop
+                // dMRT = (Idiff + (fp / feff) * Idir) * (sw_abs / (lw_abs * hr))
+                const double feff = 0.725; // for Posture.standing
+                const double hr = 6.0;
+                const double lw_abs = 0.95;
+                const double sw_abs = 0.7; // default asa
+
+                double K = sw_abs / (lw_abs * hr);
+                double kDir = (fp / feff) * K;
+                double kDiff = K;
+
+                float[] sensorValues = Values[h];
+                float[] hTotalRad = totalRad[h];
+                float[] hDirectRad = directRad[h];
+
+                for (int p = 0; p < numberOfSensors; p++)
                 {
-                    double dMRT;
-                    double diffRad = totalRad[h][p] - directRad[h][p];
-                    double dirRad = directRad[h][p];
+                    double diffRad = (double)hTotalRad[p] - hDirectRad[p];
+                    double dirRad = (double)hDirectRad[p];
 
-                    dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], SolarGain.Posture.standing, dirRad, diffRad);
-
-                    Values[h][p] = (float)dMRT;
+                    sensorValues[p] = (float)(diffRad * kDiff + dirRad * kDir);
                 }
             });
 
@@ -43,13 +64,21 @@ namespace EddyLib.Radiation
 
             for (int h = 0; h < numberOfHours; h++)
             {
-                double dMRT;
-                double diffRad = totalRad[h] - directRad[h];
-                double dirRad = directRad[h];
+                double solarElevation = weather.SolarElevation[h];
+                double rad = Utilities.Deg2Rad(solarElevation);
+                double fp = Get_fp_cylinder(rad);
 
-                dMRT = SolarGain.ERF_Modified(weather.SolarElevation[h], SolarGain.Posture.standing, dirRad, diffRad);
+                double diffRad = (double)totalRad[h] - directRad[h];
+                double dirRad = (double)directRad[h];
 
-                Values[h] = (float)dMRT;
+                // Bolt optimization: Use direct formula to avoid method call overhead and redundant checks
+                const double feff = 0.725;
+                const double hr = 6.0;
+                const double lw_abs = 0.95;
+                const double sw_abs = 0.7;
+
+                double K = sw_abs / (lw_abs * hr);
+                Values[h] = (float)((diffRad + (fp / feff) * dirRad) * K);
             }
 
             return Values;
@@ -112,61 +141,58 @@ namespace EddyLib.Radiation
             standing
         };
 
+        private static readonly double[][] FpTableStanding = new double[][]
+        {
+            new double[] { 0.25, 0.25, 0.23, 0.19, 0.15, 0.10, 0.06 },
+            new double[] { 0.25, 0.25, 0.23, 0.18, 0.15, 0.10, 0.06 },
+            new double[] { 0.24, 0.24, 0.22, 0.18, 0.14, 0.10, 0.06 },
+            new double[] { 0.22, 0.22, 0.20, 0.17, 0.13, 0.09, 0.06 },
+            new double[] { 0.21, 0.21, 0.18, 0.15, 0.12, 0.08, 0.06 },
+            new double[] { 0.18, 0.18, 0.17, 0.14, 0.11, 0.08, 0.06 },
+            new double[] { 0.17, 0.17, 0.16, 0.13, 0.11, 0.08, 0.06 },
+            new double[] { 0.18, 0.18, 0.16, 0.13, 0.11, 0.08, 0.06 },
+            new double[] { 0.20, 0.20, 0.18, 0.15, 0.12, 0.08, 0.06 },
+            new double[] { 0.22, 0.22, 0.20, 0.16, 0.13, 0.09, 0.06 },
+            new double[] { 0.24, 0.24, 0.21, 0.17, 0.13, 0.09, 0.06 },
+            new double[] { 0.25, 0.25, 0.22, 0.18, 0.14, 0.09, 0.06 },
+            new double[] { 0.25, 0.25, 0.22, 0.18, 0.14, 0.09, 0.06 }
+        };
+
+        private static readonly double[][] FpTableSeating = new double[][]
+        {
+            new double[] { 0.20, 0.23, 0.21, 0.21, 0.18, 0.16, 0.12 },
+            new double[] { 0.203232, 0.228288, 0.204624, 0.200448, 0.186528, 0.157992, 0.123192 },
+            new double[] { 0.20, 0.23, 0.21, 0.20, 0.18, 0.15, 0.12 },
+            new double[] { 0.19, 0.23, 0.20, 0.20, 0.18, 0.15, 0.12 },
+            new double[] { 0.18, 0.21, 0.19, 0.19, 0.17, 0.14, 0.12 },
+            new double[] { 0.16, 0.20, 0.18, 0.18, 0.16, 0.13, 0.12 },
+            new double[] { 0.15, 0.18, 0.17, 0.17, 0.15, 0.13, 0.12 },
+            new double[] { 0.16, 0.18, 0.16, 0.16, 0.14, 0.13, 0.12 },
+            new double[] { 0.18, 0.18, 0.16, 0.14, 0.14, 0.12, 0.12 },
+            new double[] { 0.19, 0.18, 0.15, 0.13, 0.13, 0.12, 0.12 },
+            new double[] { 0.21, 0.18, 0.14, 0.12, 0.12, 0.12, 0.12 },
+            new double[] { 0.21, 0.17, 0.13, 0.11, 0.11, 0.12, 0.12 },
+            new double[] { 0.21, 0.17, 0.12, 0.11, 0.11, 0.11, 0.12 }
+        };
+
+        private static readonly int[] AltRange = new int[] { 0, 15, 30, 45, 60, 75, 90 };
+
+        private static readonly int[] AzRange = new int[] { 0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180 };
+
         public static double ERF_Modified(double alt, Posture posture, double Idir, double Idiff, double asa = 0.7)
         {
-            //  ERF function to estimate the impact of solar radiation on occupant comfort
-            //  INPUTS:
-            //  alt : altitude of sun in degrees [0, 90]
-            //  az : azimuth of sun in degrees [0, 180]
-            //  posture: posture of occupant ('seated', 'standing', or 'supine')
-            //  Idir : direct beam intensity (normal)
-            //  tsol: total solar transmittance (SC * 0.87)
-            //  fsvv : sky vault view fraction : fraction of sky vault in occupant's view [0, 1]
-            //  fbes : fraction body exposed to sun [0, 1] // Patrick: In our case 1 since we have no windows
-            //  asa : avg shortwave abs : average shortwave absorptivity of body [0, 1]
-            //  tsol_factor : (optional) correction to tsol based on angle of incidence
-
-            //var DEG_TO_RAD = 0.0174532925;
-            var hr = 6;
-
-            //var Idiff = 0.2 * Idir;
-            //double fsvv = 1; never used
-
-            // Floor reflectance
-            // var Rfloor = 0.6;
+            // Bolt optimization: simplified formula to reduce operations.
+            // dMRT = (Idiff + (fp / feff) * Idir) * (asa / (lw_abs * hr))
 
             var rad = Utilities.Deg2Rad(alt);
-
             var fp = Get_fp_cylinder(rad);
 
-            double feff;
-            if (posture == Posture.standing || posture == Posture.supine)
-            {
-                feff = 0.725;
-            }
-            else
-            {
-                feff = 0.696;
-            }
+            double feff = (posture == Posture.standing || posture == Posture.supine) ? 0.725 : 0.696;
 
-            var sw_abs = asa;
-            var lw_abs = 0.95;
+            const double hr = 6.0;
+            const double lw_abs = 0.95;
 
-            // We take Idiff directly from the simulation
-
-            var E_diff = feff * Idiff;
-
-            //var E_diff = feff * Idiff;
-
-            var E_direct = fp * Idir;
-
-            //var E_refl = feff * fsvv * 0.5 * tsol * (Idir * Math.Sin(alt * DEG_TO_RAD) + Idiff) * Rfloor;
-
-            var E_solar = E_diff + E_direct; // + E_refl;
-            var ERF = E_solar * (sw_abs / lw_abs);
-            var dMRT = ERF / (hr * feff);
-
-            return dMRT;
+            return (Idiff + (fp / feff) * Idir) * (asa / (lw_abs * hr));
         }
 
         public static void ERF(double alt, double az, Posture posture, double Idir, double tsol, double fsvv, double fbes, double asa, out double ERF, out double dMRT, double tsol_factor = 1.0)
@@ -214,22 +240,6 @@ namespace EddyLib.Radiation
             dMRT = ERF / (hr * feff);
         }
 
-        private static int Find_span(int[] arr, double x)
-        {
-            // for ordered array arr and value x, find the left index
-            // of the closed interval that the value falls in.
-
-            for (var i = 0; i < arr.Length - 1; i++)
-            {
-                if (x <= arr[i + 1] && x >= arr[i])
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
         private static double Get_fp_cylinder(double theta, double r = 0.3, double h = 1.75)
 
         {
@@ -271,53 +281,16 @@ namespace EddyLib.Radiation
                 az = 360 - az;
             }
 
-            // fix inputs
-
-            var jDim = 7;
-            var iDim = 13;
-
-            var fp_table = new double[iDim][];
-
-            for (int ii = 0; ii < iDim; ii++)
-            {
-                fp_table[ii] = new double[jDim];
-            }
-
+            // Bolt optimization: Use static cached tables instead of local array allocations
+            double[][] fp_table;
             if (posture == Posture.standing || posture == Posture.supine)
             {
-                fp_table[0] = new double[] { 0.25, 0.25, 0.23, 0.19, 0.15, 0.10, 0.06 };
-                fp_table[1] = new double[] { 0.25, 0.25, 0.23, 0.18, 0.15, 0.10, 0.06 };
-                fp_table[2] = new double[] { 0.24, 0.24, 0.22, 0.18, 0.14, 0.10, 0.06 };
-                fp_table[3] = new double[] { 0.22, 0.22, 0.20, 0.17, 0.13, 0.09, 0.06 };
-                fp_table[4] = new double[] { 0.21, 0.21, 0.18, 0.15, 0.12, 0.08, 0.06 };
-                fp_table[5] = new double[] { 0.18, 0.18, 0.17, 0.14, 0.11, 0.08, 0.06 };
-                fp_table[6] = new double[] { 0.17, 0.17, 0.16, 0.13, 0.11, 0.08, 0.06 };
-                fp_table[7] = new double[] { 0.18, 0.18, 0.16, 0.13, 0.11, 0.08, 0.06 };
-                fp_table[8] = new double[] { 0.20, 0.20, 0.18, 0.15, 0.12, 0.08, 0.06 };
-                fp_table[9] = new double[] { 0.22, 0.22, 0.20, 0.16, 0.13, 0.09, 0.06 };
-                fp_table[10] = new double[] { 0.24, 0.24, 0.21, 0.17, 0.13, 0.09, 0.06 };
-                fp_table[11] = new double[] { 0.25, 0.25, 0.22, 0.18, 0.14, 0.09, 0.06 };
-                fp_table[12] = new double[] { 0.25, 0.25, 0.22, 0.18, 0.14, 0.09, 0.06 };
+                fp_table = FpTableStanding;
             }
-            else if (posture == Posture.seating)
+            else
             {
-                fp_table[0] = new double[] { 0.20, 0.23, 0.21, 0.21, 0.18, 0.16, 0.12 };
-
-                // typo in original code
-                fp_table[1] = new double[] { 0.203232, 0.228288, 0.204624, 0.200448, 0.186528, 0.157992, 0.123192 };
-                fp_table[2] = new double[] { 0.20, 0.23, 0.21, 0.20, 0.18, 0.15, 0.12 };
-                fp_table[3] = new double[] { 0.19, 0.23, 0.20, 0.20, 0.18, 0.15, 0.12 };
-                fp_table[4] = new double[] { 0.18, 0.21, 0.19, 0.19, 0.17, 0.14, 0.12 };
-                fp_table[5] = new double[] { 0.16, 0.20, 0.18, 0.18, 0.16, 0.13, 0.12 };
-                fp_table[6] = new double[] { 0.15, 0.18, 0.17, 0.17, 0.15, 0.13, 0.12 };
-                fp_table[7] = new double[] { 0.16, 0.18, 0.16, 0.16, 0.14, 0.13, 0.12 };
-                fp_table[8] = new double[] { 0.18, 0.18, 0.16, 0.14, 0.14, 0.12, 0.12 };
-                fp_table[9] = new double[] { 0.19, 0.18, 0.15, 0.13, 0.13, 0.12, 0.12 };
-                fp_table[10] = new double[] { 0.21, 0.18, 0.14, 0.12, 0.12, 0.12, 0.12 };
-                fp_table[11] = new double[] { 0.21, 0.17, 0.13, 0.11, 0.11, 0.12, 0.12 };
-                fp_table[12] = new double[] { 0.21, 0.17, 0.12, 0.11, 0.11, 0.11, 0.12 };
+                fp_table = FpTableSeating;
             }
-            ;
 
             if (posture == Posture.supine)
             {
@@ -328,21 +301,21 @@ namespace EddyLib.Radiation
             }
 
             double fp;
-            var alt_range = new int[] { 0, 15, 30, 45, 60, 75, 90 };
-            var az_range = new int[] { 0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180 };
-
-            var alt_i = Find_span(alt_range, alt);
-            var az_i = Find_span(az_range, az);
+            // Bolt optimization: Replace O(N) Find_span with O(1) index calculation.
+            // AltRange and AzRange use uniform 15-degree steps.
+            // Using array lookups (e.g., AltRange[alt_i]) instead of hardcoded math ensures robustness.
+            var alt_i = Math.Min((int)(alt / 15), AltRange.Length - 2);
+            var az_i = Math.Min((int)(az / 15), AzRange.Length - 2);
 
             var fp11 = fp_table[az_i][alt_i];
             var fp12 = fp_table[az_i][alt_i + 1];
             var fp21 = fp_table[az_i + 1][alt_i];
             var fp22 = fp_table[az_i + 1][alt_i + 1];
 
-            var az1 = az_range[az_i];
-            var az2 = az_range[az_i + 1];
-            var alt1 = alt_range[alt_i];
-            var alt2 = alt_range[alt_i + 1];
+            var az1 = AzRange[az_i];
+            var az2 = AzRange[az_i + 1];
+            var alt1 = AltRange[alt_i];
+            var alt2 = AltRange[alt_i + 1];
 
             // bilinear interpolation
             fp = fp11 * (az2 - az) * (alt2 - alt);
@@ -353,5 +326,6 @@ namespace EddyLib.Radiation
 
             return fp;
         }
+
     }
 }

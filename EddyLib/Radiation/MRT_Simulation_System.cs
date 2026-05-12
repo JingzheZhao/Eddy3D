@@ -54,7 +54,7 @@ namespace EddyLib.Radiation
             BaseWorkingDir = Path.GetFullPath(DefaultDirectoriesAndPaths.ResolveWorkingDirectory(baseWorkingDir));
             RSurfaces = rsurfaces;
             Weather = weather;
-            Settings = _set;
+            Settings = _set ?? new MRT_Simulation_Settings();
             Probes = rprobes;
 
             CFDDataPath = cfd_data_path;
@@ -153,7 +153,7 @@ namespace EddyLib.Radiation
             }
 
             this.RadiationSystem = new RadiationSystem(this.BaseWorkingDir, this.Weather, this.RSurfaces, this.Probes, this.Polys, this.HighPolyNoSky);
-            this.ThermalSystem = new ThermalSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.LowPolyNoSky, this.Settings.CumulativeViewFactorCutoffPercentile, this.Settings.SmallFaceCutoff);
+            this.ThermalSystem = new ThermalSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.LowPolyNoSky, this.Settings.CumulativeViewFactorCutoffPercentile / 100.0, this.Settings.SmallFaceCutoff);
             this.ComfortSystem = new ComfortSystem(this.BaseWorkingDir, this.Weather, this.Probes, this.Polys, this.CFDDataPath, this.Settings.WindScalingFactor);
 
             TOTAL += this.methodsteps + RadiationSystem.methodsteps + ThermalSystem.methodsteps + ComfortSystem.methodsteps;

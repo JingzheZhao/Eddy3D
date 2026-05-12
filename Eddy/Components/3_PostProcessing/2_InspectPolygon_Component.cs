@@ -79,7 +79,9 @@ namespace Eddy.Components.Radiation
                 {
                     InspectPolygon_Component comp = Owner as InspectPolygon_Component;
 
-                    if (isSensor.Contains(e.CanvasLocation))
+                    var clickSensor = isSensor;
+                    clickSensor.Inflate(2f, 2f);
+                    if (clickSensor.Contains(e.CanvasLocation))
                     {
                         if (comp.ProbePolyMode == "Polygon") return GH_ObjectResponse.Handled;
                         comp.RecordUndoEvent("Polygon");
@@ -88,7 +90,9 @@ namespace Eddy.Components.Radiation
                         return GH_ObjectResponse.Handled;
                     }
 
-                    if (isHour.Contains(e.CanvasLocation))
+                    var clickHour = isHour;
+                    clickHour.Inflate(2f, 2f);
+                    if (clickHour.Contains(e.CanvasLocation))
                     {
                         if (comp.ProbePolyMode == "Hour") return GH_ObjectResponse.Handled;
                         comp.RecordUndoEvent("Hour");
@@ -235,6 +239,12 @@ Visualizes simulation results on surface polygons (e.g., building facades, groun
                 }
             }
 
+            if (rpolyList.Count == 0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No valid non-sky polygons were provided.");
+                return;
+            }
+
             List<Point3d> points = new List<Point3d>();
             List<Mesh> meshes = new List<Mesh>();
             List<float> data = new List<float>();
@@ -248,6 +258,7 @@ Visualizes simulation results on surface polygons (e.g., building facades, groun
                     {
                         if (p.SurfaceTemperature != null && p.SimulationType == SimulationType.Simulated)
                         {
+                            if (h < 0 || h >= p.SurfaceTemperature.Length) continue;
                             if (p.Centroid != null) points.Add(p.Centroid.Value);
                             if (p.Mesh != null) meshes.Add(p.Mesh.Value);
                             else meshes.Add(null);
@@ -255,13 +266,15 @@ Visualizes simulation results on surface polygons (e.g., building facades, groun
                         }
                         else if (p.TemperatureOverride != null && p.SimulationType == SimulationType.TemperatureInput)
                         {
+                            if (h < 0 || h >= p.TemperatureOverride.Length) continue;
                             if (p.Centroid != null) points.Add(p.Centroid.Value);
                             if (p.Mesh != null) meshes.Add(p.Mesh.Value);
                             else meshes.Add(null);
                             data.Add(p.TemperatureOverride[h]);
                         }
-                        else if (p.SimulationType == SimulationType.Ambient)
+                        else if (p.TemperatureOverride != null && p.SimulationType == SimulationType.Ambient)
                         {
+                            if (h < 0 || h >= p.TemperatureOverride.Length) continue;
                             if (p.Centroid != null) points.Add(p.Centroid.Value);
                             if (p.Mesh != null) meshes.Add(p.Mesh.Value);
                             else meshes.Add(null);
@@ -283,6 +296,12 @@ Visualizes simulation results on surface polygons (e.g., building facades, groun
             }
             else
             {
+                if (h < 0 || h >= rpolyList.Count)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Polygon index {h} is outside the valid range 0-{rpolyList.Count - 1}.");
+                    return;
+                }
+
                 var p = rpolyList[h];
 
                 if (metric == RPolyMetric.SurfaceTemperature)
@@ -301,7 +320,7 @@ Visualizes simulation results on surface polygons (e.g., building facades, groun
                         else meshes.Add(null);
                         data.AddRange(p.TemperatureOverride);
                     }
-                    else if (p.SimulationType == SimulationType.Ambient)
+                    else if (p.TemperatureOverride != null && p.SimulationType == SimulationType.Ambient)
                     {
                         if (p.Centroid != null) points.Add(p.Centroid.Value);
                         if (p.Mesh != null) meshes.Add(p.Mesh.Value);
@@ -320,6 +339,12 @@ Visualizes simulation results on surface polygons (e.g., building facades, groun
                 DA.SetDataList(0, points);
                 DA.SetDataList(1, meshes);
                 DA.SetDataList(2, data);
+            }
+
+            if (metric == RPolyMetric.SurfaceTemperature && data.Count == 0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                    "No surface temperature values were found. Run MRT with EnergyPlus surface temperatures enabled and check that the VFC setting is not filtering out all polygons.");
             }
         }
 

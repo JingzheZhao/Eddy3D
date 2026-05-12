@@ -18,9 +18,24 @@ namespace EddyLib
         private static readonly string LocalEddy3DDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Eddy3D");
         private static string _baseDir = IsWindows ? LocalEddy3DDir : RoamingEddy3DDir;
+        public const string RadianceReleaseTag = "rad6R0P2";
+        public const string RadianceBuildId = "c1700d56";
+        public const string RadianceWindowsArchiveName = "Radiance_c1700d56_Windows.zip";
+        public const string RadianceMacOSArchiveName = "Radiance_c1700d56_OSX.zip";
+        public const string RadianceMacOSArm64ArchiveName = "Radiance_c1700d56_OSX_arm64.zip";
+        public const string RadianceWindowsFolderName = "Radiance_c1700d56_Windows";
+        public const string RadianceMacOSFolderName = "Radiance_c1700d56_OSX";
+        public const string RadianceMacOSArm64FolderName = "Radiance_c1700d56_OSX_arm64";
         private static readonly string CasesRootDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Eddy3D");
-        private static readonly string _radianceDirDefault = ResolveDefaultRadianceDir();
+        private static readonly string _radianceDirDefault = IsWindows
+            ? Path.Combine(_baseDir, RadianceWindowsFolderName)
+            : Path.Combine(
+                _baseDir,
+                RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+                    ? RadianceMacOSArm64FolderName
+                    : RadianceMacOSFolderName,
+                "radiance");
         private static string _radianceDir = _radianceDirDefault;
         private static string _energyPlusDir = IsWindows
             ? @"C:\EnergyPlusV9-4-0"
@@ -68,6 +83,9 @@ namespace EddyLib
                 return mappedForeignPath;
             }
 
+            // Validate that the path does not contain shell metacharacters before resolving as a local path.
+            Utilities.ValidatePathForShell(trimmed);
+
             // Check if this is a simple name (no path separators, no drive letter)
             bool isSimpleName = !ContainsAnyDirectorySeparator(trimmed)
                              && !LooksLikeWindowsDrivePath(trimmed)
@@ -96,6 +114,17 @@ namespace EddyLib
         /// Path to Radiance binaries directory.
         /// </summary>
         public static string RadianceBinDir => Path.Combine(RadianceDir, "bin");
+
+        /// <summary>
+        /// Resolves a command name to a full executable path inside <paramref name="binDir"/>,
+        /// applying the platform-specific .exe suffix on Windows. Falls back to the bare
+        /// command name (PATH lookup) if the file isn't present in the bin dir.
+        /// </summary>
+        public static string ResolveExePath(string binDir, string command)
+        {
+            string exePath = Path.Combine(binDir, command + (IsWindows ? ".exe" : ""));
+            return File.Exists(exePath) ? exePath : command;
+        }
 
         /// <summary>
         /// Path to Radiance library directory.
@@ -223,6 +252,7 @@ namespace EddyLib
         private static string CreateUniqueAutoCasePath()
         {
             string casesRoot = Path.GetFullPath(CasesDir);
+            Directory.CreateDirectory(casesRoot);
 
             for (int attempts = 0; attempts < 128; attempts++)
             {
@@ -237,46 +267,6 @@ namespace EddyLib
 
             // Extremely unlikely collision fallback.
             return Path.Combine(casesRoot, "Case_" + Guid.NewGuid().ToString("N"));
-        }
-
-        private static string ResolveDefaultRadianceDir()
-        {
-            string fromEnvironment = Environment.GetEnvironmentVariable("EDDY3D_RADIANCE_DIR");
-            if (!string.IsNullOrWhiteSpace(fromEnvironment))
-            {
-                return TrimWrappingQuotes(fromEnvironment.Trim()).TrimEnd('\\', '/');
-            }
-
-            string bundledDefault = IsWindows
-                ? Path.Combine(_baseDir, "Radiance_012cb178_Windows")
-                : Path.Combine(_baseDir, "Radiance_012cb178_OSX", "radiance");
-
-            if (!IsWindows)
-            {
-                return bundledDefault;
-            }
-
-            string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-
-            string[] candidates =
-            {
-                Path.Combine(programFiles, "Radiance"),
-                @"C:\Radiance",
-                Path.Combine(programFilesX86, "Radiance"),
-                bundledDefault
-            };
-
-            foreach (string candidate in candidates)
-            {
-                if (!string.IsNullOrWhiteSpace(candidate)
-                    && File.Exists(Path.Combine(candidate, "bin", "rad.exe")))
-                {
-                    return candidate;
-                }
-            }
-
-            return bundledDefault;
         }
 
         private static string ResolveDefaultBlueCfdDir()

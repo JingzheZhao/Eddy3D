@@ -80,130 +80,149 @@ namespace EddyLib.Radiation
 
         public List<string> UniqueSurfaceTypesInModel = new List<string>();
 
-        //Sum up view factors to the different materials in the model
-        private void BuildVFToProbesByMaterial()
-        {
-            // ⚡ Bolt: Replace ToHashSet().ToList() with Distinct().ToList() to avoid explicit HashSet allocation. ~2x faster for small datasets.
-            // ⚡ Bolt: Additionally, perform .Distinct() on the Enum type BEFORE calling .ToString() to prevent redundant string allocations per element.
-            UniqueSurfaceTypesInModel = Polys.Select(s => s.Type).Distinct().Select(t => t.ToString()).ToList();
+        // Test-only seam: parameterless ctor so unit tests can build a minimal
+        // instance (Probes + Polys) and exercise the view-factor kernels in isolation.
+        internal MRT_Simulation_System() { }
 
-            // set up dictionary
-            for (int i = 0; i < Probes.Count; i++)
+        //Sum up view factors to the different materials in the model
+        internal void BuildVFToProbesByMaterial()
+        {
+            // Distinct on the enum first to avoid per-poly Enum.ToString() allocations.
+            var surfaceTypes = Polys.Select(s => s.Type).Distinct().ToList();
+            UniqueSurfaceTypesInModel = surfaceTypes.Select(t => t.ToString()).ToList();
+
+            // Enum → unique-list index, O(1) lookup, no per-poly string allocation.
+            var typeToIndex = new Dictionary<RadiationSurfaceType, int>(surfaceTypes.Count);
+            for (int i = 0; i < surfaceTypes.Count; i++)
             {
-                Probes[i].VFtoMaterial = new Dictionary<string, double>();
-                for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
-                {
-                    Probes[i].VFtoMaterial.Add(UniqueSurfaceTypesInModel[j], 0);
-                }
+                typeToIndex[surfaceTypes[i]] = i;
             }
 
-            for (int i = 0; i < Probes.Count; i++)
+            int[] polyTypeIndices = new int[Polys.Count];
+            for (int j = 0; j < Polys.Count; j++)
             {
+                polyTypeIndices[j] = typeToIndex[Polys[j].Type];
+            }
+
+            // Single Parallel.For: allocate dict, aggregate into bucket array, accumulate
+            // total, normalize, and emit dict entries -- one pass per probe.
+            Parallel.For(0, Probes.Count, i =>
+            {
+                var probe = Probes[i];
+                probe.VFtoMaterial = new Dictionary<string, double>(UniqueSurfaceTypesInModel.Count);
+
+                double[] tempMaterialVF = new double[UniqueSurfaceTypesInModel.Count];
+                double total = 0;
                 for (int j = 0; j < Polys.Count; j++)
                 {
-                    Probes[i].VFtoMaterial[Polys[j].Type.ToString()] += Probes[i].VFtoPolys[j];
+                    double vf = probe.VFtoPolys[j];
+                    tempMaterialVF[polyTypeIndices[j]] += vf;
+                    total += vf;
                 }
-            }
 
-            // normalize results
-            for (int i = 0; i < Probes.Count; i++)
-            {
-                double total = 0;
-                for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
+                // NaN-safety: only scale when there is something to scale.
+                if (total > 0)
                 {
-                    total += Probes[i].VFtoMaterial[UniqueSurfaceTypesInModel[j]];
+                    double scale = 1.0 / total;
+                    for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
+                    {
+                        probe.VFtoMaterial.Add(UniqueSurfaceTypesInModel[j], tempMaterialVF[j] * scale);
+                    }
                 }
-                double scale = 1 / total;
-                for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
+                else
                 {
-                    Probes[i].VFtoMaterial[UniqueSurfaceTypesInModel[j]] *= scale;
+                    for (int j = 0; j < UniqueSurfaceTypesInModel.Count; j++)
+                    {
+                        probe.VFtoMaterial.Add(UniqueSurfaceTypesInModel[j], 0.0);
+                    }
                 }
-            }
+            });
         }
 
         //Compute Form factors taking into account occlusions from a list of meshes
-        private void BuildVFToProbes(Mesh Obst)
+        internal void BuildVFToProbes(Mesh Obst)
         {
-            foreach (var p in Probes)
-            {
-                p.VFtoPolys = new double[Polys.Count];
-            }
-
+            // Single Parallel.For: allocate array, compute, accumulate total, and
+            // normalize -- one pass per probe. Better cache locality than three
+            // separate passes.
             Parallel.For(0, Probes.Count, i =>
             {
+                var probe = Probes[i];
+                probe.VFtoPolys = new double[Polys.Count];
+                Point3d probe_pt = probe.Point.Value;
+                double total = 0;
+
                 for (int j = 0; j < Polys.Count; j++)
                 {
-                    Point3d probe_pt = Probes[i].Point.Value;
-                    Probes[i].VFtoPolys[j] = FFactorProbe(probe_pt, Polys[j], Obst);
+                    double f = FFactorProbe(probe_pt, Polys[j], Obst);
+                    probe.VFtoPolys[j] = f;
+                    total += f;
+                }
+
+                // NaN-safety: only scale when probe saw at least one polygon.
+                if (total > 0)
+                {
+                    double scale = 1.0 / total;
+                    for (int j = 0; j < Polys.Count; j++) probe.VFtoPolys[j] *= scale;
                 }
             });
 
-            // normalize results
-            for (int i = 0; i < Probes.Count; i++)
-            {
-                double total = 0;
-                for (int j = 0; j < Probes[i].VFtoPolys.Length; j++)
-                {
-                    total += Probes[i].VFtoPolys[j];
-                }
-                double scale = 1 / total;
-                for (int j = 0; j < Probes[i].VFtoPolys.Length; j++)
-                {
-                    Probes[i].VFtoPolys[j] *= scale;
-                }
-            }
             FindPolysSeenByProbes();
         }
 
-        private double FFactorProbe(Point3d probe_pt, RPolygon p1, Mesh Obst)
+        internal double FFactorProbe(Point3d probe_pt, RPolygon p1, Mesh Obst)
         {
-            Vector3d probe_n = p1.Centroid.Value - probe_pt;
-            probe_n.Unitize();
-            if (p1.Normal.Value * probe_n > 0.0001) return 0.0; //if normals don't face each other return 0
+            // Hoist field accesses so we read each property once.
+            Point3d p1Centroid = p1.Centroid.Value;
+            Vector3d p1Normal = p1.Normal.Value;
 
-            Plane pl = new Plane(p1.Centroid.Value, p1.Normal.Value);
-            if (pl.DistanceTo(probe_pt) < 0) return 0.0; // if the other face is behind the test face return 0
+            Vector3d dv = p1Centroid - probe_pt;
+            double r2 = dv.X * dv.X + dv.Y * dv.Y + dv.Z * dv.Z;
+            if (r2 < 0.01) return 0.0; // r < 0.1 -- polys too close
 
-            double f = 0.0;
+            double r = Math.Sqrt(r2);
+            Vector3d probe_n = dv / r;
 
-            Vector3d dv;
-            dv = p1.Centroid.Value - probe_pt;
-            double r = dv.Length;
-            if (r < 0.1) return 0.0;
+            // Single cosThetaJ check folds in two old early-exit branches:
+            //   1) old: (p1.Normal * probe_n > 0.0001) return 0   [normals don't face]
+            //   2) old: pl.DistanceTo(probe_pt) < 0 return 0      [probe behind polygon]
+            // Both are equivalent to (-dv · p1.Normal) / r < 0.0001, since
+            // probe_n = dv/r so p1.Normal · probe_n = -cosThetaJ.
+            double cosThetaJ = -(dv * p1Normal) / r;
+            if (cosThetaJ < 0.0001) return 0.0;
 
-            double cosThetaI = dv * probe_n / (dv.Length * probe_n.Length);
-            double cosThetaJ = -dv * p1.Normal.Value / (dv.Length * p1.Normal.Value.Length);
-            f = ((cosThetaI * cosThetaJ) / (4 * Math.PI * r * r)) * p1.Area;
+            // cosThetaI collapses to 1 because probe_n = dv/r (the same direction as dv),
+            // so dv · probe_n / (|dv| * |probe_n|) = r / (r * 1) = 1.
+            double f = (cosThetaJ / (4 * Math.PI * r2)) * p1.Area;
 
             //only do occlusion test for large view factors -- zero all others
             if (f < 0.00001) return 0.0;
 
-            Vector3d dv_forRaycast = (p1.Centroid.Value + (0.01 * p1.Normal.Value)) - (probe_pt + (0.01 * probe_n));
-            Line line = new Line(p1.Centroid.Value + (0.01 * p1.Normal.Value), probe_pt + (0.01 * probe_n));
-            int[] fid;
-            var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(Obst, line, out fid);
+            Line line = new Line(p1Centroid + (0.01 * p1Normal), probe_pt + (0.01 * probe_n));
+            var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(Obst, line, out _);
             if (pts.Length > 0) return 0.0;
 
             return f;
         }
 
-        private void FindPolysSeenByProbes()
+        internal void FindPolysSeenByProbes()
         {
-            for (int j = 0; j < Polys.Count; j++)
+            // Parallel over polygons; each iteration writes to its own Polys[j] slot.
+            // Preserve the old "+= into pre-existing SeenByProbes, then divide-if-nonzero"
+            // semantics so callers that pre-populate SeenByProbes keep the same behavior.
+            Parallel.For(0, Polys.Count, j =>
             {
+                double total = Polys[j].SeenByProbes;
                 for (int i = 0; i < Probes.Count; i++)
                 {
-                    Polys[j].SeenByProbes += Probes[i].VFtoPolys[j];
+                    total += Probes[i].VFtoPolys[j];
                 }
-            }
-
-            for (int j = 0; j < Polys.Count; j++)
-            {
-                if (Polys[j].SeenByProbes != 0)
+                if (total != 0)
                 {
-                    Polys[j].SeenByProbes /= Probes.Count;
+                    Polys[j].SeenByProbes = total / Probes.Count;
                 }
-            }
+                // else: leave Polys[j].SeenByProbes unchanged
+            });
         }
 
         public double maxv = 0.0;
@@ -262,48 +281,40 @@ namespace EddyLib.Radiation
 
         //Computes the form factor between two polygons. It returns
         // 0.0 if the polygons are facing in opposite ways or are nearly coplanar or too close to each other
-        private double FFactor(RPolygon p0, RPolygon p1, Mesh Obst)
+        internal double FFactor(RPolygon p0, RPolygon p1, Mesh Obst)
         {
-            // --- 6/25/2020
-            if (p0.Normal.Value * p1.Normal.Value > 0.0001) return 0.0; //if normals don't face each other return 0
-            Plane pl = new Plane(p0.Centroid.Value, p0.Normal.Value);
-            if (pl.DistanceTo(p1.Centroid.Value) < 0) return 0.0; // if the other face is behind the test face return 0
+            // Hoist field accesses so we read each property once.
+            Vector3d p0Normal = p0.Normal.Value;
+            Vector3d p1Normal = p1.Normal.Value;
+            Point3d p0Centroid = p0.Centroid.Value;
+            Point3d p1Centroid = p1.Centroid.Value;
 
-            // ---
+            // Normals facing the same way → polys don't see each other.
+            if (p0Normal * p1Normal > 0.0001) return 0.0;
 
-            double f = 0.0;
+            Vector3d dv = p1Centroid - p0Centroid;
+            double r2 = dv.X * dv.X + dv.Y * dv.Y + dv.Z * dv.Z;
+            if (r2 < 0.01) return 0.0; // r < 0.1 -- polys too close
 
-            Vector3d dv;
-            dv = p1.Centroid.Value - p0.Centroid.Value;
-            double r = dv.Length;
-            if (r < 0.1) return 0.0;
+            double r = Math.Sqrt(r2);
 
-            //dv *= (1.0 / r);
+            // Old "Plane(p0).DistanceTo(p1.Centroid) < 0" check is equivalent to cosThetaI < 0.
+            // The slightly tighter < 0.0001 threshold matches what the old f < 0.0000001
+            // filter already rejected (cosThetaI very small ⇒ tiny f ⇒ filtered).
+            double cosThetaI = (dv * p0Normal) / r;
+            if (cosThetaI < 0.0001) return 0.0;
 
-            double cosThetaI = dv * p0.Normal.Value / (dv.Length * p0.Normal.Value.Length);
-            double cosThetaJ = -dv * p1.Normal.Value / (dv.Length * p1.Normal.Value.Length);
+            double cosThetaJ = -(dv * p1Normal) / r;
+            if (cosThetaJ < 0.0001) return 0.0;
 
-            //if (Math.Abs(dv * p0.n) < 0.0001 && Math.Abs(dv * p1.n) < 0.0001) return 0.0;
-            //if ((dv * p0.n) < 0.0001 && -(dv * p1.n) < 0.0001) return 0.0;
-
-            // if (cosThetaI < 0.0001 && cosThetaJ < 0.0001) return 0.0;
-
-            f = ((cosThetaI * cosThetaJ) / (Math.PI * r * r));//*p0.area * p1.area;
-
-            //if (f < 0.0) return 0.0;
+            double f = (cosThetaI * cosThetaJ) / (Math.PI * r2);
 
             //only do occlusion test for large view factors -- zero all others
             if (f < 0.0000001) return 0.0;
 
-            Vector3d dv_forRaycast = (p1.Centroid.Value + (0.01 * p1.Normal.Value)) - (p0.Centroid.Value + (0.01 * p0.Normal.Value));
-            Line line = new Line(p1.Centroid.Value + (0.01 * p1.Normal.Value), p0.Centroid.Value + (0.01 * p0.Normal.Value));
-            int[] fid;
-            var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(Obst, line, out fid);
+            Line line = new Line(p1Centroid + (0.01 * p1Normal), p0Centroid + (0.01 * p0Normal));
+            var pts = Rhino.Geometry.Intersect.Intersection.MeshLine(Obst, line, out _);
             if (pts.Length > 0) return 0.0;
-
-            //Ray3d ry = new Ray3d(p0.cen + 0.01 * p0.n, dv_forRaycast);
-            //double il = Rhino.Geometry.Intersect.Intersection.MeshRay(Obst, ry);
-            //if (il > 0.0 && il < dv_forRaycast.Length) return 0.0;
 
             return f;
         }

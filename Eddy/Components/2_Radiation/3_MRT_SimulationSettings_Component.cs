@@ -65,6 +65,16 @@ Configures accuracy and detail for the MRT simulation, including solar ray-traci
             if (!DA.GetData(3, ref ComputeLongWaveExchangeEnergyPlus)) return;
             if (!DA.GetData(4, ref wsf)) return;
 
+            if (CumulativeViewFactorCutoff < 0 || CumulativeViewFactorCutoff > 100)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "VFC is a percentile from 0 to 100. The value was clamped to that range.");
+                CumulativeViewFactorCutoff = Math.Max(0, Math.Min(100, CumulativeViewFactorCutoff));
+            }
+            else if (ComputeSurfaceTemperatureEnergyPlus && CumulativeViewFactorCutoff >= 95)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "A VFC percentile of 95 or higher can filter out most polygons before EnergyPlus surface temperatures are generated.");
+            }
+
             MRT_Simulation_Settings settings = new MRT_Simulation_Settings();
             settings.ComputeReflectionsAndDiffuseRadiation = ComputeReflectionsAndDiffuseRadiation;
             settings.CumulativeViewFactorCutoffPercentile = CumulativeViewFactorCutoff;

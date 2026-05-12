@@ -196,6 +196,9 @@
   <data name="Eddy_safe_toggle" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\..\Icons\Eddy_safe_toggle.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Eddy_metaBlock" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\Icons\Eddy_metaBlock.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Eddy_decomposeData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy_decomposeData.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -351,5 +354,8 @@
   </data>
   <data name="Eddy3D_install" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Eddy3D_install.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Eddy_ml_model" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\Icons\Eddy_ml_model.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

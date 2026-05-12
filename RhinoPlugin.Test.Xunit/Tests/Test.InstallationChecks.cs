@@ -77,7 +77,11 @@ namespace RhinoPlugin.Test.Xunit
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             string baseDir = isWindows ? @"C:\TestRadiance" : "/tmp/TestRadiance";
             string binDir = isWindows ? @"C:\TestRadiance\bin" : "/tmp/TestRadiance/bin";
-            string expectedDefault = originalPath;
+            string expectedDefaultFragment = isWindows
+                ? DefaultDirectoriesAndPaths.RadianceWindowsFolderName
+                : RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+                    ? DefaultDirectoriesAndPaths.RadianceMacOSArm64FolderName
+                    : DefaultDirectoriesAndPaths.RadianceMacOSFolderName;
 
             try
             {
@@ -91,20 +95,20 @@ namespace RhinoPlugin.Test.Xunit
 
                 // Test boolean strings (should revert to default)
                 DefaultDirectoriesAndPaths.RadianceDir = "False";
-                Assert.Equal(expectedDefault, DefaultDirectoriesAndPaths.RadianceDir);
+                Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
 
                 DefaultDirectoriesAndPaths.RadianceDir = "True";
-                Assert.Equal(expectedDefault, DefaultDirectoriesAndPaths.RadianceDir);
+                Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
 
                 // Test whitespace/empty
                 DefaultDirectoriesAndPaths.RadianceDir = " ";
-                Assert.Equal(expectedDefault, DefaultDirectoriesAndPaths.RadianceDir);
+                Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
 
                 // Test foreign absolute path from another OS (should revert to default)
                 DefaultDirectoriesAndPaths.RadianceDir = isWindows
                     ? "/Users/patrickkastner/Eddy3D/Radiance"
                     : @"C:\Program Files\Radiance";
-                Assert.Equal(expectedDefault, DefaultDirectoriesAndPaths.RadianceDir);
+                Assert.Contains(expectedDefaultFragment, DefaultDirectoriesAndPaths.RadianceDir);
             }
             finally
             {

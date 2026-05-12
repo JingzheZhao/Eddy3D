@@ -41,11 +41,12 @@ namespace EddyLib.Strings
             {
                 try
                 {
-                    var lines = File.ReadAllLines(residualsPath);
-                    if (lines.Length > 1)
+                    // Bolt: Replaced File.ReadAllLines with File.ReadLines for lazy evaluation,
+                    // avoiding massive LOH allocations when reading large residuals files.
+                    var headerLine = File.ReadLines(residualsPath).Skip(1).FirstOrDefault();
+                    if (headerLine != null)
                     {
-                        // Second line contains the header with field names
-                        var headerLine = lines[1].TrimStart('#').Trim();
+                        headerLine = headerLine.TrimStart('#').Trim();
                         var fields = headerLine.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                         if (fields.Length > 1)
                         {

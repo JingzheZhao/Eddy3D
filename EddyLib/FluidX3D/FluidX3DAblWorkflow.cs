@@ -129,9 +129,19 @@ namespace EddyLib.FluidX3D
             string commandScriptPath = Path.Combine(scriptsDirectory, "run_fluidx3d.command");
             string batchScriptPath = Path.Combine(scriptsDirectory, "run_fluidx3d.bat");
             string windowsPlatformToolset = ResolveWindowsPlatformToolsetOverride(caseRoot);
-            File.WriteAllText(commandScriptPath, BuildMacLaunchScript(caseRoot, caseExportDirectory));
+            var options = new FileStreamOptions { Mode = FileMode.Create, Access = FileAccess.Write };
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+#pragma warning disable CA1416
+                options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute;
+#pragma warning restore CA1416
+            }
+            using (var fs = new FileStream(commandScriptPath, options))
+            using (var sw = new StreamWriter(fs))
+            {
+                sw.Write(BuildMacLaunchScript(caseRoot, caseExportDirectory));
+            }
             File.WriteAllText(batchScriptPath, BuildWindowsLaunchScript(caseRoot, caseExportDirectory, windowsPlatformToolset));
-            MakeExecutable(commandScriptPath);
 
             string readmePath = Path.Combine(workingRoot, "FluidX3D_Eddy_Readme.txt");
             File.WriteAllText(readmePath, BuildReadme(settings));
@@ -228,11 +238,9 @@ namespace EddyLib.FluidX3D
                     throw new InvalidOperationException("Source directory exists but is not empty: " + fullSourceRoot);
                 }
 
-                string cloneArgs = string.IsNullOrWhiteSpace(normalizedPinnedCommit)
-                    ? "clone --depth 1 \"" + RepositoryUrl + "\" \"" + fullSourceRoot + "\""
-                    : "clone \"" + RepositoryUrl + "\" \"" + fullSourceRoot + "\"";
-
-                string cloneOutput = RunProcess("git", cloneArgs, null);
+                string cloneOutput = string.IsNullOrWhiteSpace(normalizedPinnedCommit)
+                    ? RunProcess("git", null, "clone", "--depth", "1", RepositoryUrl, fullSourceRoot)
+                    : RunProcess("git", null, "clone", RepositoryUrl, fullSourceRoot);
                 status.AppendLine("Cloned FluidX3D repository.");
                 if (!string.IsNullOrWhiteSpace(cloneOutput))
                 {
@@ -255,7 +263,7 @@ namespace EddyLib.FluidX3D
 
                 if (canPullLatest)
                 {
-                    string pullOutput = RunProcess("git", "-C \"" + fullSourceRoot + "\" pull --ff-only", null);
+                    string pullOutput = RunProcess("git", null, "-C", fullSourceRoot, "pull", "--ff-only");
                     status.AppendLine("Updated existing FluidX3D source.");
                     if (!string.IsNullOrWhiteSpace(pullOutput))
                     {
@@ -293,8 +301,8 @@ namespace EddyLib.FluidX3D
                 return "Pinned commit already checked out: " + currentHead + ".";
             }
 
-            RunProcess("git", "-C \"" + repositoryRoot + "\" fetch --all --tags --prune", null);
-            string checkoutOutput = RunProcess("git", "-C \"" + repositoryRoot + "\" checkout " + normalized, null);
+            RunProcess("git", null, "-C", repositoryRoot, "fetch", "--all", "--tags", "--prune");
+            string checkoutOutput = RunProcess("git", null, "-C", repositoryRoot, "checkout", normalized);
 
             if (!TryReadGitHeadCommit(repositoryRoot, out string newHead)
                 || !newHead.StartsWith(normalized, StringComparison.OrdinalIgnoreCase))
@@ -317,7 +325,7 @@ namespace EddyLib.FluidX3D
 
             try
             {
-                string output = RunProcess("git", "-C \"" + repositoryRoot + "\" rev-parse HEAD", null);
+                string output = RunProcess("git", null, "-C", repositoryRoot, "rev-parse", "HEAD");
                 string value = output
                     .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(line => line.Trim())
@@ -1229,8 +1237,8 @@ exit /b 0
 
                 string output = RunProcess(
                     vswhere,
-                    "-latest -products * -property installationPath",
-                    null);
+                    null,
+                    "-latest", "-products", "*", "-property", "installationPath");
 
                 string path = output
                     .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
@@ -1393,42 +1401,25 @@ exit /b 0
             return text + "f";
         }
 
-        private static void MakeExecutable(string path)
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return;
-            }
-
-            try
-            {
-                using (Process process = Process.Start(new ProcessStartInfo("/bin/chmod", "+x \"" + path + "\"")
-                {
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }))
-                {
-                    process?.WaitForExit();
-                }
-            }
-            catch
-            {
-                // If chmod fails, users can still run the script manually.
-            }
-        }
-
-        private static string RunProcess(string fileName, string arguments, string workingDirectory)
+        private static string RunProcess(string fileName, string workingDirectory, params string[] args)
         {
             ProcessStartInfo psi = new ProcessStartInfo
             {
                 FileName = fileName,
-                Arguments = arguments,
                 WorkingDirectory = string.IsNullOrWhiteSpace(workingDirectory) ? Environment.CurrentDirectory : workingDirectory,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
+
+            if (args != null)
+            {
+                foreach (string arg in args)
+                {
+                    psi.ArgumentList.Add(arg);
+                }
+            }
 
             StringBuilder output = new StringBuilder();
             using (Process process = Process.Start(psi))

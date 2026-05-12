@@ -167,27 +167,31 @@ namespace EddyLib
             }
 
             Console.WriteLine("Calculating: Solar Geometry");
-            SolarElevation = new List<double>(epwNoHeader.Length);
-            SolarAzi = new List<double>(epwNoHeader.Length);
+            // Bolt optimization: Parallelized solar geometry calculation and reduced redundant calls.
+            // Using temporary arrays for thread-safe concurrent writing before populating Lists.
+            double[] elevations = new double[epwNoHeader.Length];
+            double[] azimuths = new double[epwNoHeader.Length];
 
             var sg = new SolarGeometry();
 
-            for (int i = 0; i < yr.Length; i++)
+            System.Threading.Tasks.Parallel.For(0, yr.Length, i =>
             {
-                double _el = sg.solarelevation(Latitude, Longitude, yr[i], mo[i], dy[i], hr[i], 0, 0, TimeZone, 0);
-                double _az = sg.solarazimuth(Latitude, Longitude, yr[i], mo[i], dy[i], hr[i], 0, 0, TimeZone, 0);
+                sg.GetSolarPosition(Latitude, Longitude, yr[i], mo[i], dy[i], hr[i], 0, 0, TimeZone, 0, out double _el, out double _az);
 
                 if (_el > 0)
                 {
-                    SolarElevation.Add(_el);
-                    SolarAzi.Add(_az);
+                    elevations[i] = _el;
+                    azimuths[i] = _az;
                 }
                 else
                 {
-                    SolarElevation.Add(0);
-                    SolarAzi.Add(0);
+                    elevations[i] = 0;
+                    azimuths[i] = 0;
                 }
-            }
+            });
+
+            SolarElevation = new List<double>(elevations);
+            SolarAzi = new List<double>(azimuths);
         }
 
         public string ClassifyClimateZone(string epwFilePath, string workingDirToSaveCSV)
@@ -207,34 +211,22 @@ namespace EddyLib
                 Utilities.DownLoadFile("http://www.rforscience.com/wpmain/wp-content/uploads/2014/06/Koeppen-Geiger-ASCII.txt", filePathKoeppen);
             }
 
-            string[] txt = File.ReadAllLines(filePathKoeppen);
-
-            // Stupid formatting of this file creates 4 columns
-            int columnsCnt = 4;
-            var matrix = ArrayHelper.CreateJaggedMatrix(txt.Length, columnsCnt);
-
-            for (int i = 1; i < txt.Length; i++)
-            {
-                var line = System.Text.RegularExpressions.Regex.Split(txt[i], @"\s{1,}");
-                for (int c = 0; c < columnsCnt; c++)
-                {
-                    // Data is stored in column 1-3, column 0 is empty
-                    matrix[i][c] = line[c];
-                }
-            }
-
             string climateClass = "";
             double delta = 0.3;
 
-            // - 1 because of header line; -2 ??
-
-            for (int i = 1; i < txt.Length; i++)
+            // Bolt: Replaced O(N) memory allocation (File.ReadAllLines + jagged array)
+            // and slow Regex.Split with O(1) lazy iteration (File.ReadLines.Skip(1))
+            // and fast String.Split with early return to avoid evaluating the rest of the file once found.
+            foreach (var line in File.ReadLines(filePathKoeppen).Skip(1))
             {
-                // Data is stored in column 1-3, column 0 is empty
-                if (Math.Abs(longitude - Convert.ToDouble(matrix[i][1], CultureInfo.InvariantCulture)) < delta
-                    && Math.Abs(latitude - Convert.ToDouble(matrix[i][2], CultureInfo.InvariantCulture)) < delta)
+                var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 3) continue;
+
+                if (Math.Abs(longitude - double.Parse(parts[0], CultureInfo.InvariantCulture)) < delta &&
+                    Math.Abs(latitude - double.Parse(parts[1], CultureInfo.InvariantCulture)) < delta)
                 {
-                    climateClass = Convert.ToString(matrix[i][3], CultureInfo.InvariantCulture);
+                    climateClass = parts[2];
+                    break;
                 }
             }
 

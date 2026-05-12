@@ -257,6 +257,7 @@ namespace Eddy
                                 Rhino.RhinoApp.InvokeOnUiThread((Action)delegate
                                 {
                                     Message = msg;
+                                    Grasshopper.Instances.ActiveCanvas?.Refresh();
                                 });
                             },
                             cancellationToken: token);
@@ -271,14 +272,22 @@ namespace Eddy
                     if (token.IsCancellationRequested) return;
 
                     // Step 1: Generate normalised float array from geometry
-                    Rhino.RhinoApp.InvokeOnUiThread((Action)delegate { Message = "Generating input..."; });
+                    Rhino.RhinoApp.InvokeOnUiThread((Action)delegate
+                    {
+                        Message = "Generating input...";
+                        Grasshopper.Instances.ActiveCanvas?.Refresh();
+                    });
                     var inputData = GanImageGenerator.GenerateInput(
                         bldgCopy, planeCopy, wdCopy, vsCopy, csCopy);
 
                     if (token.IsCancellationRequested) return;
 
                     // Step 2: Send array to API
-                    Rhino.RhinoApp.InvokeOnUiThread((Action)delegate { Message = "Predicting..."; });
+                    Rhino.RhinoApp.InvokeOnUiThread((Action)delegate
+                    {
+                        Message = "Predicting...";
+                        Grasshopper.Instances.ActiveCanvas?.Refresh();
+                    });
                     var result = await GanApiClient.PredictArrayAsync(
                         inputData.InputArray, urlCopy, token);
 

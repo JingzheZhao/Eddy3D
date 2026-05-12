@@ -577,7 +577,7 @@ namespace Eddy.Analytics
             {
                 try
                 {
-                    string model = RunShellCommand("sysctl", "-n hw.model");
+                    string model = RunShellCommand("sysctl", "-n", "hw.model");
                     if (!string.IsNullOrWhiteSpace(model) &&
                         model.StartsWith("MacBook", StringComparison.OrdinalIgnoreCase))
                         return "laptop";
@@ -600,9 +600,10 @@ namespace Eddy.Analytics
                     {
                         var getMethod = managementType.GetMethod("Get", Type.EmptyTypes);
                         var results = (System.Collections.IEnumerable)getMethod.Invoke(searcher, null);
+                        System.Reflection.PropertyInfo indexer = null;
                         foreach (var item in results)
                         {
-                            var indexer = item.GetType().GetProperty("Item", new[] { typeof(string) });
+                            if (indexer == null) indexer = item.GetType().GetProperty("Item", new[] { typeof(string) });
                             var val = indexer?.GetValue(item, new object[] { "PCSystemType" });
                             if (val == null) continue;
                             int type = Convert.ToInt32(val);
@@ -716,18 +717,24 @@ namespace Eddy.Analytics
         /// <summary>
         /// Runs a shell command and returns trimmed stdout. Timeout: 3 seconds.
         /// </summary>
-        private static string RunShellCommand(string command, string args)
+        private static string RunShellCommand(string command, params string[] arguments)
         {
+            var psi = new ProcessStartInfo
+            {
+                FileName = command,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            foreach (var arg in arguments)
+            {
+                psi.ArgumentList.Add(arg);
+            }
+
             using var process = new Process
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = command,
-                    Arguments = args,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
+                StartInfo = psi
             };
             process.Start();
             string output = process.StandardOutput.ReadToEnd();

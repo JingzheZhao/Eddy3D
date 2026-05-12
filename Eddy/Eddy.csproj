@@ -22,6 +22,18 @@
     <Copy SourceFiles="$(TargetDir)$(TargetName).dll" DestinationFiles="$(TargetDir)$(TargetName).gha" />
   </Target>
 
+  <!-- Bundle vendored MetaBlock python project next to .gha so the MetaBlock component can auto-start the local API server -->
+  <Target Name="BundleMetaBlock" AfterTargets="AfterBuild" Condition="Exists('$(ProjectDir)..\MetaBlock\api.py')">
+    <ItemGroup>
+      <MetaBlockFiles Include="$(ProjectDir)..\MetaBlock\**\*.*"
+                      Exclude="$(ProjectDir)..\MetaBlock\.venv\**\*.*;
+                               $(ProjectDir)..\MetaBlock\__pycache__\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(MetaBlockFiles)"
+          DestinationFiles="@(MetaBlockFiles->'$(TargetDir)MetaBlock\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
   <!-- Write .ghlink file for Grasshopper library discovery -->
   <Target Name="WriteGrasshopperGhLink" AfterTargets="AfterBuild">
     <PropertyGroup Condition="'$(OS)' == 'Windows_NT' And '$(APPDATA)' != ''">

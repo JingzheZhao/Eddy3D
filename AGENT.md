@@ -64,6 +64,13 @@ Verified on macOS on March 10, 2026:
 - Example: `0.5.8.815` means tested with Rhino `8.15`.
 - If updating release/version documentation, ensure any "tested with Rhino" text matches the suffix.
 
+## UI Conventions
+
+- All UI work (Eto.Forms, etc.) must support both Light and Dark modes.
+- Avoid hardcoded colors (e.g., `Colors.White`, `Color.FromArgb(...)`).
+- Use `SystemColors` (e.g., `SystemColors.ControlText`, `SystemColors.Highlight`) to ensure compatibility with Windows and macOS themes.
+- UI layouts must be tested/verified for legibility in both theme modes.
+
 ## Markdown and Changelog Styling
 
 When editing changelog-style release notes:
@@ -75,7 +82,11 @@ When editing changelog-style release notes:
 - Entries under each category should be indented by two spaces.
 - Those entries should not use bullets.
 - Separate entries with a blank line.
-- Remove stray encoding artifacts such as `Â` if they appear.
+- Remove any invisible or illegal characters (like `Â`) that may appear due to encoding issues.
+
+## Git Workflow
+
+- Always run `git pull` after the current command or prompt is finished to ensure the local workspace is synchronized with the remote repository.
 
 ## CI Context
 

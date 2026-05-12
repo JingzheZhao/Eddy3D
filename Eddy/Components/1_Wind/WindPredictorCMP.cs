@@ -15,6 +15,7 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 using Grasshopper;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
+using Grasshopper.Kernel.Parameters;
 
 namespace Eddy
 {
@@ -136,6 +137,11 @@ namespace Eddy
         // ──────────────────────────────────────────────
         // INPUTS
         // ──────────────────────────────────────────────
+        private static readonly string[] PaletteNames = { "jet", "viridis", "plasma", "magma", "inferno", "turbo", "coolwarm", "pastel", "gray" };
+        private static readonly string[] FieldNames = { "Velocity", "Turbulent Kinetic Energy" };
+        private static readonly string[] LevelNames = { "Pedestrian Level", "Roof Level" };
+        private static readonly string[] InterpolateNames = { "Flat", "Smooth" };
+
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddPointParameter("Points", "Points",
@@ -144,59 +150,80 @@ namespace Eddy
             pManager.AddGeometryParameter("Buildings", "Buildings",
                 "List of Brep or Mesh objects representing buildings.",
                 GH_ParamAccess.list);
-            pManager.AddTextParameter("ONNX Path", "ONNX",
-                "Full file path to the exported .onnx model.",
+            pManager.AddTextParameter("Model", "Model",
+                "Full file path to the ONNX model. Connect the FilePath output from the ML Model component.",
                 GH_ParamAccess.item);
-            pManager.AddNumberParameter("U_ref", "U_ref",
-                "Reference wind speed (m/s). Default = 5.0",
-                GH_ParamAccess.item, 5.0);
-            pManager.AddNumberParameter("z_ref", "z_ref",
-                "Reference height for log-law (m). Default = 10.0",
-                GH_ParamAccess.item, 10.0);
+            pManager.AddGenericParameter("Boundary Conditions", "BC",
+                "Boundary conditions from the ABL or Uniform Flow component. " +
+                "U_ref, z_ref, z_0, wind directions, and EPW path are extracted automatically.",
+                GH_ParamAccess.item);
             pManager.AddNumberParameter("pedestrian_level", "pedestrian_level",
                 "Pedestrian mount height (m). Default = 1.8",
                 GH_ParamAccess.item, 1.8);
-            pManager.AddNumberParameter("wind_dir", "wind_dir",
-                "Wind direction in degrees. 0 => (x=0,y=-1). Default = 0.0",
-                GH_ParamAccess.list, 0.0);
-            pManager.AddBooleanParameter("GPU", "GPU",
-                "Use DirectML GPU acceleration. Falls back to CPU if unavailable. Default = true.",
-                GH_ParamAccess.item, true);
             pManager.AddNumberParameter("Filter Margin", "filter_margin",
                 "Margin (in meters) to mask out from the outer perimeter of the prediction plane due to unstable boundary effects. Default = 100.0",
                 GH_ParamAccess.item, 100.0);
-            pManager.AddTextParameter("Palette", "Palette",
-                "Color palette name ('jet', 'viridis', 'plasma', 'magma', 'inferno', 'turbo', 'coolwarm', 'pastel', 'gray'). Default = 'jet'",
-                GH_ParamAccess.item, "jet");
+            pManager.AddIntegerParameter("Palette", "Palette",
+                "Color palette for visualization.",
+                GH_ParamAccess.item, 0);
             pManager.AddIntervalParameter("Legend Domain", "Domain",
                 "Optional custom domain [min, max] to lock the color bounds. If empty, the colors scale dynamically to the data.",
                 GH_ParamAccess.item);
-            pManager.AddBooleanParameter("Interpolate", "Interpolate",
-                "If true, generates a smooth, continuous interpolated mesh. If false, generates a pixelated blocky mesh.",
-                GH_ParamAccess.item, true);
-            pManager.AddBooleanParameter("Show TKE", "ShowK",
-                "Toggle visualization between wind speed (false) and turbulent kinetic energy (true). Affects M, LM, LP, LV outputs. Default = false.",
-                GH_ParamAccess.item, false);
-            pManager.AddBooleanParameter("Show Roof", "ShowRoof",
-                "Visualize roof-level field instead of pedestrian-level. " +
-                "Only applies when a 4-channel model (U + k + U_roof + k_roof) is loaded. " +
-                "Combine with ShowK: false+false=U, true+false=k, false+true=U_roof, true+true=k_roof. Default = false.",
-                GH_ParamAccess.item, false);
+            pManager.AddIntegerParameter("Interpolate", "Interpolate",
+                "Visualization style. Flat (pixelated) vs Smooth (interpolated colors).",
+                GH_ParamAccess.item, 1);
+            pManager.AddIntegerParameter("Field", "Field",
+                "Field to visualize. Affects M, LM, LP, LV outputs.",
+                GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Level", "Level",
+                "Visualization level. Roof Level only applies when a 4-channel model is loaded.",
+                GH_ParamAccess.item, 1);
 
-            pManager[0].Optional = false;
-            pManager[1].Optional = false;
-            pManager[2].Optional = false;
-            pManager[3].Optional = true;
-            pManager[4].Optional = true;
-            pManager[5].Optional = true;
-            pManager[6].Optional = true;
-            pManager[7].Optional = true;
-            pManager[8].Optional = true;
-            pManager[9].Optional = true;
-            pManager[10].Optional = true;
-            pManager[11].Optional = true;
-            pManager[12].Optional = true;
-            pManager[13].Optional = true;
+            // Palette dropdown with named values (right-click fallback)
+            var paletteParam = pManager[6] as Param_Integer;
+            for (int i = 0; i < PaletteNames.Length; i++)
+                paletteParam.AddNamedValue(PaletteNames[i], i);
+
+            // Interpolate dropdown with named values (right-click fallback)
+            var interpParam = pManager[8] as Param_Integer;
+            for (int i = 0; i < InterpolateNames.Length; i++)
+                interpParam.AddNamedValue(InterpolateNames[i], i);
+
+            // Field dropdown with named values (right-click fallback)
+            var fieldParam = pManager[9] as Param_Integer;
+            for (int i = 0; i < FieldNames.Length; i++)
+                fieldParam.AddNamedValue(FieldNames[i], i);
+
+            // Level dropdown with named values (right-click fallback)
+            var levelParam = pManager[10] as Param_Integer;
+            for (int i = 0; i < LevelNames.Length; i++)
+                levelParam.AddNamedValue(LevelNames[i], i);
+
+            pManager[0].Optional = false;  // Points
+            pManager[1].Optional = false;  // Buildings
+            pManager[2].Optional = false;  // Model
+            pManager[3].Optional = false;  // BC
+            pManager[4].Optional = true;   // pedestrian_level
+            pManager[5].Optional = true;   // filter_margin
+            pManager[6].Optional = true;   // Palette
+            pManager[7].Optional = true;   // Domain
+            pManager[8].Optional = true;   // Interpolate
+            pManager[9].Optional = true;   // Field
+            pManager[10].Optional = true;  // Level
+        }
+
+        // ──────────────────────────────────────────────
+        // Inline Dropdown UI
+        // ──────────────────────────────────────────────
+        public override void CreateAttributes()
+        {
+            m_attributes = new DropdownComponentAttributes(this, new DropdownComponentAttributes.DropdownDef[]
+            {
+                new DropdownComponentAttributes.DropdownDef(6, PaletteNames, 0),     // Palette
+                new DropdownComponentAttributes.DropdownDef(8, InterpolateNames, 1), // Interpolate
+                new DropdownComponentAttributes.DropdownDef(9, FieldNames, 0),       // Field
+                new DropdownComponentAttributes.DropdownDef(10, LevelNames, 1)       // Level
+            });
         }
 
         // ──────────────────────────────────────────────
@@ -210,8 +237,10 @@ namespace Eddy
             pManager.AddNumberParameter("Y", "Y",
                 "Y coordinate (m) of each valid input point.",
                 GH_ParamAccess.list);
-            pManager.AddNumberParameter("Wind Speed", "W",
-                "Predicted wind speed at each valid input point. Branches represent different wind directions.",
+            pManager.AddNumberParameter("Values", "V",
+                "Predicted field values at each valid input point. " +
+                "Outputs wind speed (m/s) or turbulent kinetic energy (m²/s²) depending on the Field input. " +
+                "Branches represent different wind directions.",
                 GH_ParamAccess.tree);
             pManager.AddMeshParameter("Grid Mesh", "M",
                 "A fast-rendering contiguous coloured preview mesh of the predictions.",
@@ -225,18 +254,12 @@ namespace Eddy
             pManager.AddTextParameter("Legend Values", "LV",
                 "Text values corresponding to the generated legend.",
                 GH_ParamAccess.list);
-            pManager.AddNumberParameter("Turbulent Kinetic Energy", "k",
-                "Predicted turbulent kinetic energy (m²/s²) at each valid input point. Branches represent different wind directions. Empty if model has only 1 output channel.",
-                GH_ParamAccess.tree);
             pManager.AddGenericParameter("Boundary Conditions", "BC",
                 "Automated simulation boundary conditions metadata.",
                 GH_ParamAccess.item);
-            pManager.AddNumberParameter("Wind Speed (Roof)", "W_roof",
-                "Predicted roof-level wind speed (m/s) at each valid input point. " +
-                "Branches represent different wind directions. Empty unless a 4-channel model is used.",
-                GH_ParamAccess.tree);
-            pManager.AddNumberParameter("Turbulent Kinetic Energy (Roof)", "k_roof",
-                "Predicted roof-level turbulent kinetic energy (m²/s²) at each valid input point. " +
+            pManager.AddNumberParameter("Values (Roof)", "V_roof",
+                "Predicted roof-level field values at each valid input point. " +
+                "Outputs wind speed or TKE depending on the Field input. " +
                 "Branches represent different wind directions. Empty unless a 4-channel model is used.",
                 GH_ParamAccess.tree);
         }
@@ -579,40 +602,101 @@ namespace Eddy
             string onnxPath = string.Empty;
             double uRef = 5.0;
             double zRef = 10.0;
+            double z0 = 1.0;
             double pedestrianLevel = 1.8;
             var windDirs = new List<double>();
-            bool useGpu = true;
             double filterMargin = 100.0;
-            string paletteName = "jet";
             Interval customDomain = Interval.Unset;
             bool interpolate = false;
+            EddyLib.BCs.BCCollection inputBCCollection = null;
+            string epwPathFromBC = null;
 
             if (!DA.GetDataList(0, points)) return;
             if (!DA.GetDataList(1, geometryList)) return;
             if (!DA.GetData(2, ref onnxPath) || string.IsNullOrWhiteSpace(onnxPath))
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "ONNX path is required");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Model path is required. Connect the FilePath output from the ML Model component.");
                 return;
             }
             if (!File.Exists(onnxPath))
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"ONNX model not found: {onnxPath}");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Model file not found: {onnxPath}");
                 return;
             }
 
-            bool uRefProvided = DA.GetData(3, ref uRef);
-            DA.GetData(4, ref zRef);
-            DA.GetData(5, ref pedestrianLevel);
-            DA.GetDataList(6, windDirs);
-            DA.GetData(7, ref useGpu);
-            DA.GetData(8, ref filterMargin);
-            DA.GetData(9, ref paletteName);
-            bool domainProvided = DA.GetData(10, ref customDomain) && customDomain.IsValid;
-            DA.GetData(11, ref interpolate);
+            // ── BC input (required — provides U_ref, z_ref, z0, wind directions) ──
+            object bcRaw = null;
+            if (!DA.GetData(3, ref bcRaw) || bcRaw == null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Boundary Conditions (BC) input is required. Connect an ABL or Uniform Flow component.");
+                return;
+            }
+
+            // Unwrap GH_ObjectWrapper if the generic parameter wraps it
+            if (bcRaw is Grasshopper.Kernel.Types.GH_ObjectWrapper wrapper)
+                bcRaw = wrapper.Value;
+
+            if (bcRaw is EddyLib.BCs.BCCollection bcc)
+            {
+                inputBCCollection = bcc;
+            }
+            else if (bcRaw is EddyLib.BCs.BC singleBC)
+            {
+                // Wrap a single BC into a collection for uniform handling
+                inputBCCollection = new EddyLib.BCs.BCCollection();
+                inputBCCollection.AddBoundaryCondition(singleBC);
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
+                    $"BC input type not recognized ({bcRaw.GetType().Name}). Expected BCCollection or BC from an ABL / Uniform Flow component.");
+                return;
+            }
+
+            if (inputBCCollection.BCs.Count == 0)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "BC input contains no boundary conditions.");
+                return;
+            }
+
+            // Extract parameters from the first BC in the collection
+            var firstBC = inputBCCollection.BCs[0];
+            uRef = firstBC.URef;
+            z0 = firstBC.z0;
+
+            if (firstBC is EddyLib.BCs.ABL ablBC)
+                zRef = ablBC.zref;
+
+            // Collect wind directions from all BCs in the collection
+            windDirs = inputBCCollection.WindDirections.Select(d => (double)d).ToList();
+
+            // Capture EPW path if available
+            if (!string.IsNullOrEmpty(inputBCCollection.epwFilePath))
+                epwPathFromBC = inputBCCollection.epwFilePath;
+
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                $"BC: U_ref={uRef}, z_ref={zRef}, z_0={z0}, " +
+                $"directions=[{string.Join(", ", windDirs.Select(d => d.ToString("F0")))}]" +
+                (epwPathFromBC != null ? $", EPW={System.IO.Path.GetFileName(epwPathFromBC)}" : ""));
+
+            DA.GetData(4, ref pedestrianLevel);
+            DA.GetData(5, ref filterMargin);
+            int paletteIndex = 0;
+            DA.GetData(6, ref paletteIndex);
+            string paletteName = (paletteIndex >= 0 && paletteIndex < PaletteNames.Length)
+                ? PaletteNames[paletteIndex] : "jet";
+            bool domainProvided = DA.GetData(7, ref customDomain) && customDomain.IsValid;
+            int interpolateIndex = 1;
+            DA.GetData(8, ref interpolateIndex);
+            interpolate = (interpolateIndex == 1);
             bool showK = false;
-            DA.GetData(12, ref showK);
-            bool showRoof = false;
-            DA.GetData(13, ref showRoof);
+            int fieldIndex = 0;
+            DA.GetData(9, ref fieldIndex);
+            showK = (fieldIndex == 1);
+            bool showRoof = true;
+            int levelIndex = 1;
+            DA.GetData(10, ref levelIndex);
+            showRoof = (levelIndex == 1);
 
             var customColors = GetPalette(paletteName);
 
@@ -696,7 +780,6 @@ namespace Eddy
             double locMinZ = minZ;
             double locZRef = zRef;
             double locURef = uRef;
-            bool locURefProvided = uRefProvided;
 
             // ──────────────────────────────────────────
             // 1. Parallel feature computation (OPTIMIZED MESH)
@@ -736,7 +819,7 @@ namespace Eddy
                 }
 
                 double uAtZRounded = SafeRound(uAtZ, 2);
-                if (locURefProvided && locURef != 0.0 && !double.IsNaN(uAtZRounded))
+                if (locURef != 0.0 && !double.IsNaN(uAtZRounded))
                     uAtZArr[i] = SafeRound(uAtZRounded / locURef, 2);
                 else
                     uAtZArr[i] = uAtZRounded;
@@ -881,7 +964,7 @@ namespace Eddy
                 int N = windDirs.Count;
                 int reqDop = Math.Min(N, Math.Max(1, Environment.ProcessorCount));
                 
-                var sessions = GetSessions(onnxPath, useGpu, reqDop);
+                var sessions = GetSessions(onnxPath, true, reqDop);
                 string inputName = sessions[0].InputMetadata.Keys.First();
 
                 var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -1069,7 +1152,7 @@ namespace Eddy
                     bool skipViz = showK && !kAvailable;
                     if (skipViz)
                         AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
-                            "Show TKE is enabled but this ONNX model does not output TKE — visualization mesh skipped. Use a U+k or U+k+roof model for TKE visualization.");
+                            "Turbulent Kinetic Energy field selected but this ONNX model does not output TKE — visualization mesh skipped. Use a U+k or U+k+roof model for TKE visualization.");
 
                     if (windDirs.Count == 1 && !skipViz)
                     {
@@ -1096,73 +1179,72 @@ namespace Eddy
                             }
                         }
 
+                        Func<int, int, double[,], bool[,], double> GetSmoothedValue = (cy, cx, grid, valid) =>
+                        {
+                            double sum = 0;
+                            int count = 0;
+                            if (cy - 1 >= 0 && cx - 1 >= 0 && valid[cy - 1, cx - 1]) { sum += grid[cy - 1, cx - 1]; count++; }
+                            if (cy - 1 >= 0 && cx < IMG_W && valid[cy - 1, cx]) { sum += grid[cy - 1, cx]; count++; }
+                            if (cy < IMG_H && cx - 1 >= 0 && valid[cy, cx - 1]) { sum += grid[cy, cx - 1]; count++; }
+                            if (cy < IMG_H && cx < IMG_W && valid[cy, cx]) { sum += grid[cy, cx]; count++; }
+                            return count > 0 ? sum / count : 0.0;
+                        };
+
+                        var firstVals = vizTree.Branches[0];
+                        double halfX = X_STEP / 2.0;
+                        double halfY = Y_STEP / 2.0;
+
+                        double[,] valGrid = null;
+                        bool[,] validGrid = null;
                         if (interpolate)
                         {
-                            int[,] gridToIdx = new int[IMG_H, IMG_W];
-                            for (int iy = 0; iy < IMG_H; iy++)
-                                for (int ix = 0; ix < IMG_W; ix++)
-                                    gridToIdx[iy, ix] = -1;
-
-                            var firstVals = vizTree.Branches[0];
+                            valGrid = new double[IMG_H, IMG_W];
+                            validGrid = new bool[IMG_H, IMG_W];
                             for (int j = 0; j < outX.Count; j++)
+                            {
+                                int origIdx = outOriginalIndex[j];
+                                valGrid[idxYArr[origIdx], idxXArr[origIdx]] = firstVals[j].Value;
+                                validGrid[idxYArr[origIdx], idxXArr[origIdx]] = true;
+                            }
+                        }
+
+                        for (int j = 0; j < outX.Count; j++)
+                        {
+                            int origIdx = outOriginalIndex[j];
+                            int ix = idxXArr[origIdx];
+                            int iy = idxYArr[origIdx];
+
+                            Point3d pt = points[origIdx];
+                            int vc = previewMesh.Vertices.Count;
+                            
+                            previewMesh.Vertices.Add(pt.X - halfX, pt.Y - halfY, pt.Z);
+                            previewMesh.Vertices.Add(pt.X + halfX, pt.Y - halfY, pt.Z);
+                            previewMesh.Vertices.Add(pt.X + halfX, pt.Y + halfY, pt.Z);
+                            previewMesh.Vertices.Add(pt.X - halfX, pt.Y + halfY, pt.Z);
+                            previewMesh.Faces.AddFace(vc, vc + 1, vc + 2, vc + 3);
+
+                            if (interpolate)
+                            {
+                                double wBL = GetSmoothedValue(iy, ix, valGrid, validGrid);
+                                double wBR = GetSmoothedValue(iy, ix + 1, valGrid, validGrid);
+                                double wTR = GetSmoothedValue(iy + 1, ix + 1, valGrid, validGrid);
+                                double wTL = GetSmoothedValue(iy + 1, ix, valGrid, validGrid);
+
+                                double tBL = validMax > validMin ? (wBL - validMin) / (validMax - validMin) : 0.0;
+                                double tBR = validMax > validMin ? (wBR - validMin) / (validMax - validMin) : 0.0;
+                                double tTR = validMax > validMin ? (wTR - validMin) / (validMax - validMin) : 0.0;
+                                double tTL = validMax > validMin ? (wTL - validMin) / (validMax - validMin) : 0.0;
+
+                                previewMesh.VertexColors.Add(GetColorFromPalette(tBL, customColors));
+                                previewMesh.VertexColors.Add(GetColorFromPalette(tBR, customColors));
+                                previewMesh.VertexColors.Add(GetColorFromPalette(tTR, customColors));
+                                previewMesh.VertexColors.Add(GetColorFromPalette(tTL, customColors));
+                            }
+                            else
                             {
                                 double w = firstVals[j].Value;
                                 double t = validMax > validMin ? (w - validMin) / (validMax - validMin) : 0.0;
                                 Color c = GetColorFromPalette(t, customColors);
-
-                                int origIdx = outOriginalIndex[j];
-                                int ix = idxXArr[origIdx];
-                                int iy = idxYArr[origIdx];
-
-                                gridToIdx[iy, ix] = previewMesh.Vertices.Count;
-                                previewMesh.Vertices.Add(points[origIdx]);
-                                previewMesh.VertexColors.Add(c);
-                            }
-
-                            for (int iy = 0; iy < IMG_H - 1; iy++)
-                            {
-                                for (int ix = 0; ix < IMG_W - 1; ix++)
-                                {
-                                    int v00 = gridToIdx[iy, ix];
-                                    int v10 = gridToIdx[iy, ix + 1];
-                                    int v11 = gridToIdx[iy + 1, ix + 1];
-                                    int v01 = gridToIdx[iy + 1, ix];
-
-                                    if (v00 >= 0 && v10 >= 0 && v11 >= 0 && v01 >= 0)
-                                        previewMesh.Faces.AddFace(v00, v10, v11, v01);
-                                    else if (v00 >= 0 && v10 >= 0 && v01 >= 0)
-                                        previewMesh.Faces.AddFace(v00, v10, v01);
-                                    else if (v10 >= 0 && v11 >= 0 && v01 >= 0)
-                                        previewMesh.Faces.AddFace(v10, v11, v01);
-                                    else if (v00 >= 0 && v11 >= 0 && v01 >= 0)
-                                        previewMesh.Faces.AddFace(v00, v11, v01);
-                                    else if (v00 >= 0 && v10 >= 0 && v11 >= 0)
-                                        previewMesh.Faces.AddFace(v00, v10, v11);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            var firstVals2 = vizTree.Branches[0];
-                            double halfX = X_STEP / 2.0;
-                            double halfY = Y_STEP / 2.0;
-                            for (int j = 0; j < outX.Count; j++)
-                            {
-                                double w = firstVals2[j].Value;
-                                double t = validMax > validMin ? (w - validMin) / (validMax - validMin) : 0.0;
-                                Color c = GetColorFromPalette(t, customColors);
-
-                                int origIdx = outOriginalIndex[j];
-                                Point3d pt = points[origIdx];
-                                int vc = previewMesh.Vertices.Count;
-                                
-                                previewMesh.Vertices.Add(pt.X - halfX, pt.Y - halfY, pt.Z);
-                                previewMesh.Vertices.Add(pt.X + halfX, pt.Y - halfY, pt.Z);
-                                previewMesh.Vertices.Add(pt.X + halfX, pt.Y + halfY, pt.Z);
-                                previewMesh.Vertices.Add(pt.X - halfX, pt.Y + halfY, pt.Z);
-
-                                previewMesh.Faces.AddFace(vc, vc + 1, vc + 2, vc + 3);
-
                                 previewMesh.VertexColors.Add(c);
                                 previewMesh.VertexColors.Add(c);
                                 previewMesh.VertexColors.Add(c);
@@ -1176,35 +1258,76 @@ namespace Eddy
                         if (roofVizTree != null && roofVizTree.PathCount > 0)
                         {
                             var roofVals = roofVizTree.Branches[0];
-                            double halfXr = X_STEP / 2.0;
-                            double halfYr = Y_STEP / 2.0;
-                            int nRoofTiles = 0;
+                            int nRoofElements = 0;
+
+                            double[,] roofValGrid = null;
+                            bool[,] roofValidGrid = null;
+                            if (interpolate)
+                            {
+                                roofValGrid = new double[IMG_H, IMG_W];
+                                roofValidGrid = new bool[IMG_H, IMG_W];
+                                for (int j = 0; j < outX.Count && j < roofVals.Count; j++)
+                                {
+                                    int origIdx = outOriginalIndex[j];
+                                    double rawRoofZ = bldgHeightArr[origIdx];
+                                    if (rawRoofZ > 0.0)
+                                    {
+                                        roofValGrid[idxYArr[origIdx], idxXArr[origIdx]] = roofVals[j].Value;
+                                        roofValidGrid[idxYArr[origIdx], idxXArr[origIdx]] = true;
+                                    }
+                                }
+                            }
+
                             for (int j = 0; j < outX.Count && j < roofVals.Count; j++)
                             {
                                 int origIdx = outOriginalIndex[j];
-                                double rawRoofZ = bldgHeightArr[origIdx];     // absolute world Z of the roof
-                                if (rawRoofZ <= 0.0) continue;                  // not on a building footprint
-                                double zRoof = rawRoofZ + locPedestrianLevel;   // lift by the same pedestrian-level offset (1.8 m default)
+                                double rawRoofZ = bldgHeightArr[origIdx];
+                                if (rawRoofZ <= 0.0) continue;
+                                double zRoof = rawRoofZ + locPedestrianLevel;
 
-                                double w = roofVals[j].Value;
-                                double t = validMax > validMin ? (w - validMin) / (validMax - validMin) : 0.0;
-                                Color cr = GetColorFromPalette(t, customColors);
+                                int ix = idxXArr[origIdx];
+                                int iy = idxYArr[origIdx];
 
                                 Point3d ptR = points[origIdx];
                                 int vcR = previewMesh.Vertices.Count;
-                                previewMesh.Vertices.Add(ptR.X - halfXr, ptR.Y - halfYr, zRoof);
-                                previewMesh.Vertices.Add(ptR.X + halfXr, ptR.Y - halfYr, zRoof);
-                                previewMesh.Vertices.Add(ptR.X + halfXr, ptR.Y + halfYr, zRoof);
-                                previewMesh.Vertices.Add(ptR.X - halfXr, ptR.Y + halfYr, zRoof);
+                                previewMesh.Vertices.Add(ptR.X - halfX, ptR.Y - halfY, zRoof);
+                                previewMesh.Vertices.Add(ptR.X + halfX, ptR.Y - halfY, zRoof);
+                                previewMesh.Vertices.Add(ptR.X + halfX, ptR.Y + halfY, zRoof);
+                                previewMesh.Vertices.Add(ptR.X - halfX, ptR.Y + halfY, zRoof);
                                 previewMesh.Faces.AddFace(vcR, vcR + 1, vcR + 2, vcR + 3);
-                                previewMesh.VertexColors.Add(cr);
-                                previewMesh.VertexColors.Add(cr);
-                                previewMesh.VertexColors.Add(cr);
-                                previewMesh.VertexColors.Add(cr);
-                                nRoofTiles++;
+
+                                if (interpolate)
+                                {
+                                    double wBL = GetSmoothedValue(iy, ix, roofValGrid, roofValidGrid);
+                                    double wBR = GetSmoothedValue(iy, ix + 1, roofValGrid, roofValidGrid);
+                                    double wTR = GetSmoothedValue(iy + 1, ix + 1, roofValGrid, roofValidGrid);
+                                    double wTL = GetSmoothedValue(iy + 1, ix, roofValGrid, roofValidGrid);
+
+                                    double tBL = validMax > validMin ? (wBL - validMin) / (validMax - validMin) : 0.0;
+                                    double tBR = validMax > validMin ? (wBR - validMin) / (validMax - validMin) : 0.0;
+                                    double tTR = validMax > validMin ? (wTR - validMin) / (validMax - validMin) : 0.0;
+                                    double tTL = validMax > validMin ? (wTL - validMin) / (validMax - validMin) : 0.0;
+
+                                    previewMesh.VertexColors.Add(GetColorFromPalette(tBL, customColors));
+                                    previewMesh.VertexColors.Add(GetColorFromPalette(tBR, customColors));
+                                    previewMesh.VertexColors.Add(GetColorFromPalette(tTR, customColors));
+                                    previewMesh.VertexColors.Add(GetColorFromPalette(tTL, customColors));
+                                }
+                                else
+                                {
+                                    double w = roofVals[j].Value;
+                                    double t = validMax > validMin ? (w - validMin) / (validMax - validMin) : 0.0;
+                                    Color cr = GetColorFromPalette(t, customColors);
+                                    previewMesh.VertexColors.Add(cr);
+                                    previewMesh.VertexColors.Add(cr);
+                                    previewMesh.VertexColors.Add(cr);
+                                    previewMesh.VertexColors.Add(cr);
+                                }
+                                nRoofElements++;
                             }
+
                             AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
-                                $"Roof overlay: {nRoofTiles} tiles at building roof heights ({(vizK ? "k_roof" : "U_roof")}).");
+                                $"Roof overlay: {nRoofElements} {(interpolate ? "vertices" : "tiles")} at building roof heights ({(vizK ? "k_roof" : "U_roof")}).");
                         }
 
                         if (validMax > validMin && outX.Count > 0)
@@ -1249,21 +1372,27 @@ namespace Eddy
 
                     DA.SetDataList(0, outX);
                     DA.SetDataList(1, outY);
-                    DA.SetDataTree(2, speedTree);
+                    // Output the field selected by the Field input
+                    DA.SetDataTree(2, showK && kAvailable ? kTree : speedTree);
                     DA.SetData(3, previewMesh);
                     DA.SetData(4, legendMesh);
                     DA.SetDataList(5, legendPts);
                     DA.SetDataList(6, legendVals);
-                    DA.SetDataTree(7, kTree);
 
-                    // Output automated boundary conditions for downstream components
-                    var bcMetadata = new EddyLib.BCs.ABL(0, uRef, zRef, 1.0, 0.0);
-                    bcMetadata.SimulatedDirections = new System.Collections.Generic.List<double>(windDirs);
-                    DA.SetData(8, bcMetadata);
+                    // Output boundary conditions for downstream components (pass-through)
+                    // Ensure SimulatedDirections is populated on each BC for downstream use
+                    foreach (var bc in inputBCCollection.BCs)
+                    {
+                        if (bc.SimulatedDirections == null || bc.SimulatedDirections.Count == 0)
+                            bc.SimulatedDirections = new System.Collections.Generic.List<double>(windDirs);
+                    }
+                    DA.SetData(7, inputBCCollection);
 
-                    // New roof-level outputs (4-channel models only — empty trees otherwise)
-                    DA.SetDataTree(9,  uRoofTree);
-                    DA.SetDataTree(10, kRoofTree);
+                    // Roof-level output (4-channel models only — empty tree otherwise)
+                    if (showK && roofAvailable)
+                        DA.SetDataTree(8, kRoofTree);
+                    else
+                        DA.SetDataTree(8, uRoofTree);
 
                     int activeChannels = uRoofTree.PathCount > 0 ? 4 : (kTree.PathCount > 0 ? 2 : 1);
                     Message = $"Dirs: {windDirs.Count} | {activeChannels}ch | {sw.ElapsedMilliseconds} ms";

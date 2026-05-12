@@ -33,7 +33,6 @@ namespace EddyLib.Indoor.Dicts
                 this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 1 -1 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.InternalField = "internalField   uniform (0 0 0);";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
@@ -60,7 +59,6 @@ namespace EddyLib.Indoor.Dicts
                 this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 0 0 1 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.InternalField = "internalField   uniform 300;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
@@ -87,7 +85,6 @@ namespace EddyLib.Indoor.Dicts
                 this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [1 -1 -1 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.InternalField = "internalField   uniform 0;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
@@ -114,7 +111,6 @@ namespace EddyLib.Indoor.Dicts
                 this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 0 0 1 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.InternalField = "internalField   uniform 0;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
@@ -141,7 +137,6 @@ namespace EddyLib.Indoor.Dicts
                 this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 0 0 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.InternalField = "internalField   uniform 0;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
@@ -168,7 +163,6 @@ namespace EddyLib.Indoor.Dicts
                 this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 2 -2 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.InternalField = "internalField   uniform 0.03375;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
@@ -195,7 +189,6 @@ namespace EddyLib.Indoor.Dicts
                 this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 2 -1 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.InternalField = "internalField   uniform 0;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
@@ -222,7 +215,6 @@ namespace EddyLib.Indoor.Dicts
                 this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions [1 -1 -2 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.InternalField = "internalField uniform 101325;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
@@ -248,7 +240,6 @@ namespace EddyLib.Indoor.Dicts
                 this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [1 -1 -2 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.InternalField = "internalField   uniform 101325;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();
@@ -275,7 +266,6 @@ namespace EddyLib.Indoor.Dicts
                 this.Header = GetHeader0(this);
                 this.Dimensions = "dimensions      [0 0 -1 0 0 0 0];";
 
-                // Todo need to pass another class to set internalFieldTemp
                 this.InternalField = "internalField   uniform 1.8371173070873834;";
 
                 this.InternalDict = new List<Dictionary<string, Dictionary<string, string>>>();

@@ -10,11 +10,15 @@ namespace EddyLib.UI
 {
     public class Eddy_ComponentButtonAttributes : Eddy_ComponentAttributes
     {
+        public string ButtonText { get; set; } = "Select Template";
+        public GH_Palette ButtonPalette { get; set; } = GH_Palette.Black;
+
         public Eddy_ComponentButtonAttributes(GH_Component component) : base(component)
         {
         }
 
         private Rectangle ButtonBounds { get; set; }
+        private bool _isHovered = false;
 
         protected override void Layout()
         {
@@ -37,8 +41,8 @@ namespace EddyLib.UI
 
             if (channel == GH_CanvasChannel.Objects)
             {
-                GH_Capsule button = GH_Capsule.CreateTextCapsule(ButtonBounds, ButtonBounds, GH_Palette.Black, "Select Template", 2, 0);
-                button.Render(graphics, Selected, false, false);
+                GH_Capsule button = GH_Capsule.CreateTextCapsule(ButtonBounds, ButtonBounds, ButtonPalette, ButtonText, 2, 0);
+                button.Render(graphics, Selected || (!Owner.Locked && _isHovered), Owner.Locked, Owner.Hidden);
                 button.Dispose();
             }
         }
@@ -46,41 +50,64 @@ namespace EddyLib.UI
         private static MethodInfo _attachCursorMethod;
         private static bool _attachCursorMethodSearched = false;
 
+        private static void AttachHandCursor(GH_Canvas canvas)
+        {
+            if (!_attachCursorMethodSearched)
+            {
+                var cursorServerType = Grasshopper.Instances.CursorServer.GetType();
+                _attachCursorMethod = cursorServerType.GetMethod("AttachCursor", new[] { typeof(object), typeof(string) });
+                _attachCursorMethodSearched = true;
+            }
+
+            if (_attachCursorMethod != null)
+            {
+                _attachCursorMethod.Invoke(Grasshopper.Instances.CursorServer, new object[] { canvas, "GH_Hand" });
+            }
+            else
+            {
+                // Fallback using dynamic to bypass compilation dependency on System.Windows.Forms.Control
+                try
+                {
+                    ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(canvas, "GH_Hand");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to attach cursor via dynamic fallback: {ex.Message}");
+                }
+            }
+        }
+
         public override GH_ObjectResponse RespondToMouseMove(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
-            if (ButtonBounds.Contains(System.Drawing.Point.Round(e.CanvasLocation)))
+            bool newHover = false;
+            if (!Owner.Locked)
             {
-                if (!_attachCursorMethodSearched)
-                {
-                    var cursorServerType = Grasshopper.Instances.CursorServer.GetType();
-                    _attachCursorMethod = cursorServerType.GetMethod("AttachCursor", new[] { typeof(object), typeof(string) });
-                    _attachCursorMethodSearched = true;
-                }
+                var hoverBounds = ButtonBounds;
+                hoverBounds.Inflate(2, 2);
 
-                if (_attachCursorMethod != null)
+                if (hoverBounds.Contains(Point.Round(e.CanvasLocation)))
                 {
-                    _attachCursorMethod.Invoke(Grasshopper.Instances.CursorServer, new object[] { sender, "GH_Hand" });
+                    newHover = true;
+                    AttachHandCursor(sender);
                 }
-                else
-                {
-                    // Fallback using dynamic to bypass compilation dependency on System.Windows.Forms.Control
-                    try
-                    {
-                        ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(sender, "GH_Hand");
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Failed to attach cursor via dynamic fallback: {ex.Message}");
-                    }
-                }
-                return GH_ObjectResponse.Handled;
             }
-            return base.RespondToMouseMove(sender, e);
+
+            if (newHover != _isHovered)
+            {
+                _isHovered = newHover;
+                // GH_Canvas inherits from System.Windows.Forms.Control, but EddyLib
+                // does not reference WinForms — invoke Invalidate dynamically.
+                try { ((dynamic)sender).Invalidate(); } catch { }
+            }
+
+            return _isHovered ? GH_ObjectResponse.Handled : base.RespondToMouseMove(sender, e);
         }
 
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
-            if (ButtonBounds.Contains(System.Drawing.Point.Round(e.CanvasLocation)))
+            var clickBounds = ButtonBounds;
+            clickBounds.Inflate(2, 2);
+            if (clickBounds.Contains(System.Drawing.Point.Round(e.CanvasLocation)))
             {
                 if (IsLeftClick(e))
                 {
