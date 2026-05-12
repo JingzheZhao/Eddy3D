@@ -81,13 +81,15 @@ namespace EddyLib.Docker
                 var psi = new ProcessStartInfo
                 {
                     FileName = dockerExe,
-                    Arguments = "info --format \"{{.ServerVersion}}\"",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true,
                     WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
                 };
+                psi.ArgumentList.Add("info");
+                psi.ArgumentList.Add("--format");
+                psi.ArgumentList.Add("{{.ServerVersion}}");
 
                 ConfigureDockerEnvironment(psi);
 
@@ -122,13 +124,13 @@ namespace EddyLib.Docker
                 var psi = new ProcessStartInfo
                 {
                     FileName = dockerExe,
-                    Arguments = "--version",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true,
                     WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
                 };
+                psi.ArgumentList.Add("--version");
 
                 ConfigureDockerEnvironment(psi);
 
@@ -168,13 +170,15 @@ namespace EddyLib.Docker
                 var psi = new ProcessStartInfo
                 {
                     FileName = dockerExe,
-                    Arguments = "image inspect \"" + imageName + "\"",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true,
                     WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
                 };
+                psi.ArgumentList.Add("image");
+                psi.ArgumentList.Add("inspect");
+                psi.ArgumentList.Add(imageName);
 
                 ConfigureDockerEnvironment(psi);
 
