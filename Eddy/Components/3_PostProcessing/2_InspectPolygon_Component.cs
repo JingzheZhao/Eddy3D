@@ -79,7 +79,9 @@ namespace Eddy.Components.Radiation
                 {
                     InspectPolygon_Component comp = Owner as InspectPolygon_Component;
 
-                    if (isSensor.Contains(e.CanvasLocation))
+                    var clickSensor = isSensor;
+                    clickSensor.Inflate(2f, 2f);
+                    if (clickSensor.Contains(e.CanvasLocation))
                     {
                         if (comp.ProbePolyMode == "Polygon") return GH_ObjectResponse.Handled;
                         comp.RecordUndoEvent("Polygon");
@@ -88,7 +90,9 @@ namespace Eddy.Components.Radiation
                         return GH_ObjectResponse.Handled;
                     }
 
-                    if (isHour.Contains(e.CanvasLocation))
+                    var clickHour = isHour;
+                    clickHour.Inflate(2f, 2f);
+                    if (clickHour.Contains(e.CanvasLocation))
                     {
                         if (comp.ProbePolyMode == "Hour") return GH_ObjectResponse.Handled;
                         comp.RecordUndoEvent("Hour");

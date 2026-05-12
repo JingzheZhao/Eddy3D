@@ -83,7 +83,9 @@ namespace EddyLib.UI
 
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
-            if (ButtonBounds.Contains(System.Drawing.Point.Round(e.CanvasLocation)))
+            var clickBounds = ButtonBounds;
+            clickBounds.Inflate(2, 2);
+            if (clickBounds.Contains(System.Drawing.Point.Round(e.CanvasLocation)))
             {
                 if (IsLeftClick(e))
                 {

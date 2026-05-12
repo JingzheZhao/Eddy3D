@@ -168,7 +168,8 @@ namespace Eddy
                     if (!_btnBounds.TryGetValue(def.ParamIndex, out var r)) continue;
 
                     // We expand the click target slightly for ease of use
-                    var clickRect = new RectangleF(r.X - 2f, r.Y - 2f, r.Width + 4f, r.Height + 4f);
+                    var clickRect = r;
+                    clickRect.Inflate(2f, 2f);
                     if (!clickRect.Contains(e.CanvasLocation)) continue;
 
                     var param = Owner.Params.Input[def.ParamIndex];

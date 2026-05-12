@@ -80,7 +80,9 @@ namespace Eddy.Components.Radiation
                 {
                     InspectProbe_Component comp = Owner as InspectProbe_Component;
 
-                    if (isSensor.Contains(e.CanvasLocation))
+                    var clickSensor = isSensor;
+                    clickSensor.Inflate(2f, 2f);
+                    if (clickSensor.Contains(e.CanvasLocation))
                     {
                         if (comp.ProbeInspectorMode == "Sensor") return GH_ObjectResponse.Handled;
                         comp.RecordUndoEvent("Sensor");
@@ -89,7 +91,9 @@ namespace Eddy.Components.Radiation
                         return GH_ObjectResponse.Handled;
                     }
 
-                    if (isHour.Contains(e.CanvasLocation))
+                    var clickHour = isHour;
+                    clickHour.Inflate(2f, 2f);
+                    if (clickHour.Contains(e.CanvasLocation))
                     {
                         if (comp.ProbeInspectorMode == "Hour") return GH_ObjectResponse.Handled;
                         comp.RecordUndoEvent("Hour");
