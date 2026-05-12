@@ -287,8 +287,8 @@ namespace EddyLib
 
             string[] candidates =
             {
-                Path.Combine(programFiles, "blueCFD-Core-2024"),
                 @"C:\blueCFD-Core-2024",
+                Path.Combine(programFiles, "blueCFD-Core-2024"),
                 Path.Combine(programFilesX86, "blueCFD-Core-2024"),
                 Path.Combine(programFiles, "blueCFD-Core-2020")
             };
@@ -533,6 +533,16 @@ namespace EddyLib
             {
                 throw new FileNotFoundException(
                     string.Format("blueCFD-Core 2024 files not found in: {0}. Please ensure blueCFD-Core 2024-1 is correctly installed.", BlueCfdDir));
+            }
+
+            if (BlueCfdDir.Contains(" "))
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        "blueCFD-Core is installed at a path that contains spaces: {0}. "
+                        + "The blueCFD MSYS/bash environment does not support spaces in its installation path. "
+                        + "Please reinstall blueCFD-Core 2024-1 to a path without spaces (e.g. C:\\blueCFD-Core-2024).",
+                        BlueCfdDir));
             }
         }
     }

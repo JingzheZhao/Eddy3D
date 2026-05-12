@@ -70,6 +70,28 @@ namespace RhinoPlugin.Test.Xunit
                 if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
             }
         }
+
+        [Fact]
+        public void TestCheckBlueCfd_PathWithSpaces_Throws()
+        {
+            string originalPath = DefaultDirectoriesAndPaths.BlueCfdDir;
+            string tempDir = Path.Combine(Path.GetTempPath(), "blueCFD space test " + Guid.NewGuid().ToString("N").Substring(0, 6));
+            Directory.CreateDirectory(tempDir);
+            Directory.CreateDirectory(Path.Combine(tempDir, "OpenFOAM-12"));
+            File.WriteAllText(Path.Combine(tempDir, "setvars.bat"), "rem dummy");
+
+            try
+            {
+                DefaultDirectoriesAndPaths.BlueCfdDir = tempDir;
+                var ex = Assert.Throws<InvalidOperationException>(() => DefaultDirectoriesAndPaths.CheckBlueCfd());
+                Assert.Contains("spaces", ex.Message);
+            }
+            finally
+            {
+                DefaultDirectoriesAndPaths.BlueCfdDir = originalPath;
+                if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+            }
+        }
         [Fact]
         public void TestNormalizeEnginePath()
         {
