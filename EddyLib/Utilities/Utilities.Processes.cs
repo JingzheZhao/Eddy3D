@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
@@ -9,97 +9,42 @@ namespace EddyLib
     {
         public class StartProcess
         {
-            public static void StartProcessCMD(string argument, bool createnowindow, bool waitforexit = false, bool close = false, string executable = @"C:\Windows\System32\cmd.exe")
-            {
-                System.Diagnostics.Process p = new System.Diagnostics.Process();
-                p.StartInfo.FileName = executable;
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.RedirectStandardInput = true;
-                p.StartInfo.CreateNoWindow = createnowindow;
-                p.Start();
-                StreamWriter sw = p.StandardInput;
-                string strInputText = argument;
-                sw.WriteLine(strInputText);
-
-                sw.Flush();
-                if (waitforexit) { p.WaitForExit(); }
-                if (close) { p.Close(); }
-            }
-
-            public static void StartGnuplot(string argument, bool createnowindow, bool waitforexit = false, string executable = @"C:\Windows\System32\cmd.exe")
-            {
-                System.Diagnostics.Process p = new System.Diagnostics.Process();
-                p.StartInfo.FileName = executable;
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.RedirectStandardInput = true;
-                p.StartInfo.CreateNoWindow = createnowindow;
-                p.Start();
-                StreamWriter sw = p.StandardInput;
-                string strInputText = argument;
-                sw.WriteLine(strInputText);
-
-                sw.Flush();
-                if (waitforexit)
-                {
-                    p.WaitForExit(); // Wait for the process to exit if required.
-                }
-            }
-
-            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false)
-            {
-                StartProcessCMDNT(argument, createnowindow, waitforexit, close, startInNewThread, @"C:\Windows\System32\cmd.exe");
-            }
-
-            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, EventHandler eh = null)
-            {
-                StartProcessCMDNT(argument, createnowindow, waitforexit, close, startInNewThread, @"C:\Windows\System32\cmd.exe", eh);
-            }
-
             public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe", EventHandler eh = null)
             {
                 if (!File.Exists(executable)) { return; }
-
-                System.Diagnostics.Process p = new System.Diagnostics.Process();
-
-                // if(eh!=null) p.Exited += eh;
-                p.StartInfo.FileName = executable;
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.RedirectStandardInput = true;
-
-                //p.StartInfo.RedirectStandardOutput = true;
-                p.StartInfo.CreateNoWindow = createnowindow;
-
-                //p.Start();
-
-                string theArgument = argument + ((close) ? @"
-exit
-" : "");
+                ValidatePathForShell(executable);
 
                 ThreadStart ths = new ThreadStart(() =>
                 {
-                    p.Start();
+                    try
+                    {
+                        ProcessStartInfo psi = new ProcessStartInfo
+                        {
+                            FileName = @"C:\Windows\System32\cmd.exe",
+                            UseShellExecute = false,
+                            CreateNoWindow = createnowindow,
+                        };
+                        psi.ArgumentList.Add("/c");
+                        psi.ArgumentList.Add(executable);
+                        if (!string.IsNullOrEmpty(argument))
+                        {
+                            psi.ArgumentList.Add(argument);
+                        }
 
-                    StreamWriter sw = p.StandardInput;
-                    String strInputText = theArgument;
-                    sw.WriteLine(strInputText);
-
-                    // Window doesn't close with
-                    //sw.Flush();
-
-                    p.WaitForExit();
-                    if (close) { p.Close(); }
-                    if (eh != null) { eh.Invoke(p, new EventArgs()); }
+                        using (Process p = Process.Start(psi))
+                        {
+                            p?.WaitForExit();
+                            eh?.Invoke(p, EventArgs.Empty);
+                        }
+                    }
+                    catch
+                    {
+                        // Fail securely
+                    }
                 });
 
-                Thread th = new Thread(ths);
+                Thread th = new Thread(ths) { IsBackground = true };
                 th.Start();
-
-                //if (waitforexit)
-                //{
-                //    //Console.ReadLine();
-                //    p.WaitForExit();
-                //}
-                //if (close) { p.Close(); }
             }
 
             public static void StartBatchScriptCMDNT(string scriptContent, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, EventHandler eh = null)
@@ -118,7 +63,7 @@ exit
 
                 ThreadStart ths = new ThreadStart(() =>
                 {
-                    System.Diagnostics.Process p = new System.Diagnostics.Process();
+                    Process p = new Process();
                     p.StartInfo.FileName = cmdExe;
                     p.StartInfo.UseShellExecute = false;
                     p.StartInfo.CreateNoWindow = createnowindow;
@@ -171,6 +116,5 @@ exit
                 }
             }
         }
-
     }
 }
