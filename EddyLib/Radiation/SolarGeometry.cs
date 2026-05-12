@@ -21,9 +21,10 @@ namespace EddyLib
 
             for (int m = 0; m < 12; m++)
             {
+                int baseHour = CumulativeDays[m] * 24;
                 for (int h = 0; h < 24; h++)
                 {
-                    int hourOfYear = HourInYear(m, 0, h);
+                    int hourOfYear = baseHour + h;
 
                     if (hourOfYear >= solarElevation.Count)
                     {
@@ -54,19 +55,11 @@ namespace EddyLib
             return sunPositions;
         }
 
+        public static readonly int[] CumulativeDays = new int[] { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
+
         public int HourInYear(int monthIndex, int dayIndex, int hourIndex)
         {
-            int hr = 0;
-            for (int m = 0; m < 12; m++)
-            {
-                if (m < monthIndex) hr += DaysInMonth[m] * 24;
-                else
-                {
-                    hr += dayIndex * 24 + hourIndex;
-                    break;
-                }
-            }
-            return hr;
+            return (CumulativeDays[monthIndex] + dayIndex) * 24 + hourIndex;
         }
 
         public void DayOfYear_To_MonthAndDay(int dayOfYear, out int month, out int day)
