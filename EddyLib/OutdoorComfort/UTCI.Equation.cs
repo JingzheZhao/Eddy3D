@@ -8,10 +8,15 @@ namespace EddyLib
     {
         public static double CalcUTCI(double TaC, double RH, double Wsp, double mrt)
         {
+            double Pa = CalcPa(TaC, RH);
+            return CalcUTCI_WithPa(TaC, Pa, Wsp, mrt);
+        }
+
+        public static double CalcUTCI_WithPa(double TaC, double Pa, double Wsp, double mrt)
+        {
             double v = Wsp;//wind speed
 
             double DMRT = mrt - TaC;
-            double Pa = CalcPa(TaC, RH);
 
             /*Function value is the UTCI in degree Celsius
              !~computed by a 6th order approximating polynomial from the 4 Input paramters
