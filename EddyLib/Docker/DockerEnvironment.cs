@@ -68,7 +68,7 @@ namespace EddyLib.Docker
 
         /// <summary>
         /// Returns true if the Docker daemon is running and accessible.
-        /// Runs <c>docker --version</c> with a 10-second timeout.
+        /// Runs <c>docker info</c> with a 10-second timeout.
         /// </summary>
         public static bool IsDockerAvailable()
         {
@@ -81,7 +81,7 @@ namespace EddyLib.Docker
                 var psi = new ProcessStartInfo
                 {
                     FileName = dockerExe,
-                    Arguments = "--version",
+                    Arguments = "info --format \"{{.ServerVersion}}\"",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -148,6 +148,52 @@ namespace EddyLib.Docker
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Returns true when the given Docker image is available in the local image cache.
+        /// Does not pull from a registry.
+        /// </summary>
+        public static bool IsImageAvailable(string imageName)
+        {
+            if (string.IsNullOrWhiteSpace(imageName))
+                return false;
+
+            try
+            {
+                var dockerExe = GetDockerPath();
+                if (string.IsNullOrEmpty(dockerExe))
+                    return false;
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = dockerExe,
+                    Arguments = "image inspect \"" + imageName + "\"",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+                };
+
+                ConfigureDockerEnvironment(psi);
+
+                using (var process = new Process { StartInfo = psi })
+                {
+                    process.Start();
+                    if (!process.WaitForExit(10000))
+                    {
+                        try { process.Kill(); } catch (Exception ex) { Debug.WriteLine(ex.Message); }
+                        return false;
+                    }
+
+                    return process.ExitCode == 0;
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>

@@ -39,7 +39,7 @@ namespace RhinoPlugin.Test.Xunit
             try
             {
                 DefaultDirectoriesAndPaths.BlueCfdDir = tempDir;
-                // Should throw because setvars_OF8.bat and README.TXT are missing
+                // Should throw because blueCFD-Core 2024 files are missing.
                 Assert.Throws<FileNotFoundException>(() => DefaultDirectoriesAndPaths.CheckBlueCfd());
             }
             finally
@@ -55,7 +55,8 @@ namespace RhinoPlugin.Test.Xunit
             string originalPath = DefaultDirectoriesAndPaths.BlueCfdDir;
             string tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempDir);
-            File.WriteAllText(Path.Combine(tempDir, "setvars_OF8.bat"), "rem dummy");
+            Directory.CreateDirectory(Path.Combine(tempDir, "OpenFOAM-12"));
+            File.WriteAllText(Path.Combine(tempDir, "setvars.bat"), "rem dummy");
 
             try
             {

@@ -24,19 +24,50 @@ namespace EddyLib.Indoor.BatchFiles
 
         private static string BatchBody(int cpus)
         {
-            return $@"blockMesh 2>&1 | tee -a ""blockMesh.log""
-surfaceFeatures 2>&1 | tee -a ""surfaceFeatures.log""
-decomposePar -force 2>&1 | tee -a ""decomposePar.log""
-mpiexec -np {cpus} snappyHexMesh -overwrite -parallel 2>&1 | tee -a ""snappyHexMesh.log""
-reconstructParMesh -constant 2>&1 | tee -a ""reconstructParMesh.log""
-renumberMesh -overwrite 2>&1 | tee -a ""renumberMesh.log""
+            if (cpus <= 1)
+            {
+                return @"blockMesh >> ""blockMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+surfaceFeatures >> ""surfaceFeatures.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+snappyHexMesh -overwrite >> ""snappyHexMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 
-topoSet 2>&1 | tee -a ""topoSet.log""
+topoSet >> ""topoSet.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
 
-renumberMesh -overwrite 2>&1 | tee -a ""renumberMesh.log""
-decomposePar -force 2>&1 | tee -a ""decomposePar.log""
-mpiexec -np {cpus} buoyantSimpleFoam -parallel 2>&1 | tee -a ""buoyantSimpleFoam.log""
-reconstructPar 2>&1 | tee -a ""reconstructPar.log""";
+renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+foamRun -solver fluid >> ""foamRun.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%";
+            }
+
+            return $@"blockMesh >> ""blockMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+surfaceFeatures >> ""surfaceFeatures.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+decomposePar -force >> ""decomposePar.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+mpiexec -np {cpus} snappyHexMesh -overwrite -parallel >> ""snappyHexMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+reconstructPar -constant -noFields >> ""reconstructParMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+
+topoSet >> ""topoSet.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+
+renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+decomposePar -force >> ""decomposePar.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+mpiexec -np {cpus} foamRun -solver fluid -parallel >> ""foamRun.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%
+reconstructPar >> ""reconstructPar.log"" 2>&1
+if errorlevel 1 exit /b %errorlevel%";
         }
     }
 }

@@ -19,7 +19,7 @@ namespace EddyLib.Strings
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
+|  \\    /   O peration     | Version:  12                                    |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -40,7 +40,8 @@ libs
         ""libatmosphericModels.so""");
             sb.Append(@"
 );
-            application simpleFoam;
+            application foamRun;
+            solver      incompressibleFluid;
             startFrom startTime;
             startTime       0;
             stopAt endTime;
@@ -55,8 +56,32 @@ libs
             timeFormat general;
             timePrecision   6;
             runTimeModifiable true;
-            functions
+");
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Generates OpenFOAM 12 system/functions content.
+        /// </summary>
+        public static string FunctionsDict(OFRunSettings RunSettings, OFBaseDomain DOM, List<Mesh> topologies, int numberOfTopologies)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  12                                    |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
 {
+        version     2.0;
+        format ascii;
+        class dictionary;
+        object functions;
+}
+
 #includeFunc residuals
 ");
 
@@ -71,8 +96,6 @@ libs
             {
                 sb.AppendLine(EddyLib.Strings.OFExecDicts.FunctionObjAOA());
             }
-
-            sb.AppendLine(@"};");
 
             return sb.ToString();
         }

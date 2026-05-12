@@ -16,7 +16,7 @@ namespace RhinoPlugin.Test.Xunit
     [Collection("Rhino Collection")]
     public class IntegrationTests
     {
-        [NotWindowsServerFact]
+        [RequiresRadianceAndEnergyPlusFact]
         [Trait("Category", "Integration")]
         public void SurfaceTempTest_GrassVsConcrete()
         {

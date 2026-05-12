@@ -56,14 +56,14 @@ writeObj             yes;
         }
 
         /// <summary>
-        /// Generates transportProperties (kinematic viscosity).
+        /// Generates physicalProperties (kinematic viscosity) for OpenFOAM 12.
         /// </summary>
-        public static string TransportProperties()
+        public static string PhysicalProperties()
         {
             return @"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
+|  \\    /   O peration     | Version:  12                                    |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -72,29 +72,38 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      transportProperties;
+    location    ""constant"";
+    object      physicalProperties;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-transportModel  Newtonian;
+viscosityModel  constant;
 
-nu              nu [0 2 -1 0 0 0 0] 1.5e-05;
+nu              1.5e-05;
 
 // ************************************************************************* //
 ";
         }
 
         /// <summary>
-        /// Generates turbulenceProperties based on turbulence model.
+        /// Legacy method name retained for older call sites; OpenFOAM 12 writes physicalProperties.
         /// </summary>
-        public static string TurbulenceProperties(OFRunSettings RunSettings)
+        public static string TransportProperties()
+        {
+            return PhysicalProperties();
+        }
+
+        /// <summary>
+        /// Generates momentumTransport based on turbulence model.
+        /// </summary>
+        public static string MomentumTransport(OFRunSettings RunSettings)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  3.0.1                                 |
+|  \\    /   O peration     | Version:  12                                    |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -103,7 +112,8 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      RASProperties;
+    location    ""constant"";
+    object      momentumTransport;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -112,15 +122,14 @@ FoamFile
             else { sb.AppendLine("simulationType RAS;"); }
             sb.AppendLine(@"RAS
 {
-    RASModel         ");
-            sb.Append(RunSettings.turbModel.ToString());
-            sb.AppendLine(@";
+    model           " + RunSettings.turbModel + @";
     turbulence on;
 
     printCoeffs on;
+    viscosityModel Newtonian;
 ");
 
-            // OF8-native stabilization minima for RAS models.
+            // OpenFOAM-native stabilization minima for RAS models.
             if (RunSettings.turbModel != TurbModel.laminar)
             {
                 sb.AppendLine("    kMin             1e-10;");
@@ -141,6 +150,14 @@ FoamFile
 ");
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Legacy method name retained for older call sites; OpenFOAM 12 writes momentumTransport.
+        /// </summary>
+        public static string TurbulenceProperties(OFRunSettings RunSettings)
+        {
+            return MomentumTransport(RunSettings);
         }
 
         /// <summary>

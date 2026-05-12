@@ -73,7 +73,7 @@ namespace RhinoPlugin.Test.Xunit
         /// Ensures the template repo has a branch matching EddyVersion.ProductVersion
         /// and that this branch is not empty (has at least one file/folder in root).
         /// </summary>
-        [Fact]
+        [RequiresExternalServiceFact]
         public async Task TemplateBranch_Exists_And_IsNotEmpty()
         {
             using (var client = new HttpClient())
@@ -126,7 +126,7 @@ namespace RhinoPlugin.Test.Xunit
         /// <summary>
         /// Validates all Grasshopper template files from the GitHub repository using XML parsing.
         /// </summary>
-        [Fact]
+        [RequiresExternalServiceFact]
         public async Task ValidateAllGitHubTemplates()
         {
             // 1. Fetch the list of template files from GitHub

@@ -19,9 +19,10 @@ namespace EddyLib.Strings
             sb.AppendLine(@"aoa
     {
         type            scalarTransport;
-        libs (""libfieldFunctionObjects.so"");
+        libs (""libsolverFunctionObjects.so"");
 
         writeControl    outputTime;
+            diffusivity     constant;
             D               1.0;
             field aoa;
             resetOnStartUp  false;
@@ -54,13 +55,27 @@ namespace EddyLib.Strings
 
         private static string FunctionObjFieldMinMax()
         {
-            return @"fieldMinMax
+            return @"fieldMinMag
 {
-    type fieldMinMax;
+    type volFieldValue;
     libs (""libfieldFunctionObjects.so"");
+    operation minMag;
+    select all;
     writeToFile true;
+    writeFields false;
     log true;
-    mode magnitude;
+    fields (U p k epsilon omega nut aoa);
+}
+
+fieldMaxMag
+{
+    type volFieldValue;
+    libs (""libfieldFunctionObjects.so"");
+    operation maxMag;
+    select all;
+    writeToFile true;
+    writeFields false;
+    log true;
     fields (U p k epsilon omega nut aoa);
 }";
         }
@@ -72,8 +87,8 @@ namespace EddyLib.Strings
     type            volFieldValue;
     libs            (""libfieldFunctionObjects.so"");
     fields (U p);
-    operation       weightedVolAverage;
-    regionType      all;
+    operation       volAverage;
+    select          all;
     writeFields     false;
     log true;
 }";
@@ -81,8 +96,7 @@ namespace EddyLib.Strings
 
         private static string FunctionObjStabilityLimiters(OFRunSettings runSettings)
         {
-            // OpenFOAM 8 (including blueCFD 2020) does not provide "limitFields"
-            // function object. Keep this as a no-op for OF8 compatibility.
+            // Reserved for optional OpenFOAM 12 field limiter function objects.
             return string.Empty;
         }
 

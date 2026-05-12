@@ -50,13 +50,10 @@ namespace EddyLib.Indoor.Dicts
 
         public static Dictionary<string, dynamic> GetGeometryDict(IndoorBC input)
         {
-            //Dictionary<string, dynamic> Dict = new Dictionary<string, dynamic>();
-
             Dictionary<string, dynamic> InternalDict = new Dictionary<string, dynamic>();
 
-            //Dict.Add(input.Id + ".stl", InternalDict);
-
             InternalDict.Add("type", input.OFGeometryType);
+            InternalDict.Add("file", $"\"{input.Id}.stl\"");
             InternalDict.Add("name", input.Id);
 
             return InternalDict;
@@ -101,8 +98,8 @@ namespace EddyLib.Indoor.Dicts
             InternalDict.Add("minAreaRatio          ", "0.3");
             InternalDict.Add("detectNearSurfacesSnap", "true");
             InternalDict.Add("strictRegionSnap      ", "false");
-            InternalDict.Add("ExplicitFeatureSnap   ", "true");
-            InternalDict.Add("ImplicitFeatureSnap   ", "false");
+            InternalDict.Add("explicitFeatureSnap   ", "true");
+            InternalDict.Add("implicitFeatureSnap   ", "false");
 
             return Dict;
         }
@@ -203,7 +200,6 @@ namespace EddyLib.Indoor.Dicts
 
             //refinement regions
             Dict2.Add("refinementRegions", Dict3);
-            Dict3.Add(" ", " ");
 
             return Dict1;
         }
@@ -225,18 +221,24 @@ namespace EddyLib.Indoor.Dicts
             public override string ToString()
             {
                 StringBuilder sb = new StringBuilder();
-                sb.Append(@"{");
 
-                foreach (IndoorBC i in inlet) { sb.AppendLine(@"file """ + i.Id + @".eMesh"";
-            level " + i.refinementLevel + @";"); }
-                foreach (IndoorBC i in outlet) { sb.AppendLine(@"file """ + i.Id + @".eMesh"";
-            level " + i.refinementLevel + @";"); }
-                foreach (IndoorBC i in wall) { sb.AppendLine(@"file """ + i.Id + @".eMesh"";
-            level " + i.refinementLevel + @";"); }
-
-                sb.Append(@"}");
+                AppendFeatureEntries(sb, inlet);
+                AppendFeatureEntries(sb, outlet);
+                AppendFeatureEntries(sb, wall);
 
                 return GenericDict.InParenthesis(sb.ToString());
+            }
+
+            private static void AppendFeatureEntries<T>(StringBuilder sb, IEnumerable<T> boundaries)
+                where T : IndoorBC
+            {
+                foreach (IndoorBC boundary in boundaries)
+                {
+                    sb.AppendLine("{");
+                    sb.AppendLine($@"    file ""{boundary.Id}.eMesh"";");
+                    sb.AppendLine($"    level {boundary.refinementLevel};");
+                    sb.AppendLine("}");
+                }
             }
         }
 
@@ -286,7 +288,12 @@ namespace EddyLib.Indoor.Dicts
                     {{
                         type            {2};
                     }}
-        }}", bc.Id, bc.refinementLevel.ToString(), bc.bcType.ToString());
+        }}", bc.Id, bc.refinementLevel.ToString(), GetPolyPatchType(bc));
+        }
+
+        private static string GetPolyPatchType(IndoorBC bc)
+        {
+            return bc.bcType == IndoorBC.BCType.wall ? "wall" : "patch";
         }
     }
 }

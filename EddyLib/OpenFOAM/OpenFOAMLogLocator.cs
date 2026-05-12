@@ -11,7 +11,7 @@ namespace EddyLib.OpenFOAM
     public static class OpenFOAMLogLocator
     {
         public static IReadOnlyList<string> SimulationCandidates { get; } =
-            new[] { "simpleFoam.log", "log.simpleFoam" };
+            new[] { "foamRun.log", "log.foamRun" };
 
         public static IReadOnlyList<string> MeshingCandidates { get; } =
             new[] { "snappyHexMesh.log", "log.snappyHexMesh" };
@@ -84,7 +84,8 @@ namespace EddyLib.OpenFOAM
             if (string.IsNullOrWhiteSpace(fileName))
                 return false;
 
-            return fileName.IndexOf("simpleFoam", StringComparison.OrdinalIgnoreCase) >= 0
+            return (fileName.IndexOf("foamRun", StringComparison.OrdinalIgnoreCase) >= 0
+                   || fileName.IndexOf("simpleFoam", StringComparison.OrdinalIgnoreCase) >= 0)
                    && IsLikelyLogFileName(fileName);
         }
 

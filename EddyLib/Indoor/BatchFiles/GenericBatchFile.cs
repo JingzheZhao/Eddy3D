@@ -27,13 +27,76 @@ namespace EddyLib.Indoor.BatchFiles
 
         public string GetHeader()
         {
+            string blueCfdRoot = DefaultDirectoriesAndPaths.BlueCfdDir.TrimEnd('\\', '/');
+            string msysUsrBin = Path.Combine(blueCfdRoot, "msys64", "usr", "bin");
+            string mpiBin = ResolveBlueCfdMpiBin(blueCfdRoot);
+            string pstreamLib = ResolveBlueCfdPstreamLibBin(blueCfdRoot);
+            string thirdPartyMpiLib = ResolveBlueCfdThirdPartyMpiLibBin(blueCfdRoot);
+
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($@"call ""{Path.Combine(DefaultDirectoriesAndPaths.BlueCfdDir, "setvars_OF8.bat")}""");
-            sb.AppendLine(@"set PATH=%HOME%\msys64\usr\bin;%PATH%");
+            sb.AppendLine($@"call ""{DefaultDirectoriesAndPaths.BlueCfdSetvarsBat}""");
+            sb.AppendLine($@"set ""PATH={msysUsrBin};{mpiBin};{pstreamLib};{thirdPartyMpiLib};%PATH%""");
             sb.AppendLine(ReturnWindowsDrive(BatchLocation.ToString()));
             sb.AppendLine("cd " + "\"" + BatchLocation.ToString() + "\"");
 
             return sb.ToString();
+        }
+
+        private static string ResolveBlueCfdMpiBin(string blueCfdRoot)
+        {
+            var candidates = new[]
+            {
+                Path.Combine(blueCfdRoot, "ThirdParty-12", "platforms", "mingw_w64Gcc122", "MS-MPI-10.1.2", "bin"),
+                Path.Combine(blueCfdRoot, "ThirdParty-12", "platforms", "mingw_w64Gcc122", "MS-MPI-10.1.2", "PFiles", "Microsoft MPI", "Bin")
+            };
+
+            foreach (var candidate in candidates)
+            {
+                if (Directory.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            return candidates[0];
+        }
+
+        private static string ResolveBlueCfdPstreamLibBin(string blueCfdRoot)
+        {
+            var candidates = new[]
+            {
+                Path.Combine(blueCfdRoot, "OpenFOAM-12", "platforms", "mingw_w64Gcc122DPInt32Opt", "lib", "MS-MPI-10.1.2"),
+                Path.Combine(blueCfdRoot, "OpenFOAM-12", "platforms", "mingw_w64Gcc122DPInt32Opt", "lib", "MS-MPI-10.1")
+            };
+
+            foreach (var candidate in candidates)
+            {
+                if (Directory.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            return candidates[0];
+        }
+
+        private static string ResolveBlueCfdThirdPartyMpiLibBin(string blueCfdRoot)
+        {
+            var candidates = new[]
+            {
+                Path.Combine(blueCfdRoot, "ThirdParty-12", "platforms", "mingw_w64Gcc122DPInt32", "lib", "MS-MPI-10.1.2"),
+                Path.Combine(blueCfdRoot, "ThirdParty-12", "platforms", "mingw_w64Gcc122DPInt32", "lib", "MS-MPI-10.1")
+            };
+
+            foreach (var candidate in candidates)
+            {
+                if (Directory.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            return candidates[0];
         }
 
         public string ReturnWindowsDrive(string path)

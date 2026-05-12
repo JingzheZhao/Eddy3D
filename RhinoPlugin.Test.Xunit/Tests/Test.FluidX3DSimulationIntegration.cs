@@ -25,13 +25,12 @@ namespace RhinoPlugin.Test.Xunit
                 candidates.Add(Path.GetFullPath(env.Trim()));
             }
 
-            // Prefer installed engine source before local repository copies.
-            candidates.Add(Path.GetFullPath(FluidX3DAblWorkflow.GetDefaultSourceDirectory()));
-
             foreach (string localCandidate in EnumerateLocalRepositoryCandidates())
             {
                 candidates.Add(localCandidate);
             }
+
+            candidates.Add(Path.GetFullPath(FluidX3DAblWorkflow.GetDefaultSourceDirectory()));
 
             HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < candidates.Count; i++)
@@ -168,6 +167,7 @@ namespace RhinoPlugin.Test.Xunit
                 reason);
 
             string tempRoot = TestFixtures.CreateTestDirectory("fluidx3d-sim-gpu");
+            FluidX3DAblPrepareResult result = null;
             try
             {
                 string workingRoot = Path.Combine(tempRoot, "working");
@@ -178,14 +178,14 @@ namespace RhinoPlugin.Test.Xunit
                     Uref = 5.0,
                     Zref = 10.0,
                     Z0 = 0.1,
-                    SimSeconds = 180.0,
-                    ExportIntervalSeconds = 10.0,
+                    SimSeconds = 20.0,
+                    ExportIntervalSeconds = 20.0,
                     DomainLx = 120.0,
                     DomainLy = 120.0,
                     DomainLz = 50.0
                 };
 
-                FluidX3DAblPrepareResult result = FluidX3DAblWorkflow.PrepareCase(sourceRoot, workingRoot, settings);
+                result = FluidX3DAblWorkflow.PrepareCase(sourceRoot, workingRoot, settings);
 
                 Assert.True(Directory.Exists(result.CaseRoot));
                 Assert.Equal(Path.Combine(result.CaseRoot, "bin", "export"), result.ExportDirectory);
@@ -232,6 +232,7 @@ namespace RhinoPlugin.Test.Xunit
             }
             finally
             {
+                CleanupDirectoryContents(result?.ExportDirectory);
                 TestFixtures.CleanupTestDirectory(tempRoot);
             }
         }
@@ -254,6 +255,31 @@ namespace RhinoPlugin.Test.Xunit
             }
 
             return RunFluidX3DCaseUnix(caseRoot);
+        }
+
+        private static void CleanupDirectoryContents(string directory)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+                {
+                    return;
+                }
+
+                foreach (string file in Directory.GetFiles(directory, "*", SearchOption.TopDirectoryOnly))
+                {
+                    File.Delete(file);
+                }
+
+                foreach (string childDirectory in Directory.GetDirectories(directory, "*", SearchOption.TopDirectoryOnly))
+                {
+                    Directory.Delete(childDirectory, recursive: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("FluidX3D export cleanup warning: " + ex.Message);
+            }
         }
 
         private static string RunFluidX3DCaseUnix(string caseRoot)
@@ -638,6 +664,11 @@ namespace RhinoPlugin.Test.Xunit
 
         private static string ResolveGitHeadCommit(string repositoryRoot)
         {
+            if (TryReadGitHeadCommitFromMetadata(repositoryRoot, out string metadataCommit))
+            {
+                return metadataCommit;
+            }
+
             string output = RunProcess(
                 "git",
                 "rev-parse HEAD",
@@ -657,6 +688,98 @@ namespace RhinoPlugin.Test.Xunit
             }
 
             return commit.ToLowerInvariant();
+        }
+
+        private static bool TryReadGitHeadCommitFromMetadata(string repositoryRoot, out string commit)
+        {
+            commit = null;
+
+            try
+            {
+                string gitMetadataPath = Path.Combine(repositoryRoot, ".git");
+                string gitDir = gitMetadataPath;
+
+                if (File.Exists(gitMetadataPath))
+                {
+                    string gitFile = File.ReadAllText(gitMetadataPath).Trim();
+                    const string prefix = "gitdir:";
+                    if (!gitFile.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return false;
+                    }
+
+                    gitDir = gitFile.Substring(prefix.Length).Trim();
+                    if (!Path.IsPathRooted(gitDir))
+                    {
+                        gitDir = Path.GetFullPath(Path.Combine(repositoryRoot, gitDir));
+                    }
+                }
+
+                if (!Directory.Exists(gitDir))
+                {
+                    return false;
+                }
+
+                string headPath = Path.Combine(gitDir, "HEAD");
+                if (!File.Exists(headPath))
+                {
+                    return false;
+                }
+
+                string head = File.ReadAllText(headPath).Trim();
+                if (Regex.IsMatch(head, "^[0-9a-fA-F]{40}$"))
+                {
+                    commit = head.ToLowerInvariant();
+                    return true;
+                }
+
+                const string refPrefix = "ref:";
+                if (!head.StartsWith(refPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+
+                string refName = head.Substring(refPrefix.Length).Trim().Replace('/', Path.DirectorySeparatorChar);
+                string refPath = Path.Combine(gitDir, refName);
+                if (File.Exists(refPath))
+                {
+                    string refCommit = File.ReadAllText(refPath).Trim();
+                    if (Regex.IsMatch(refCommit, "^[0-9a-fA-F]{40}$"))
+                    {
+                        commit = refCommit.ToLowerInvariant();
+                        return true;
+                    }
+                }
+
+                string packedRefsPath = Path.Combine(gitDir, "packed-refs");
+                if (File.Exists(packedRefsPath))
+                {
+                    string normalizedRef = head.Substring(refPrefix.Length).Trim();
+                    foreach (string rawLine in File.ReadLines(packedRefsPath))
+                    {
+                        string line = rawLine.Trim();
+                        if (line.Length == 0 || line[0] == '#' || line[0] == '^')
+                        {
+                            continue;
+                        }
+
+                        string[] parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length == 2
+                            && parts[1].Equals(normalizedRef, StringComparison.Ordinal)
+                            && Regex.IsMatch(parts[0], "^[0-9a-fA-F]{40}$"))
+                        {
+                            commit = parts[0].ToLowerInvariant();
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            return false;
         }
 
         private static string NormalizePinnedCommit(string commitRaw)

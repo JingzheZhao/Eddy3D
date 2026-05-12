@@ -29,28 +29,34 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         /// <summary>
-        /// Gets the recommended CPU count for tests: 75% of available cores, minimum 1, default 8 if detection fails.
+        /// Gets the recommended CPU count for execution tests: 75% of available cores,
+        /// with EDDY3D_TEST_CPUS available for constrained CI agents.
         /// </summary>
         private static int GetTestCpuCount()
         {
+            string overrideValue = Environment.GetEnvironmentVariable("EDDY3D_TEST_CPUS");
+            if (int.TryParse(overrideValue, out int overridden) && overridden > 0)
+            {
+                return overridden;
+            }
+
             try
             {
-                int availableCores = System.Environment.ProcessorCount;
+                int availableCores = Environment.ProcessorCount;
                 if (availableCores > 0)
                 {
-                    int cpuCount = (int)Math.Ceiling(availableCores * 0.75);
-                    return Math.Max(1, cpuCount); // Ensure at least 1 CPU
+                    return Math.Max(1, (int)Math.Ceiling(availableCores * 0.75));
                 }
             }
             catch
             {
-                // Fall through to default
+                // Fall through to the conservative default.
             }
 
-            return 8; // Default fallback
+            return 1;
         }
 
-        [NotWindowsServerFact]
+        [RequiresOpenFoamExecutionFact]
         public void BoxDomainCase_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -75,7 +81,7 @@ namespace RhinoPlugin.Test.Xunit
             _ = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run.bat"));
 
             // Assert: check log file contains the expected string
-            var logFile = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            var logFile = Path.Combine(caseDir, windDir.ToString(), "foamRun.log");
             Assert.True(File.Exists(logFile), $"Log file not found: {logFile}");
 
             AssertLogContainsTimeIfPresent(caseDir, windDir, expectedTime: runSettings.endTime);
@@ -84,7 +90,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.True(File.Exists(residualPlot), $"Residual plot not found: {residualPlot}");
         }
 
-        [NotWindowsServerFact]
+        [RequiresOpenFoamExecutionFact]
         public void BoxDomainCase_WithSimpleC_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -114,7 +120,7 @@ namespace RhinoPlugin.Test.Xunit
             _ = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run.bat"));
 
             // Assert: check log file contains the expected string
-            var logFile = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            var logFile = Path.Combine(caseDir, windDir.ToString(), "foamRun.log");
             Assert.True(File.Exists(logFile), $"Log file not found: {logFile}");
 
             AssertLogContainsTimeIfPresent(caseDir, windDir, expectedTime: runSettings.endTime);
@@ -181,7 +187,7 @@ namespace RhinoPlugin.Test.Xunit
             return (success, logBuilder.ToString());
         }
 
-        [NotWindowsServerTheory]
+        [RequiresOpenFoamExecutionTheory]
         [InlineData(5)]
         [InlineData(45)]
         [InlineData(90)]
@@ -222,7 +228,7 @@ namespace RhinoPlugin.Test.Xunit
             _ = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run.bat"));
         }
 
-        [NotWindowsServerFact]
+        [RequiresOpenFoamExecutionFact]
         public void IndoorSimpleCase_GeneratesAndExecutesSuccessfully()
         {
             // Arrange
@@ -362,7 +368,7 @@ namespace RhinoPlugin.Test.Xunit
 
         private static void AssertLogContainsTimeIfPresent(string caseDir, int windDir, int expectedTime)
         {
-            var logPath = Path.Combine(caseDir, windDir.ToString(), "simpleFoam.log");
+            var logPath = Path.Combine(caseDir, windDir.ToString(), "foamRun.log");
             Assert.True(File.Exists(logPath), $"Log file not found: {logPath}. Simulation may have been cancelled or failed to start.");
 
             var logContent = File.ReadAllText(logPath);
@@ -381,8 +387,8 @@ namespace RhinoPlugin.Test.Xunit
 
         private static void AssertIndoorSimulationCompleted(string caseDir, int expectedEndTime)
         {
-            // Check for the buoyantSimpleFoam log file
-            var logPath = Path.Combine(caseDir, "buoyantSimpleFoam.log");
+            // Check for the foamRun log file
+            var logPath = Path.Combine(caseDir, "foamRun.log");
             Assert.True(File.Exists(logPath),
                 $"Log file not found: {logPath}. Simulation may have failed to start or was cancelled.");
 
@@ -402,10 +408,11 @@ namespace RhinoPlugin.Test.Xunit
 
         private static string CreateResidualPlotPng(string caseDir, int windDir)
         {
-            string residualsPath = Path.Combine(caseDir, windDir.ToString(), "postProcessing", "residuals", "0", "residuals.dat");
+            string windDirPath = Path.Combine(caseDir, windDir.ToString());
+            string residualsPath = EddyLib.Strings.PlotResiduals.FindResidualsDat(windDirPath);
             string outputPath = Path.Combine(caseDir, windDir.ToString(), "residuals.png");
 
-            Assert.True(File.Exists(residualsPath), $"residuals.dat not found: {residualsPath}");
+            Assert.True(File.Exists(residualsPath), $"residuals.dat not found under: {Path.Combine(windDirPath, "postProcessing", "residuals")}");
 
             string[] lines = File.ReadAllLines(residualsPath);
             var fieldNames = new List<string>();

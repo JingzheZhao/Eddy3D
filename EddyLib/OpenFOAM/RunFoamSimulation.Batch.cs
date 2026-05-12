@@ -15,7 +15,7 @@ namespace EddyLib
         private const string MeshLogFileName = "snappyHexMesh.log";
         private const string BlockMeshLogFileName = "blockMesh.log";
         private const string SurfaceFeaturesLogFileName = "surfaceFeatures.log";
-        private const string SimulationLogFileName = "simpleFoam.log";
+        private const string SimulationLogFileName = "foamRun.log";
 
         #region Batch Files
 
@@ -77,7 +77,7 @@ namespace EddyLib
                 meshCmds.Add(WithDockerLog(
                     string.Format("mpiexec -np {0} snappyHexMesh -overwrite -parallel", runSettings.CPUs),
                     MeshLogFileName));
-                meshCmds.Add("reconstructParMesh -constant");
+                meshCmds.Add("reconstructPar -constant -noFields");
                 meshCmds.Add("renumberMesh -overwrite");
             }
             else
@@ -87,7 +87,7 @@ namespace EddyLib
                 meshCmds.Add(WithDockerLog("snappyHexMesh -overwrite", MeshLogFileName));
                 meshCmds.Add("renumberMesh -overwrite");
             }
-            meshCmds.Add("checkMesh -allGeometry -allTopology -writeSets vtk");
+            meshCmds.Add("checkMesh -allGeometry -allTopology -writeSets -setFormat vtk");
 
             var meshOnlyCmds = new List<string>(meshCmds);
             meshOnlyCmds.Add("cd " + DockerConfig.CaseMountPoint);
@@ -212,7 +212,7 @@ namespace EddyLib
                 if (runSettings.potentialFoamInit)
                     cmds.Add(string.Format("mpiexec -np {0} potentialFoam -parallel", runSettings.CPUs));
                 cmds.Add(WithDockerLog(
-                    string.Format("mpiexec -np {0} simpleFoam -parallel", runSettings.CPUs),
+                    string.Format("mpiexec -np {0} foamRun -solver incompressibleFluid -parallel", runSettings.CPUs),
                     SimulationLogFileName));
                 cmds.Add("reconstructPar -latestTime");
             }
@@ -220,7 +220,7 @@ namespace EddyLib
             {
                 if (runSettings.potentialFoamInit)
                     cmds.Add("potentialFoam");
-                cmds.Add(WithDockerLog("simpleFoam", SimulationLogFileName));
+                cmds.Add(WithDockerLog("foamRun -solver incompressibleFluid", SimulationLogFileName));
             }
         }
 
@@ -273,7 +273,7 @@ namespace EddyLib
 
         private static void WriteGnuplotScript(string caseDir, int windDir)
         {
-            string residualsPath = Path.Combine(caseDir, "postProcessing", "residuals", "0", "residuals.dat");
+            string residualsPath = Strings.PlotResiduals.FindResidualsDat(caseDir);
             string outputPng = Path.Combine(caseDir, "residuals.png");
             string gnuplotScript = Path.Combine(caseDir, "plot_residuals.plt");
 

@@ -1,0 +1,72 @@
+name: OpenFOAM Integration Tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * 1'
+
+jobs:
+  openfoam:
+    name: OpenFOAM 12 execution tests
+    runs-on:
+      - self-hosted
+      - Windows
+      - OpenFOAM
+    timeout-minutes: 180
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Load OpenFOAM test environment
+        shell: pwsh
+        run: |
+          $envFile = Join-Path $env:GITHUB_WORKSPACE 'ci/openfoam-integration.env'
+          foreach ($rawLine in Get-Content -LiteralPath $envFile) {
+            $line = $rawLine.Trim()
+            if ([string]::IsNullOrWhiteSpace($line) -or $line.StartsWith('#')) {
+              continue
+            }
+
+            Add-Content -LiteralPath $env:GITHUB_ENV -Value $line
+          }
+
+      - name: Verify OpenFOAM installation
+        shell: pwsh
+        run: |
+          $blueCfdDir = $env:EDDY3D_BLUECFD_DIR
+          if ([string]::IsNullOrWhiteSpace($blueCfdDir)) {
+            throw 'EDDY3D_BLUECFD_DIR is not set.'
+          }
+
+          $setvars = Join-Path $blueCfdDir 'setvars_OF12.bat'
+          $openFoamDir = Join-Path $blueCfdDir 'OpenFOAM-12'
+          if (-not (Test-Path -LiteralPath $setvars)) {
+            throw "OpenFOAM 12 setvars file not found: $setvars"
+          }
+          if (-not (Test-Path -LiteralPath $openFoamDir)) {
+            throw "OpenFOAM 12 directory not found: $openFoamDir"
+          }
+
+      - name: Restore test project
+        run: dotnet restore RhinoPlugin.Test.Xunit/RhinoPlugin.Test.Xunit.csproj
+
+      - name: Run OpenFOAM execution tests
+        run: >
+          dotnet test RhinoPlugin.Test.Xunit/RhinoPlugin.Test.Xunit.csproj
+          --no-restore
+          --filter "FullyQualifiedName~OFExecutionTests"
+          --logger "trx;LogFileName=openfoam-integration.trx"
+          --verbosity normal
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openfoam-integration-results
+          path: RhinoPlugin.Test.Xunit/TestResults/*.trx
+          if-no-files-found: ignore

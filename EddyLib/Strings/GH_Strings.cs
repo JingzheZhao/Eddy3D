@@ -43,7 +43,7 @@ namespace EddyLib
         {
             public const string Name = "Wind Simulation";
             public const string Nick = "WindSim";
-            public const string Desc = "Steady-State Wind Solver (SimpleFoam)\r\n\r\nExecutes the OpenFOAM 'simpleFoam' solver (Steady-state RANS) to calculate mean wind flow patterns.\r\n\r\nWorkflow:\r\n1. Connect Domain and Settings\r\n2. Run Meshing (snappyHexMesh)\r\n3. Run Simulation (simpleFoam)\r\n\r\n";
+            public const string Desc = "Steady-State Wind Solver (OpenFOAM 12)\r\n\r\nExecutes OpenFOAM 'foamRun -solver incompressibleFluid' to calculate mean wind flow patterns.\r\n\r\nWorkflow:\r\n1. Connect Domain and Settings\r\n2. Run Meshing (snappyHexMesh)\r\n3. Run Simulation (foamRun)\r\n\r\n";
 
             public const string MeshDone = "Mesh Done";
             public const string MeshDoneNick = "MeshDone";
@@ -351,15 +351,15 @@ namespace EddyLib
 
             public const string Debug = "Debug Diagnostics";
             public const string DebugNick = "Dbg";
-            public const string DebugDesc = "Enable additional diagnostic function objects (fieldMinMax and volume averages) in solver logs. Keep off for faster runs.";
+            public const string DebugDesc = "Enable additional diagnostic function objects (field min/max magnitude and volume averages) in solver logs. Keep off for faster runs.";
 
             public const string SimpleC = "SIMPLEC";
             public const string SimpleCNick = "SPLC";
             public const string SimpleCDesc = "Use SIMPLEC pressure-velocity coupling (consistent yes). Can reduce iterations for steady runs; turn off if convergence becomes oscillatory.";
 
-            public const string BlueCFD = "BlueCFD Folder";
+            public const string BlueCFD = "blueCFD-Core 2024 Folder";
             public const string BlueCFDNick = "CFDFolder";
-            public const string BlueCFDDesc = "Optional: Custom BlueCFD installation folder.";
+            public const string BlueCFDDesc = "Optional: Custom blueCFD-Core 2024 installation folder. Defaults to the detected blueCFD-Core 2024 install.";
         }
 
         public static class ABL

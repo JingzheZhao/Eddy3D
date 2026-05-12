@@ -13,7 +13,7 @@ namespace EddyLib.OpenFOAM
         public int RollingWindow { get; set; } = 5;
 
         /// <summary>
-        /// Total iterations for simulation logs (e.g., simpleFoam end time).
+        /// Total iterations for simulation logs (e.g., foamRun end time).
         /// </summary>
         public double? TotalIterations { get; set; }
     }

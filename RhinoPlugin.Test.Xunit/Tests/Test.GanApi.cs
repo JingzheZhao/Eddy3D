@@ -21,7 +21,7 @@ namespace RhinoPlugin.Test.Xunit
             _output = output;
         }
 
-        [Fact]
+        [RequiresExternalServiceFact]
         public async Task HealthCheck_ReturnsTrue_WhenServerIsUp()
         {
             // The free Render instance can take up to 60 s to cold-start.
@@ -57,7 +57,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.False(healthy);
         }
 
-        [Fact]
+        [RequiresExternalServiceFact]
         public async Task PredictArray_ReturnsWindSpeeds_WithArtificialInput()
         {
             // Arrange — 512×512, 3 channels, simple gradient pattern.

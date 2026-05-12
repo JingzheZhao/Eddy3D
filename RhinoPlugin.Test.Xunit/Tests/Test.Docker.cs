@@ -20,6 +20,26 @@ namespace RhinoPlugin.Test.Xunit
     }
 
     /// <summary>
+    /// Skips tests that need the configured OpenFOAM image to already be present locally.
+    /// </summary>
+    public sealed class DockerOpenFoamImageFactAttribute : FactAttribute
+    {
+        public DockerOpenFoamImageFactAttribute()
+        {
+            if (!DockerEnvironment.IsDockerAvailable())
+            {
+                Skip = "Docker is not available on this machine.";
+                return;
+            }
+
+            if (!DockerEnvironment.IsImageAvailable(DockerConfig.ImageName))
+            {
+                Skip = "OpenFOAM Docker image is not available locally. Pull " + DockerConfig.ImageName + " first.";
+            }
+        }
+    }
+
+    /// <summary>
     /// Unit and integration tests for the Docker runtime infrastructure.
     /// Unit tests run without Docker; integration tests require Docker Desktop.
     /// </summary>
@@ -40,13 +60,13 @@ namespace RhinoPlugin.Test.Xunit
         [Fact]
         public void DockerConfig_HasExpectedImageName()
         {
-            Assert.Equal("pkastner/openfoam:8-umcf-4856041", DockerConfig.ImageName);
+            Assert.Equal("dicehub/openfoam:12", DockerConfig.ImageName);
         }
 
         [Fact]
         public void DockerConfig_HasExpectedBashrcPath()
         {
-            Assert.Equal("/home/openfoam/OpenFOAM-8/etc/bashrc", DockerConfig.OpenFoamBashrc);
+            Assert.Equal("/home/openfoam/OpenFOAM-12/etc/bashrc", DockerConfig.OpenFoamBashrc);
         }
 
         [Fact]
@@ -121,7 +141,7 @@ namespace RhinoPlugin.Test.Xunit
         [Fact]
         public void DockerBatchScriptBuilder_ShellScript_ContainsExpectedContent()
         {
-            var commands = new List<string> { "blockMesh", "simpleFoam" };
+            var commands = new List<string> { "blockMesh", "foamRun -solver incompressibleFluid" };
             var script = DockerBatchScriptBuilder.BuildDockerShellScript(commands, "/tmp/test-case");
 
             Assert.StartsWith("#!/bin/bash", script);
@@ -233,7 +253,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Contains("Docker", version);
         }
 
-        [DockerAvailableFact]
+        [DockerOpenFoamImageFact]
         public void RunHeadless_EchoCommand_ReturnsOutput()
         {
             var runner = new DockerRunner();
@@ -257,7 +277,7 @@ namespace RhinoPlugin.Test.Xunit
             }
         }
 
-        [DockerAvailableFact]
+        [DockerOpenFoamImageFact]
         public void RunHeadless_OpenFoamVersion_Succeeds()
         {
             var runner = new DockerRunner();
@@ -266,17 +286,17 @@ namespace RhinoPlugin.Test.Xunit
 
             try
             {
-                var cmd = string.Format("source {0} && simpleFoam -help", DockerConfig.OpenFoamBashrc);
+                var cmd = string.Format("source {0} && foamRun -help", DockerConfig.OpenFoamBashrc);
                 var result = runner.RunHeadless(cmd, tempDir, timeoutMs: 120000);
 
                 _output.WriteLine("Exit code: {0}", result.ExitCode);
                 _output.WriteLine("StdOut: {0}", result.StdOut);
 
-                // simpleFoam -help returns exit code 0 or 1 depending on OpenFOAM version,
-                // but it should produce output mentioning "simpleFoam" or "Usage"
+                // foamRun -help returns exit code 0 or 1 depending on OpenFOAM version,
+                // but it should produce output mentioning "foamRun" or "Usage"
                 Assert.True(
-                    result.StdOut.Contains("simpleFoam") || result.StdOut.Contains("Usage") || result.StdErr.Contains("simpleFoam"),
-                    "Expected OpenFOAM simpleFoam help output");
+                    result.StdOut.Contains("foamRun") || result.StdOut.Contains("Usage") || result.StdErr.Contains("foamRun"),
+                    "Expected OpenFOAM foamRun help output");
             }
             finally
             {
@@ -294,7 +314,7 @@ namespace RhinoPlugin.Test.Xunit
             try
             {
                 var scriptPath = Path.Combine(tempDir, "test_run.sh");
-                runner.WriteDockerRunScript(scriptPath, "blockMesh && simpleFoam", tempDir);
+                runner.WriteDockerRunScript(scriptPath, "blockMesh && foamRun -solver incompressibleFluid", tempDir);
 
                 Assert.True(File.Exists(scriptPath), "Script file should be created");
 

@@ -14,7 +14,7 @@ namespace RhinoPlugin.Test.Xunit
         {
             var tempDir = Path.Combine(Path.GetTempPath(), "Eddy3D-Tests", "OpenFOAMLogParser", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(tempDir);
-            var logPath = Path.Combine(tempDir, "simpleFoam.log");
+            var logPath = Path.Combine(tempDir, "foamRun.log");
 
             try
             {

@@ -11,7 +11,7 @@ namespace EddyLib
     {
         #region System Files
 
-        private static void WriteSystemFiles(OFBaseDomain domain, OFMeshSettings meshSettings, OFRunSettings runSettings, string systemDir)
+        private static void WriteSystemFiles(OFBaseDomain domain, OFMeshSettings meshSettings, OFRunSettings runSettings, string systemDir, int index)
         {
             DictFileWriter.WriteDictToDir(systemDir, "snappyHexMeshDict",
                 Strings.OFExecDicts.SnappyHexMeshDict(meshSettings, domain));
@@ -23,6 +23,8 @@ namespace EddyLib
                 Strings.OFExecDicts.FvSolution(runSettings));
             DictFileWriter.WriteDictToDir(systemDir, "residuals",
                 Strings.OFExecDicts.ResidualsDict());
+            DictFileWriter.WriteDictToDir(systemDir, "functions",
+                Strings.OFExecDicts.FunctionsDict(runSettings, domain, null, index));
             DictFileWriter.WriteDictToDir(systemDir, "decomposeParDict",
                 Strings.OFExecDicts.DecomposeParDict(runSettings));
         }

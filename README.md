@@ -69,5 +69,7 @@ For xUnit test execution behavior across Windows/macOS (run/skip/fail-fast rules
 
 - [`RhinoPlugin.Test.Xunit/TEST_POLICY.md`](RhinoPlugin.Test.Xunit/TEST_POLICY.md)
 
+OpenFOAM execution tests are long-running integration tests and are skipped during normal unit test runs. To run them locally, copy [`.env.example`](.env.example) to `.env` in the repository root and verify `EDDY3D_BLUECFD_DIR` points to the blueCFD-Core 2024 / OpenFOAM 12 installation. CI runs them through the separate [`OpenFOAM Integration Tests`](.github/workflows/openfoam-integration.yml) workflow, which loads defaults from [`ci/openfoam-integration.env`](ci/openfoam-integration.env).
+
 </details>
 

@@ -6,6 +6,7 @@ using Xunit;
 
 namespace RhinoPlugin.Test.Xunit.Tests
 {
+    [Collection("Rhino Collection")]
     public class GeometryHelpersTests
     {
         [Fact]
@@ -83,13 +84,19 @@ namespace RhinoPlugin.Test.Xunit.Tests
             Assert.Equal(0, EddyLib.GeometryHelpers.CalculatePolygonArea(new List<Point3d> { new Point3d(0, 0, 0), new Point3d(10, 0, 0) }), 1e-6);
         }
 
-        [RhinoRequiredFact]
-        public void GetDimensionsArray_NullMesh_ThrowsNullReferenceException()
+        [Fact]
+        public void GetDimensionsArray_NullMesh_ReturnsZeroDimensions()
         {
-            Assert.Throws<NullReferenceException>(() => EddyLib.GeometryHelpers.GetDimensionsArray(null));
+            double[] dims = EddyLib.GeometryHelpers.GetDimensionsArray(null);
+
+            Assert.NotNull(dims);
+            Assert.Equal(3, dims.Length);
+            Assert.Equal(0.0, dims[0], 1e-6);
+            Assert.Equal(0.0, dims[1], 1e-6);
+            Assert.Equal(0.0, dims[2], 1e-6);
         }
 
-        [RhinoRequiredFact]
+        [Fact]
         public void GetDimensionsArray_ValidMesh_ReturnsCorrectDimensions()
         {
             // Cube 10x10x10
@@ -120,7 +127,7 @@ namespace RhinoPlugin.Test.Xunit.Tests
             Assert.Equal(10.0, dims[2], 1e-6);
         }
 
-        [RhinoRequiredFact]
+        [Fact]
         public void GetDimensionsArray_FlatMesh_ReturnsZeroThickness()
         {
             // Flat square 10x10 in XY plane

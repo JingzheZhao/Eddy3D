@@ -49,12 +49,14 @@ FoamFile
         building.stl
         {
             type triSurfaceMesh;
+            file ""building.stl"";
             name building;
         }
 
         ground.stl
         {
             type triSurfaceMesh;
+            file ""ground.stl"";
             name ground;
         }");
 
@@ -64,6 +66,7 @@ FoamFile
         ground_perim.stl
         {
             type triSurfaceMesh;
+            file ""ground_perim.stl"";
             name ground_perim;
         }");
             }
@@ -250,12 +253,14 @@ FoamFile
         building.stl
         {
             type triSurfaceMesh;
+            file ""building.stl"";
             name building;
         }
 
         ground.stl
         {
             type triSurfaceMesh;
+            file ""ground.stl"";
             name ground;
         }");
 
@@ -265,6 +270,7 @@ FoamFile
         ground_perim.stl
         {
             type triSurfaceMesh;
+            file ""ground_perim.stl"";
             name ground_perim;
         }");
             }

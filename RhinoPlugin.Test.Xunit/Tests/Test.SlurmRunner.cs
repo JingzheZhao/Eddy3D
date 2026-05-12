@@ -65,7 +65,7 @@ namespace RhinoPlugin.Test.Xunit
 
                     var simContent = File.ReadAllText(simPath);
                     Assert.Contains("#SBATCH -N2 --ntasks-per-node=2", simContent);
-                    Assert.Contains("srun simpleFoam -parallel", simContent);
+                    Assert.Contains("srun foamRun -solver incompressibleFluid -parallel", simContent);
 
                     var reconContent = File.ReadAllText(reconPath);
                     Assert.Contains("reconstructPar -latestTime", reconContent);

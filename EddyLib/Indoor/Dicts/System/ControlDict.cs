@@ -66,7 +66,8 @@ namespace EddyLib.Indoor.Dicts
             //OLD IMPLEMENTAION
             //Dictionary<string, dynamic> FunctionObjectlDict = new Dictionary<string, dynamic>();
 
-            InternalDict.Add("application", "buoyantSimpleFoam");
+            InternalDict.Add("application", "foamRun");
+            InternalDict.Add("solver", "fluid");
             //InternalDict.Add("application", "extractFromSurface");
             InternalDict.Add("startFrom", "startTime");
             InternalDict.Add("startTime", "0");
@@ -96,13 +97,25 @@ namespace EddyLib.Indoor.Dicts
 
             sb.AppendLine("#includeFunc  residuals");
 
-            sb.AppendLine(@"	fieldMinMax
+            sb.AppendLine(@"	fieldMinMag
 {
-                type fieldMinMax;
+                type volFieldValue;
                 libs (""libfieldFunctionObjects.so"");
+                operation minMag;
+                select all;
                 writeFields false;
                 log true;
-                mode magnitude;
+                fields (U  T);
+            }
+
+            fieldMaxMag
+{
+                type volFieldValue;
+                libs (""libfieldFunctionObjects.so"");
+                operation maxMag;
+                select all;
+                writeFields false;
+                log true;
                 fields (U  T);
             }
 
@@ -111,8 +124,8 @@ namespace EddyLib.Indoor.Dicts
                 type volFieldValue;
                 libs (""libfieldFunctionObjects.so"");
                 fields (U T);
-                operation weightedVolAverage;
-                regionType all;
+                operation volAverage;
+                select all;
                 writeFields false;
                 log true;
             }");
@@ -171,8 +184,10 @@ namespace EddyLib.Indoor.Dicts
             // Name of the scalar field to be transported
             sb.AppendLine($"    field           {userChosenName};");
 
-            // Diffusivity 'D' (use general format so 1e-12 stays 1e-12, not 0.0)
-            // In OF8, D may be a constant or built from alphaD/alphaDt; D=0 is allowed but can yield a weak diagonal.
+            sb.AppendLine("    diffusivity     constant;");
+
+            // Constant diffusivity 'D' (use general format so 1e-12 stays 1e-12, not 0.0)
+            // D may be a constant or built from alphaD/alphaDt; D=0 is allowed but can yield a weak diagonal.
             sb.AppendLine($"    D               {diffusivity.ToString("G9", CultureInfo.InvariantCulture)};");
             sb.AppendLine();
 
@@ -184,7 +199,7 @@ namespace EddyLib.Indoor.Dicts
             sb.AppendLine($"    schemesField    {userChosenName};");
             sb.AppendLine();
 
-            // Write the transported field at output times (the field itself is AUTO_WRITE in OF8)
+            // Write the transported field at output times.
             sb.AppendLine("    writeControl    outputTime;");
             sb.AppendLine();
 

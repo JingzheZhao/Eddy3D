@@ -59,7 +59,7 @@ namespace EddyLib.Strings
 
         private static readonly List<string> RCCheckMeshSingleCPU = new List<string> {
        // "checkMesh -allGeometry -allTopology -writeAllFields -writeSets vtk",  // Not supported in OpenFOAM 5 yet
-        "checkMesh -allGeometry -allTopology -writeSets vtk",
+        "checkMesh -allGeometry -allTopology -writeSets -setFormat vtk",
         "foamToVTK -faceSet highAspectRatioCells -ascii",
         "foamToVTK -faceSet nonOrthoFaces -ascii",
         "foamToVTK -faceSet skewFaces -ascii",
@@ -81,14 +81,14 @@ namespace EddyLib.Strings
      "decomposePar -force",
 
      "mpiexec -np " + RunSettings.CPUs + @" potentialFoam -parallel",
-     "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
+     "mpiexec -np " + RunSettings.CPUs + @" foamRun -solver incompressibleFluid -parallel",
      "reconstructPar -latestTime"};
             }
             else
             {
                 lst = new List<string>{
                 "decomposePar -force",
-                "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
+                "mpiexec -np " + RunSettings.CPUs + @" foamRun -solver incompressibleFluid -parallel",
                 "reconstructPar -latestTime"            };
             }
             return lst;
@@ -102,13 +102,13 @@ namespace EddyLib.Strings
             {
                 lst = new List<string> {
         "potentialFoam",
-        "simpleFoam"
+        "foamRun -solver incompressibleFluid"
                 };
             }
             else
             {
                 lst = new List<string> {
-        "simpleFoam"
+        "foamRun -solver incompressibleFluid"
                 };
             }
             return lst;
@@ -116,13 +116,13 @@ namespace EddyLib.Strings
 
         private static readonly List<string> RCSimContinueSingleCPU = new List<string> {
         "foamDictionary system/controlDict -entry startFrom -set latestTime",
-        "simpleFoam"};
+        "foamRun -solver incompressibleFluid"};
 
         private static List<string> reconstructMesh()
         {
             List<string> lst = new List<string>
             {
-                "reconstructParMesh -constant"
+                "reconstructPar -constant -noFields"
             };
             return lst;
         }
@@ -132,7 +132,7 @@ namespace EddyLib.Strings
             List<string> lst = new List<string>
             {
                 "foamDictionary system/controlDict -entry startFrom -set latestTime",
-                "mpiexec -np " + RunSettings.CPUs + @" simpleFoam -parallel",
+                "mpiexec -np " + RunSettings.CPUs + @" foamRun -solver incompressibleFluid -parallel",
                 "reconstructPar -latestTime"
             };
             return lst;
@@ -149,9 +149,9 @@ namespace EddyLib.Strings
                 "surfaceFeatures",
                 "decomposePar -force",
                 "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite -parallel",
-                "reconstructParMesh -constant",
+                "reconstructPar -constant -noFields",
                 "renumberMesh -overwrite",
-                "checkMesh -allGeometry -allTopology -writeSets vtk"
+                "checkMesh -allGeometry -allTopology -writeSets -setFormat vtk"
             });
             }
             else
@@ -160,9 +160,9 @@ namespace EddyLib.Strings
                 "blockMesh",
                 "decomposePar -force",
                 "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite -parallel",
-                "reconstructParMesh -constant",
+                "reconstructPar -constant -noFields",
                 "renumberMesh -overwrite",
-                "checkMesh -allGeometry -allTopology -writeSets vtk"
+                "checkMesh -allGeometry -allTopology -writeSets -setFormat vtk"
             });
             }
 
@@ -174,9 +174,9 @@ namespace EddyLib.Strings
         "surfaceFeatures",
         "snappyHexMesh -overwrite",
         "renumberMesh -overwrite",
-        "checkMesh -allGeometry -allTopology -writeSets vtk"};
+        "checkMesh -allGeometry -allTopology -writeSets -setFormat vtk"};
 
-        private static readonly List<string> divU = new List<string> { "postProcess -func ttt -latestTime" };
+        private static readonly List<string> divU = new List<string> { "foamPostProcess -func ttt -latestTime" };
 
         public static string DockerPrefixPath(OFBaseDomain DOM, OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFExecutionMode mode)
         {
@@ -577,8 +577,8 @@ namespace EddyLib.Strings
 
                 sb.AppendLine("@echo off");
                 sb.AppendLine("setlocal enableextensions");
-                sb.AppendLine($@"call ""{installationPath}setvars_OF8.bat""");
-                sb.AppendLine(@"set PATH=%HOME%\msys64\usr\bin;%PATH%");
+                sb.AppendLine($@"call ""{ResolveBlueCfdSetvarsBat(installationPath)}""");
+                sb.AppendLine($@"set ""PATH={ResolveBlueCfdMsysUsrBin(installationPath)};{ResolveBlueCfdMpiBin(installationPath)};{ResolveBlueCfdPstreamLibBin(installationPath)};{ResolveBlueCfdThirdPartyMpiLibBin(installationPath)};%PATH%""");
 
                 if (needsDriveSwitch)
                     sb.AppendLine($"{driveLetter}:");
@@ -598,9 +598,10 @@ namespace EddyLib.Strings
                              .Where(c => !string.IsNullOrEmpty(c)))
                 {
                     var logForThisCommand = InferLogFileName(line, "log.txt");
-                    if (line.StartsWith("reconstructParMesh", StringComparison.OrdinalIgnoreCase))
+                    if (line.StartsWith("reconstructPar ", StringComparison.OrdinalIgnoreCase) ||
+                        line.Equals("reconstructPar", StringComparison.OrdinalIgnoreCase))
                     {
-                        sb.AppendLine($"{line} >> \"reconstructParMesh.log\" 2>&1");
+                        sb.AppendLine($"{line} >> \"reconstructPar.log\" 2>&1");
                     }
                     else
                     {
@@ -613,6 +614,92 @@ namespace EddyLib.Strings
 
             private static string EnsureTrailingBackslash(string path) =>
                 string.IsNullOrEmpty(path) ? path : (path.EndsWith("\\") ? path : path + "\\");
+
+            private static string ResolveBlueCfdSetvarsBat(string installationPath)
+            {
+                var root = (installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir).TrimEnd('\\', '/');
+                var candidates = new[]
+                {
+                    Path.Combine(root, "setvars.bat"),
+                    Path.Combine(root, "setvars_OF12.bat")
+                };
+
+                foreach (var candidate in candidates)
+                {
+                    if (File.Exists(candidate))
+                    {
+                        return candidate;
+                    }
+                }
+
+                return candidates[0];
+            }
+
+            private static string ResolveBlueCfdMsysUsrBin(string installationPath)
+            {
+                var root = (installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir).TrimEnd('\\', '/');
+                return Path.Combine(root, "msys64", "usr", "bin");
+            }
+
+            private static string ResolveBlueCfdMpiBin(string installationPath)
+            {
+                var root = (installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir).TrimEnd('\\', '/');
+                var candidates = new[]
+                {
+                    Path.Combine(root, "ThirdParty-12", "platforms", "mingw_w64Gcc122", "MS-MPI-10.1.2", "bin"),
+                    Path.Combine(root, "ThirdParty-12", "platforms", "mingw_w64Gcc122", "MS-MPI-10.1.2", "PFiles", "Microsoft MPI", "Bin")
+                };
+
+                foreach (var candidate in candidates)
+                {
+                    if (Directory.Exists(candidate))
+                    {
+                        return candidate;
+                    }
+                }
+
+                return candidates[0];
+            }
+
+            private static string ResolveBlueCfdPstreamLibBin(string installationPath)
+            {
+                var root = (installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir).TrimEnd('\\', '/');
+                var candidates = new[]
+                {
+                    Path.Combine(root, "OpenFOAM-12", "platforms", "mingw_w64Gcc122DPInt32Opt", "lib", "MS-MPI-10.1.2"),
+                    Path.Combine(root, "OpenFOAM-12", "platforms", "mingw_w64Gcc122DPInt32Opt", "lib", "MS-MPI-10.1")
+                };
+
+                foreach (var candidate in candidates)
+                {
+                    if (Directory.Exists(candidate))
+                    {
+                        return candidate;
+                    }
+                }
+
+                return candidates[0];
+            }
+
+            private static string ResolveBlueCfdThirdPartyMpiLibBin(string installationPath)
+            {
+                var root = (installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir).TrimEnd('\\', '/');
+                var candidates = new[]
+                {
+                    Path.Combine(root, "ThirdParty-12", "platforms", "mingw_w64Gcc122DPInt32", "lib", "MS-MPI-10.1.2"),
+                    Path.Combine(root, "ThirdParty-12", "platforms", "mingw_w64Gcc122DPInt32", "lib", "MS-MPI-10.1")
+                };
+
+                foreach (var candidate in candidates)
+                {
+                    if (Directory.Exists(candidate))
+                    {
+                        return candidate;
+                    }
+                }
+
+                return candidates[0];
+            }
 
             private static string InferLogFileName(string command, string fallback = "log.txt")
             {
@@ -705,7 +792,7 @@ namespace EddyLib.Strings
         }
 
         public static string AppendToLog(string logFile) =>
-    $" 2>&1 | tee -a \"{logFile}\"";
+            $" >> \"{logFile}\" 2>&1";
 
         /// <summary>
         public static string SymbolicLinkCreatorBatch()
