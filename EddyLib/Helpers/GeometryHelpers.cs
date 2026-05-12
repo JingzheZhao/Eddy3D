@@ -40,9 +40,9 @@ namespace EddyLib
                 if (brep != null)
                 {
                     var meshes = Mesh.CreateFromBrep(brep, mp);
-                    foreach (Mesh m in meshes)
+                    if (meshes != null)
                     {
-                        result.Append(m);
+                        result.Append(meshes);
                     }
                 }
             }
