@@ -26,8 +26,8 @@ namespace EddyLib
 
             var candidates = new[]
             {
-                Path.Combine(BlueCfdRoot, "ThirdParty-12", "platforms", "mingw_w64Gcc", "MS-MPI-10.1", "bin", "msmpi.dll"),
-                Path.Combine(BlueCfdRoot, "ThirdParty-12", "platforms", "mingw_w64Gcc", "MS-MPI-10.1.2", "bin", "msmpi.dll")
+                Path.Combine(BlueCfdRoot, "ThirdParty-12", "platforms", "mingw_w64Gcc122", "MS-MPI-10.1.2", "bin", "msmpi.dll"),
+                Path.Combine(BlueCfdRoot, "ThirdParty-12", "platforms", "mingw_w64Gcc122", "MS-MPI-10.1", "bin", "msmpi.dll")
             };
 
             foreach (var candidate in candidates)

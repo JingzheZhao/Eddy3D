@@ -556,20 +556,14 @@ namespace EddyLib.Strings
                 if (commands is null) throw new ArgumentNullException(nameof(commands));
                 if (string.IsNullOrWhiteSpace(caseDir)) throw new ArgumentException("caseDir is required.", nameof(caseDir));
 
-                // Use default if null
                 installationPath = installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir;
 
-                // Normalize paths
-                installationPath = EnsureTrailingBackslash(installationPath);
                 var caseDirTrimmed = caseDir.Trim().Trim('"');
                 var caseDirQuoted = $"\"{caseDirTrimmed}\"";
 
-                // Determine drive switch (avoid assuming just "C")
                 var root = Path.GetPathRoot(caseDirTrimmed);
                 var driveLetter = string.IsNullOrEmpty(root) ? 'C' : char.ToUpperInvariant(root[0]);
                 var needsDriveSwitch = driveLetter != 'C';
-
-                // Folder name for Batchfile mode (cd from %~dp0)
 
                 var caseLeaf = new DirectoryInfo(caseDirTrimmed).Name;
 
@@ -577,16 +571,13 @@ namespace EddyLib.Strings
 
                 sb.AppendLine("@echo off");
                 sb.AppendLine("setlocal enableextensions");
-                sb.AppendLine($@"call ""{ResolveBlueCfdSetvarsBat(installationPath)}""");
-                sb.AppendLine($@"set ""PATH={ResolveBlueCfdMsysUsrBin(installationPath)};{ResolveBlueCfdMpiBin(installationPath)};{ResolveBlueCfdPstreamLibBin(installationPath)};{ResolveBlueCfdThirdPartyMpiLibBin(installationPath)};%PATH%""");
+                sb.AppendLine($@"call ""{DefaultDirectoriesAndPaths.BlueCfdSetvarsBat}""");
 
                 if (needsDriveSwitch)
                     sb.AppendLine($"{driveLetter}:");
 
-
                 if (runMode == RunMode.Batchfile)
                 {
-                    //sb.AppendLine($@"REM cd {caseDirQuoted}");
                     sb.AppendLine($@"cd /d ""%~dp0..\{caseLeaf}""");
                 }
                 else
@@ -610,95 +601,6 @@ namespace EddyLib.Strings
                 }
 
                 return sb.ToString();
-            }
-
-            private static string EnsureTrailingBackslash(string path) =>
-                string.IsNullOrEmpty(path) ? path : (path.EndsWith("\\") ? path : path + "\\");
-
-            private static string ResolveBlueCfdSetvarsBat(string installationPath)
-            {
-                var root = (installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir).TrimEnd('\\', '/');
-                var candidates = new[]
-                {
-                    Path.Combine(root, "setvars.bat"),
-                    Path.Combine(root, "setvars_OF12.bat")
-                };
-
-                foreach (var candidate in candidates)
-                {
-                    if (File.Exists(candidate))
-                    {
-                        return candidate;
-                    }
-                }
-
-                return candidates[0];
-            }
-
-            private static string ResolveBlueCfdMsysUsrBin(string installationPath)
-            {
-                var root = (installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir).TrimEnd('\\', '/');
-                return Path.Combine(root, "msys64", "usr", "bin");
-            }
-
-            private static string ResolveBlueCfdMpiBin(string installationPath)
-            {
-                var root = (installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir).TrimEnd('\\', '/');
-                var candidates = new[]
-                {
-                    Path.Combine(root, "ThirdParty-12", "platforms", "mingw_w64Gcc122", "MS-MPI-10.1.2", "bin"),
-                    Path.Combine(root, "ThirdParty-12", "platforms", "mingw_w64Gcc122", "MS-MPI-10.1.2", "PFiles", "Microsoft MPI", "Bin")
-                };
-
-                foreach (var candidate in candidates)
-                {
-                    if (Directory.Exists(candidate))
-                    {
-                        return candidate;
-                    }
-                }
-
-                return candidates[0];
-            }
-
-            private static string ResolveBlueCfdPstreamLibBin(string installationPath)
-            {
-                var root = (installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir).TrimEnd('\\', '/');
-                var candidates = new[]
-                {
-                    Path.Combine(root, "OpenFOAM-12", "platforms", "mingw_w64Gcc122DPInt32Opt", "lib", "MS-MPI-10.1.2"),
-                    Path.Combine(root, "OpenFOAM-12", "platforms", "mingw_w64Gcc122DPInt32Opt", "lib", "MS-MPI-10.1")
-                };
-
-                foreach (var candidate in candidates)
-                {
-                    if (Directory.Exists(candidate))
-                    {
-                        return candidate;
-                    }
-                }
-
-                return candidates[0];
-            }
-
-            private static string ResolveBlueCfdThirdPartyMpiLibBin(string installationPath)
-            {
-                var root = (installationPath ?? DefaultDirectoriesAndPaths.BlueCfdDir).TrimEnd('\\', '/');
-                var candidates = new[]
-                {
-                    Path.Combine(root, "ThirdParty-12", "platforms", "mingw_w64Gcc122DPInt32", "lib", "MS-MPI-10.1.2"),
-                    Path.Combine(root, "ThirdParty-12", "platforms", "mingw_w64Gcc122DPInt32", "lib", "MS-MPI-10.1")
-                };
-
-                foreach (var candidate in candidates)
-                {
-                    if (Directory.Exists(candidate))
-                    {
-                        return candidate;
-                    }
-                }
-
-                return candidates[0];
             }
 
             private static string InferLogFileName(string command, string fallback = "log.txt")
