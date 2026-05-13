@@ -44,7 +44,7 @@ namespace EddyLib.Strings
                     {
                         sb.Append(dockerPrefix).Append(str);
                     }
-                    sb.AppendLine("timeout /t 15");
+
                 }
             }
             else
@@ -400,37 +400,28 @@ namespace EddyLib.Strings
 
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
+                string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
                 if (RunSettings.CPUs > 1)
                 {
-                    string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
-                    foreach (string str in divU)
-                    {
-                        sb.Append(dockerPrefix).Append(str);
-                    }
-                    sb.AppendLine("timeout /t 15");
+                    sb.Append(dockerPrefix).Append($"if [ -d \"processor0\" ]; then mpirun -np {RunSettings.CPUs} foamPostProcess -parallel -func ttt -latestTime; else foamPostProcess -func ttt -latestTime; fi");
                 }
                 else
                 {
-                    string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
-                    foreach (string str in divU)
-                    {
-                        sb.Append(dockerPrefix).Append(str);
-                    }
-                    sb.AppendLine("timeout /t 15");
+                    sb.Append(dockerPrefix).Append("foamPostProcess -func ttt -latestTime");
                 }
             }
             else
             {
+                List<string> cmds = new List<string>();
                 if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(divU, caseWorkingDir));
-                    sb.AppendLine("timeout /t 15");
+                    cmds.Add($"if exist \"processor0\" ( mpiexec -np {RunSettings.CPUs} foamPostProcess -parallel -func ttt -latestTime ) else ( foamPostProcess -func ttt -latestTime )");
                 }
                 else
                 {
-                    sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(divU, caseWorkingDir));
-                    sb.AppendLine("timeout /t 15");
+                    cmds.Add("foamPostProcess -func ttt -latestTime");
                 }
+                sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(cmds, caseWorkingDir));
             }
 
             return sb.ToString();
@@ -471,12 +462,10 @@ namespace EddyLib.Strings
                 {
                     sb.Append(dockerPrefix).Append(str);
                 }
-                sb.AppendLine("timeout /t 15");
             }
             else
             {
                 sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(reconstructMesh(), MeshSettings.meshWorkingDir));
-                sb.AppendLine("timeout /t 15");
             }
             return sb.ToString();
         }
@@ -712,10 +701,9 @@ namespace EddyLib.Strings
             sb.AppendLine();
             sb.AppendLine("echo.");
             sb.AppendLine("echo ============================================================");
-            sb.AppendLine("echo Task completed. Window will close in 15 seconds.");
-            sb.AppendLine("echo Press any key to close now.");
+            sb.AppendLine("echo Task completed. Window will close in 5 seconds.");
             sb.AppendLine("echo ============================================================");
-            sb.AppendLine("timeout /t 15 || ping -n 16 127.0.0.1 >nul");
+            sb.AppendLine("ping -n 6 127.0.0.1 >nul");
             return sb.ToString();
         }
 
@@ -757,7 +745,7 @@ namespace EddyLib.Strings
             sb.AppendLine("echo Done.");
             sb.AppendLine("echo Created: !CREATED!   Skipped/Failed: !SKIPPED!");
             sb.AppendLine("echo =========================================");
-            sb.AppendLine("timeout /t 15");
+
             return sb.ToString();
         }
 
@@ -771,7 +759,6 @@ namespace EddyLib.Strings
             sb.AppendLine("echo Updating decomposeParDict and batch files to use %cores% physical cores...");
             sb.AppendLine("powershell -NoProfile -Command \"$cores = [int]$env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
-            sb.AppendLine("timeout /t 15");
             return sb.ToString();
         }
 
@@ -784,7 +771,6 @@ namespace EddyLib.Strings
             sb.AppendLine("echo Updating decomposeParDict and batch files to use %cores% processors...");
             sb.AppendLine("powershell -NoProfile -Command \"$cores = [int]$env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
-            sb.AppendLine("timeout /t 15");
             return sb.ToString();
         }
 
@@ -799,7 +785,6 @@ namespace EddyLib.Strings
             sb.AppendLine("echo Updating decomposeParDict and batch files to use %cores% cores...");
             sb.AppendLine("powershell -Command \"$cores = $env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
-            sb.AppendLine("timeout /t 15");
             return sb.ToString();
         }
         public static string DeleteProcessorFolders()
@@ -821,7 +806,6 @@ namespace EddyLib.Strings
             sb.AppendLine("");
             sb.AppendLine("echo -------------------------------------");
             sb.AppendLine("echo Done.");
-            sb.AppendLine("timeout /t 15");
             return sb.ToString();
         }
     }

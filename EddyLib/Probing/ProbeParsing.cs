@@ -19,6 +19,7 @@ namespace EddyLib
 
             var span = lastLine.AsSpan();
             var results = new GH_Number[pointCount];
+            for (int i = 0; i < pointCount; i++) results[i] = new GH_Number(0);
             int valIdx = 0;
 
             // Skip initial spaces if any
@@ -69,6 +70,7 @@ namespace EddyLib
 
             var span = lastLine.AsSpan();
             var results = new GH_Vector[pointCount];
+            for (int i = 0; i < pointCount; i++) results[i] = new GH_Vector(Vector3d.Zero);
             int maxVals = pointCount * 3;
             var values = new double[maxVals];
             int valIdx = 0;
