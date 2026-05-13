@@ -114,8 +114,9 @@ FoamFile
             sb.Append(Environment.NewLine);
             for (int i = 0; i < listOfPoints.Count; i++)
             {
-                sb.Append(@"(" + Utilities.FormatPV(listOfPoints[i]) + @")");
-                sb.Append(Environment.NewLine);
+                sb.Append('(');
+                Utilities.AppendPV(sb, listOfPoints[i]);
+                sb.Append(')').Append(Environment.NewLine);
             }
 
             sb.Append(@");
@@ -167,8 +168,9 @@ FoamFile
             sb.Append(Environment.NewLine);
             for (int i = 0; i < listOfPoints.Count; i++)
             {
-                sb.Append(@"(" + Utilities.FormatPV(listOfPoints[i]) + @")");
-                sb.Append(Environment.NewLine);
+                sb.Append('(');
+                Utilities.AppendPV(sb, listOfPoints[i]);
+                sb.Append(')').Append(Environment.NewLine);
             }
 
             sb.Append(@");
