@@ -357,7 +357,7 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     if (!Directory.Exists(systemDir)) Directory.CreateDirectory(systemDir);
                     int chunkCount = RES.RunSettings.simEngine == SimEngine.Docker
                         ? 1
-                        : ProbeChunking.DecideChunkCount(Probes.Count, Environment.ProcessorCount);
+                        : ProbeChunking.DecideChunkCount(Probes.Count, RES.RunSettings.CPUs);
 
                     if (chunkCount <= 1)
                     {

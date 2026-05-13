@@ -247,7 +247,7 @@ namespace Eddy
 
                     int chunkCount = res.RunSettings.simEngine == SimEngine.Docker
                         ? 1
-                        : ProbeChunking.DecideChunkCount(points.Count, Environment.ProcessorCount);
+                        : ProbeChunking.DecideChunkCount(points.Count, res.RunSettings.CPUs);
 
                     if (chunkCount <= 1)
                     {
@@ -359,7 +359,7 @@ namespace Eddy
                     // file before parsing. Cheap no-op when no chunked output exists.
                     int chunkCountForRead = res.RunSettings.simEngine == SimEngine.Docker
                         ? 1
-                        : ProbeChunking.DecideChunkCount(points.Count, Environment.ProcessorCount);
+                        : ProbeChunking.DecideChunkCount(points.Count, res.RunSettings.CPUs);
                     if (chunkCountForRead > 1)
                     {
                         ProbeChunking.MergeChunkResults(currentCaseDir, probeName, currField.FieldName, chunkCountForRead);
