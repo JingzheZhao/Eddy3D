@@ -357,7 +357,7 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     if (!Directory.Exists(systemDir)) Directory.CreateDirectory(systemDir);
                     int chunkCount = RES.RunSettings.simEngine == SimEngine.Docker
                         ? 1
-                        : ProbeChunking.DecideChunkCount(Probes.Count, RES.RunSettings.CPUs);
+                        : ProbeChunking.DecideChunkCount(Probes.Count, RES.RunSettings.CPUs, currCase);
 
                     if (chunkCount <= 1)
                     {
@@ -432,13 +432,12 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     }
                 }
 
-                int chunkCountForRead = RES.RunSettings.simEngine == SimEngine.Docker
-                    ? 1
-                    : ProbeChunking.DecideChunkCount(Probes.Count, Environment.ProcessorCount);
-
                 for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
                 {
                     string currentCaseDir = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
+                    int chunkCountForRead = RES.RunSettings.simEngine == SimEngine.Docker
+                        ? 1
+                        : ProbeChunking.DecideChunkCount(Probes.Count, RES.RunSettings.CPUs, currentCaseDir);
 
                     foreach (field f in Enum.GetValues(typeof(field)))
                     {

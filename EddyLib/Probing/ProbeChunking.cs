@@ -22,17 +22,90 @@ namespace EddyLib
         // is a net loss. Empirically: a single 60-second run becomes >60s when split into 8.
         private const int MinPointsToChunk = 5000;
 
-        // Cap on parallel processes regardless of CPU count — past ~8, disk contention from
-        // simultaneous polyMesh reads (junctioned, in this case) outweighs the per-probe speedup.
-        private const int MaxChunks = 8;
-
         internal const string ChunkSuffix = "__c";
 
-        internal static int DecideChunkCount(int pointCount, int cpus)
+        // Headroom factor: leave this fraction of physical RAM free for the OS, Rhino, and
+        // other processes. Available × (1 - this) is the budget the probe chunks may share.
+        private const double RamHeadroomFraction = 0.30;
+
+        // Per-process working-set multiplier vs. on-disk polyMesh+field size. OpenFOAM mesh
+        // + field structures with caches end up ~2-3× the raw bytes; we err on the safe side.
+        private const double PerProcessRamMultiplier = 3.0;
+
+        internal static int DecideChunkCount(int pointCount, int cpus, string caseDir = null)
         {
             if (pointCount < MinPointsToChunk) return 1;
-            int cap = Math.Max(1, Math.Min(MaxChunks, cpus));
-            return Math.Min(cap, Math.Max(1, pointCount / (MinPointsToChunk / 2)));
+            int cap = Math.Max(1, cpus);
+            int byPoints = Math.Max(1, pointCount / (MinPointsToChunk / 2));
+            int byRam = MaxChunksByAvailableRam(caseDir);
+            return Math.Max(1, Math.Min(Math.Min(cap, byPoints), byRam));
+        }
+
+        private static int MaxChunksByAvailableRam(string caseDir)
+        {
+            if (string.IsNullOrWhiteSpace(caseDir)) return int.MaxValue;
+            try
+            {
+                long perProcess = EstimatePerProcessRamBytes(caseDir);
+                if (perProcess <= 0) return int.MaxValue;
+
+                long totalPhysical = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+                if (totalPhysical <= 0) return int.MaxValue;
+
+                long budget = (long)(totalPhysical * (1.0 - RamHeadroomFraction));
+                int k = (int)Math.Max(1, budget / perProcess);
+                return k;
+            }
+            catch
+            {
+                return int.MaxValue;
+            }
+        }
+
+        private static long EstimatePerProcessRamBytes(string caseDir)
+        {
+            long bytes = 0;
+
+            string polyMesh = Path.Combine(caseDir, "constant", "polyMesh");
+            bytes += DirectorySizeBytes(polyMesh);
+
+            // Largest field file in any time directory is a reasonable proxy for the per-process
+            // field-load cost. We don't sum across all times because the process only loads one.
+            long maxFieldBytes = 0;
+            try
+            {
+                foreach (var timeDir in Directory.EnumerateDirectories(caseDir))
+                {
+                    foreach (var f in Directory.EnumerateFiles(timeDir))
+                    {
+                        long len = new FileInfo(f).Length;
+                        if (len > maxFieldBytes) maxFieldBytes = len;
+                    }
+                }
+            }
+            catch
+            {
+            }
+            bytes += maxFieldBytes;
+
+            return (long)(bytes * PerProcessRamMultiplier);
+        }
+
+        private static long DirectorySizeBytes(string dir)
+        {
+            if (!Directory.Exists(dir)) return 0;
+            long total = 0;
+            try
+            {
+                foreach (var f in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
+                {
+                    try { total += new FileInfo(f).Length; } catch { }
+                }
+            }
+            catch
+            {
+            }
+            return total;
         }
 
         internal static string ChunkName(string probeName, int chunkIndex)
