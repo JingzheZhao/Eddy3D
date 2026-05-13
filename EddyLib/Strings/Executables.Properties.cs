@@ -180,7 +180,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 type            residuals;
-libs            (""libutilityFunctionObjects.so"");
+libs            (""" + OpenFoamLibraryNames.Name("libutilityFunctionObjects") + @""");
 
 writeControl timeStep;
 writeInterval   1;

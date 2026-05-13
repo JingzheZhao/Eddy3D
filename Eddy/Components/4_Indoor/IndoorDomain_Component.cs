@@ -437,13 +437,13 @@ Requires connected walls, inlets, outlets, and optional heat sources.
                 cmds.Add("decomposePar -force");
                 cmds.Add(string.Format("mpiexec -np {0} snappyHexMesh -overwrite -parallel", cpus));
                 cmds.Add("reconstructParMesh -constant");
-                cmds.Add("renumberMesh -overwrite");
+                cmds.Add("renumberMesh -constant -overwrite");
             }
 
             if (runSimulation)
             {
                 cmds.Add("topoSet");
-                cmds.Add("renumberMesh -overwrite");
+                cmds.Add("renumberMesh -constant -overwrite");
                 cmds.Add("decomposePar -force");
                 cmds.Add(string.Format("mpiexec -np {0} foamRun -solver fluid -parallel", cpus));
                 cmds.Add("reconstructPar");

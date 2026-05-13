@@ -26,23 +26,23 @@ namespace EddyLib.Indoor.BatchFiles
         {
             if (cpus <= 1)
             {
-                return @"topoSet >> ""topoSet.log"" 2>&1
+                return @"topoSet 2>&1 | tee -a ""topoSet.log""
 if errorlevel 1 exit /b %errorlevel%
-renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+renumberMesh -constant -overwrite 2>&1 | tee -a ""renumberMesh.log""
 if errorlevel 1 exit /b %errorlevel%
-foamRun -solver fluid >> ""foamRun.log"" 2>&1
+foamRun -solver fluid 2>&1 | tee -a ""foamRun.log""
 if errorlevel 1 exit /b %errorlevel%";
             }
 
-            return $@"topoSet >> ""topoSet.log"" 2>&1
+            return $@"topoSet 2>&1 | tee -a ""topoSet.log""
 if errorlevel 1 exit /b %errorlevel%
-renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+renumberMesh -constant -overwrite 2>&1 | tee -a ""renumberMesh.log""
 if errorlevel 1 exit /b %errorlevel%
-decomposePar -force >> ""decomposePar.log"" 2>&1
+decomposePar -force 2>&1 | tee -a ""decomposePar.log""
 if errorlevel 1 exit /b %errorlevel%
-mpiexec -np {cpus} foamRun -solver fluid -parallel >> ""foamRun.log"" 2>&1
+mpiexec -np {cpus} foamRun -solver fluid -parallel 2>&1 | tee -a ""foamRun.log""
 if errorlevel 1 exit /b %errorlevel%
-reconstructPar >> ""reconstructPar.log"" 2>&1
+reconstructPar 2>&1 | tee -a ""reconstructPar.log""
 if errorlevel 1 exit /b %errorlevel%";
         }
     }

@@ -482,7 +482,7 @@ Use this for quick convergence monitoring without external plotting windows.
                 }
             }
 
-            candidates.Add(Path.Combine(result.WorkingDirectory, "postProcessing", "residuals", "0", "residuals.dat"));
+            candidates.Add(EddyLib.Strings.PlotResiduals.FindResidualsDat(result.WorkingDirectory));
             candidates.Add(Path.Combine(result.WorkingDirectory, "postProcessing", "residuals", "residuals.dat"));
 
             foreach (string candidate in candidates.Distinct(StringComparer.OrdinalIgnoreCase))
@@ -548,7 +548,7 @@ Use this for quick convergence monitoring without external plotting windows.
             }
 
             string caseDir = Path.Combine(workingDir, direction.ToString(CultureInfo.InvariantCulture));
-            string nested = Path.Combine(caseDir, "postProcessing", "residuals", "0", "residuals.dat");
+            string nested = EddyLib.Strings.PlotResiduals.FindResidualsDat(caseDir);
             if (File.Exists(nested))
             {
                 return nested;

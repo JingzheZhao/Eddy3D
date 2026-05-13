@@ -78,7 +78,7 @@ namespace RhinoPlugin.Test.Xunit
             RunSnappy.Run(domBox, meshSettings, runSettings, out _);
             RunFoamSimulation.Run(domBox, meshSettings, runSettings, caseDir);
 
-            _ = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run.bat"));
+            RunBatchFileAndAssertSuccess(caseDir, Path.Combine("Scripts", "run.bat"));
 
             // Assert: check log file contains the expected string
             var logFile = Path.Combine(caseDir, windDir.ToString(), "foamRun.log");
@@ -117,7 +117,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.True(File.Exists(fvSolutionPath), $"fvSolution not found: {fvSolutionPath}");
             Assert.Contains("consistent      yes;", File.ReadAllText(fvSolutionPath));
 
-            _ = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run.bat"));
+            RunBatchFileAndAssertSuccess(caseDir, Path.Combine("Scripts", "run.bat"));
 
             // Assert: check log file contains the expected string
             var logFile = Path.Combine(caseDir, windDir.ToString(), "foamRun.log");
@@ -185,6 +185,19 @@ namespace RhinoPlugin.Test.Xunit
             }
 
             return (success, logBuilder.ToString());
+        }
+
+        private void RunBatchFileAndAssertSuccess(string workingDir, string batchFileName)
+        {
+            var (success, log) = RunBatchFileInteractive(workingDir, batchFileName);
+            _output.WriteLine($"Batch execution completed. Success: {success}");
+            if (!string.IsNullOrWhiteSpace(log))
+            {
+                _output.WriteLine(log);
+            }
+
+            Assert.True(success,
+                $"Batch execution failed: {Path.Combine(workingDir, batchFileName)}{Environment.NewLine}{log}");
         }
 
         [RequiresOpenFoamExecutionTheory]
@@ -295,6 +308,8 @@ namespace RhinoPlugin.Test.Xunit
 
             _output.WriteLine($"Batch execution completed. Success: {success}");
             _output.WriteLine($"Log info: {log}");
+            Assert.True(success,
+                $"Batch execution failed: {Path.Combine(caseDir, "run_all.bat")}{Environment.NewLine}{log}");
 
             // Verify simulation completed by checking log file
             AssertIndoorSimulationCompleted(caseDir, endTime);

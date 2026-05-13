@@ -379,28 +379,34 @@ namespace RhinoPlugin.Test.Xunit
                 var fakeHome = Path.Combine(root, "Fake Home");
                 var fakeInstallDir = Path.Combine(root, "blueCFD Install");
                 var fakeBinDir = Path.Combine(root, "Fake OpenFOAM Bin");
+                var fakeBlueCfdBinDir = Path.Combine(fakeInstallDir, "msys64", "usr", "bin");
                 var caseDir = Path.Combine(root, "Case With Spaces");
                 var markerPath = Path.Combine(caseDir, "cwd.txt");
 
                 Directory.CreateDirectory(fakeHome);
                 Directory.CreateDirectory(fakeInstallDir);
                 Directory.CreateDirectory(fakeBinDir);
+                Directory.CreateDirectory(fakeBlueCfdBinDir);
                 Directory.CreateDirectory(caseDir);
 
                 Environment.SetEnvironmentVariable("HOME", fakeHome);
 
                 File.WriteAllText(
-                    Path.Combine(fakeInstallDir, "setvars.bat"),
+                    Path.Combine(fakeInstallDir, "setvars_OF12.bat"),
                     "@echo off\r\n" +
                     $"set \"PATH={fakeBinDir};%PATH%\"\r\n");
 
                 File.WriteAllText(
-                    Path.Combine(fakeBinDir, "reconstructPar.bat"),
+                    Path.Combine(fakeBlueCfdBinDir, "reconstructPar.bat"),
                     "@echo off\r\n" +
                     $"echo %CD%>\"{markerPath}\"\r\n");
+                File.WriteAllText(
+                    Path.Combine(fakeBlueCfdBinDir, "tee.bat"),
+                    "@echo off\r\n" +
+                    "findstr \".*\" >nul\r\n");
 
                 var script = EddyLib.Strings.BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(
-                    new[] { "reconstructPar -constant -noFields" },
+                    new[] { "reconstructPar -constant -latestTime -noFields" },
                     caseDir,
                     EddyLib.Strings.RunMode.Canvas,
                     fakeInstallDir);

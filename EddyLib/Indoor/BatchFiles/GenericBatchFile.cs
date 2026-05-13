@@ -29,6 +29,12 @@ namespace EddyLib.Indoor.BatchFiles
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($@"call ""{DefaultDirectoriesAndPaths.BlueCfdSetvarsBat}""");
+            sb.AppendLine($@"set ""PATH={DefaultDirectoriesAndPaths.GetBlueCfdBatchPathPrefix(DefaultDirectoriesAndPaths.BlueCfdDir)};%PATH%""");
+            string mpiName = DefaultDirectoriesAndPaths.GetBlueCfdMpiName(DefaultDirectoriesAndPaths.BlueCfdDir);
+            if (!string.IsNullOrWhiteSpace(mpiName))
+            {
+                sb.AppendLine($@"set ""FOAM_MPI={mpiName}""");
+            }
             sb.AppendLine(ReturnWindowsDrive(BatchLocation.ToString()));
             sb.AppendLine("cd " + "\"" + BatchLocation.ToString() + "\"");
 

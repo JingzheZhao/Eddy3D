@@ -181,11 +181,11 @@ solvers
         ""(k|omega|epsilon)"" 1e-4;
     }
 
-    nCorrectors     2;
+    nCorrectors     1;
 ");
             sb.AppendLine(GetSimpleConsistentLine(RunSettings));
             sb.Append(@"    
-    nNonOrthogonalCorrectors 2;
+    nNonOrthogonalCorrectors 1;
     pRefCell        0;
     pRefValue       0;
 }
@@ -304,11 +304,11 @@ SIMPLE
         U               1e-4;
     }
 
-    nCorrectors     2;
+    nCorrectors     1;
 ");
             sb.AppendLine(GetSimpleConsistentLine(RunSettings));
             sb.Append(@"    
-    nNonOrthogonalCorrectors 2;
+    nNonOrthogonalCorrectors 1;
     pRefCell            0;
     pRefValue           0;
 }

@@ -26,47 +26,47 @@ namespace EddyLib.Indoor.BatchFiles
         {
             if (cpus <= 1)
             {
-                return @"blockMesh >> ""blockMesh.log"" 2>&1
+                return @"blockMesh 2>&1 | tee -a ""blockMesh.log""
 if errorlevel 1 exit /b %errorlevel%
-surfaceFeatures >> ""surfaceFeatures.log"" 2>&1
+surfaceFeatures 2>&1 | tee -a ""surfaceFeatures.log""
 if errorlevel 1 exit /b %errorlevel%
-snappyHexMesh -overwrite >> ""snappyHexMesh.log"" 2>&1
+snappyHexMesh -overwrite 2>&1 | tee -a ""snappyHexMesh.log""
 if errorlevel 1 exit /b %errorlevel%
-renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
-if errorlevel 1 exit /b %errorlevel%
-
-topoSet >> ""topoSet.log"" 2>&1
+renumberMesh -constant -overwrite 2>&1 | tee -a ""renumberMesh.log""
 if errorlevel 1 exit /b %errorlevel%
 
-renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+topoSet 2>&1 | tee -a ""topoSet.log""
 if errorlevel 1 exit /b %errorlevel%
-foamRun -solver fluid >> ""foamRun.log"" 2>&1
+
+renumberMesh -constant -overwrite 2>&1 | tee -a ""renumberMesh.log""
+if errorlevel 1 exit /b %errorlevel%
+foamRun -solver fluid 2>&1 | tee -a ""foamRun.log""
 if errorlevel 1 exit /b %errorlevel%";
             }
 
-            return $@"blockMesh >> ""blockMesh.log"" 2>&1
+            return $@"blockMesh 2>&1 | tee -a ""blockMesh.log""
 if errorlevel 1 exit /b %errorlevel%
-surfaceFeatures >> ""surfaceFeatures.log"" 2>&1
+surfaceFeatures 2>&1 | tee -a ""surfaceFeatures.log""
 if errorlevel 1 exit /b %errorlevel%
-decomposePar -force >> ""decomposePar.log"" 2>&1
+decomposePar -force 2>&1 | tee -a ""decomposePar.log""
 if errorlevel 1 exit /b %errorlevel%
-mpiexec -np {cpus} snappyHexMesh -overwrite -parallel >> ""snappyHexMesh.log"" 2>&1
+mpiexec -np {cpus} snappyHexMesh -overwrite -parallel 2>&1 | tee -a ""snappyHexMesh.log""
 if errorlevel 1 exit /b %errorlevel%
-reconstructPar -constant -noFields >> ""reconstructParMesh.log"" 2>&1
+reconstructPar -constant -latestTime -noFields 2>&1 | tee -a ""reconstructParMesh.log""
 if errorlevel 1 exit /b %errorlevel%
-renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
-if errorlevel 1 exit /b %errorlevel%
-
-topoSet >> ""topoSet.log"" 2>&1
+renumberMesh -constant -overwrite 2>&1 | tee -a ""renumberMesh.log""
 if errorlevel 1 exit /b %errorlevel%
 
-renumberMesh -overwrite >> ""renumberMesh.log"" 2>&1
+topoSet 2>&1 | tee -a ""topoSet.log""
 if errorlevel 1 exit /b %errorlevel%
-decomposePar -force >> ""decomposePar.log"" 2>&1
+
+renumberMesh -constant -overwrite 2>&1 | tee -a ""renumberMesh.log""
 if errorlevel 1 exit /b %errorlevel%
-mpiexec -np {cpus} foamRun -solver fluid -parallel >> ""foamRun.log"" 2>&1
+decomposePar -force 2>&1 | tee -a ""decomposePar.log""
 if errorlevel 1 exit /b %errorlevel%
-reconstructPar >> ""reconstructPar.log"" 2>&1
+mpiexec -np {cpus} foamRun -solver fluid -parallel 2>&1 | tee -a ""foamRun.log""
+if errorlevel 1 exit /b %errorlevel%
+reconstructPar 2>&1 | tee -a ""reconstructPar.log""
 if errorlevel 1 exit /b %errorlevel%";
         }
     }

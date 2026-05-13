@@ -34,10 +34,11 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 libs
 (
-        ""libOpenFOAM.so""
-        ""libutilityFunctionObjects.so""
-        ""libsolverFunctionObjects.so""
-        ""libatmosphericModels.so""");
+");
+            AppendLib(sb, "libOpenFOAM");
+            AppendLib(sb, "libutilityFunctionObjects");
+            AppendLib(sb, "libsolverFunctionObjects");
+            AppendLib(sb, "libatmosphericModels");
             sb.Append(@"
 );
             application foamRun;
@@ -59,6 +60,11 @@ libs
 ");
 
             return sb.ToString();
+        }
+
+        private static void AppendLib(StringBuilder sb, string baseName)
+        {
+            sb.AppendLine("        \"" + OpenFoamLibraryNames.Name(baseName) + "\"");
         }
 
         /// <summary>

@@ -90,7 +90,7 @@ FoamFile
 " + ProbeName + @"
 {
                 type probes;
-                libs (""libsampling.so"");
+                libs (""" + OpenFoamLibraryNames.Name("libsampling") + @""");
                 writeControl writeTime;
 
                 interpolationScheme " + InterpolationScheme + @";
@@ -133,7 +133,7 @@ FoamFile
 " + ofField.ProbeName + @"
 {
                 type probes;
-                libs (""libsampling.so"");
+                libs (""" + OpenFoamLibraryNames.Name("libsampling") + @""");
                 writeControl writeTime;
 
                 interpolationScheme " + ofField.InterpolationScheme + @";

@@ -26,8 +26,8 @@ namespace EddyLib
 
             var candidates = new[]
             {
-                Path.Combine(BlueCfdRoot, "ThirdParty-12", "platforms", "mingw_w64Gcc122", "MS-MPI-10.1.2", "bin", "msmpi.dll"),
-                Path.Combine(BlueCfdRoot, "ThirdParty-12", "platforms", "mingw_w64Gcc122", "MS-MPI-10.1", "bin", "msmpi.dll")
+                Path.Combine(BlueCfdRoot, DefaultDirectoriesAndPaths.BlueCfdThirdPartyFolderName, "platforms", "mingw_w64Gcc122", DefaultDirectoriesAndPaths.BlueCfdMsMpiFolderName, "bin", "msmpi.dll"),
+                Path.Combine(BlueCfdRoot, DefaultDirectoriesAndPaths.BlueCfdThirdPartyFolderName, "platforms", "mingw_w64Gcc122", "MS-MPI-10.1", "bin", "msmpi.dll")
             };
 
             foreach (var candidate in candidates)
@@ -42,7 +42,7 @@ namespace EddyLib
             {
                 foreach (var candidate in Directory.EnumerateFiles(BlueCfdRoot, "msmpi.dll", SearchOption.AllDirectories))
                 {
-                    if (candidate.IndexOf("ThirdParty-12", StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (candidate.IndexOf(DefaultDirectoriesAndPaths.BlueCfdThirdPartyFolderName, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         return candidate;
                     }

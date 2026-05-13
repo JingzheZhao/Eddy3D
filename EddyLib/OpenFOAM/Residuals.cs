@@ -35,7 +35,7 @@ namespace EddyLib
             var values = new List<List<double>>();
             var rowValues = new List<double>(); // reuse buffer
 
-            foreach (var rawLine in File.ReadLines(filePath))
+            foreach (var rawLine in Utilities.ReadLinesSafe(filePath))
             {
                 ReadOnlySpan<char> span = rawLine.AsSpan().Trim();
                 if (span.Length == 0)

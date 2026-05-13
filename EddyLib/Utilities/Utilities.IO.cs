@@ -40,6 +40,47 @@ namespace EddyLib
             return lines;
         }
 
+        /// <summary>
+        /// Reads all lines from a file using FileShare.ReadWrite to allow reading while the file is open by another process.
+        /// </summary>
+        public static IEnumerable<string> ReadLinesSafe(string filePath)
+        {
+            if (!File.Exists(filePath)) yield break;
+
+            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var sr = new StreamReader(fs))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    yield return line;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Reads all bytes from a file using FileShare.ReadWrite to allow reading while the file is open by another process.
+        /// </summary>
+        public static byte[] ReadAllBytesSafe(string filePath)
+        {
+            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                var length = (int)fs.Length;
+                var data = new byte[length];
+                int offset = 0;
+                int remaining = length;
+                while (remaining > 0)
+                {
+                    int read = fs.Read(data, offset, remaining);
+                    if (read <= 0)
+                        throw new EndOfStreamException(string.Format("End of stream reached with {0} bytes left to read", remaining));
+                    remaining -= read;
+                    offset += read;
+                }
+                return data;
+            }
+        }
+
         public static void DownLoadFile(string URL, string FilePath)
         {
             WebClient webClient = new WebClient();

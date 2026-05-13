@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace EddyLib
@@ -26,6 +27,14 @@ namespace EddyLib
         public const string RadianceWindowsFolderName = "Radiance_c1700d56_Windows";
         public const string RadianceMacOSFolderName = "Radiance_c1700d56_OSX";
         public const string RadianceMacOSArm64FolderName = "Radiance_c1700d56_OSX_arm64";
+        public const string BlueCfdReleaseTag = "2024-1";
+        public const string BlueCfdOpenFoamVersion = "12";
+        public const string BlueCfdOpenFoamBuildId = "6aa359dae6";
+        public const string BlueCfdOpenFoamFolderName = "OpenFOAM-" + BlueCfdOpenFoamVersion;
+        public const string BlueCfdThirdPartyFolderName = "ThirdParty-" + BlueCfdOpenFoamVersion;
+        public const string BlueCfdParaViewVersion = "5.11.2";
+        public const string BlueCfdMsMpiVersion = "10.1.2";
+        public const string BlueCfdMsMpiFolderName = "MS-MPI-" + BlueCfdMsMpiVersion;
         private static readonly string CasesRootDir =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Eddy3D");
         private static readonly string _radianceDirDefault = IsWindows
@@ -158,22 +167,94 @@ namespace EddyLib
         {
             get
             {
-                var candidates = new[]
-                {
-                    Path.Combine(BlueCfdDir, "setvars.bat"),
-                    Path.Combine(BlueCfdDir, "setvars_OF12.bat")
-                };
-
-                foreach (var candidate in candidates)
-                {
-                    if (File.Exists(candidate))
-                    {
-                        return candidate;
-                    }
-                }
-
-                return candidates[0];
+                return GetBlueCfdSetvarsBat(BlueCfdDir);
             }
+        }
+
+        /// <summary>
+        /// Resolves the blueCFD environment setup batch file for a specific install root.
+        /// </summary>
+        public static string GetBlueCfdSetvarsBat(string blueCfdDir)
+        {
+            string root = NormalizeBlueCfdRoot(blueCfdDir);
+            var candidates = new[]
+            {
+                Path.Combine(root, "setvars.bat"),
+                Path.Combine(root, "setvars_OF12.bat")
+            };
+
+            foreach (var candidate in candidates)
+            {
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            return candidates[0];
+        }
+
+        /// <summary>
+        /// Additional PATH entries needed after blueCFD setvars has run.
+        /// blueCFD-Core 2024-1 ships MS-MPI 10.1.2; fallbacks handle repaired or patched 10.x installs.
+        /// </summary>
+        public static string GetBlueCfdBatchPathPrefix(string blueCfdDir)
+        {
+            string root = NormalizeBlueCfdRoot(blueCfdDir);
+            var entries = new List<string>();
+            string mpiName = GetInstalledBlueCfdMpiName(root);
+
+            string mpiLib = FindBlueCfdMpiLibDir(root, mpiName);
+            if (!string.IsNullOrWhiteSpace(mpiLib))
+            {
+                entries.Add(mpiLib);
+            }
+
+            string mpiBin = FindBlueCfdMpiBinDir(root);
+            if (!string.IsNullOrWhiteSpace(mpiBin))
+            {
+                entries.Add(mpiBin);
+            }
+
+            if (!string.IsNullOrWhiteSpace(root))
+            {
+                entries.Add(Path.Combine(root, "msys64", "usr", "bin"));
+            }
+
+            return string.Join(";", entries);
+        }
+
+        /// <summary>
+        /// Resolves the installed blueCFD MPI variant folder name, for example MS-MPI-10.1.2.
+        /// </summary>
+        public static string GetBlueCfdMpiName(string blueCfdDir)
+        {
+            return GetInstalledBlueCfdMpiName(blueCfdDir);
+        }
+
+        /// <summary>
+        /// Resolves the installed blueCFD MPI version, for example 10.1.2.
+        /// </summary>
+        public static string GetBlueCfdMpiVersion(string blueCfdDir)
+        {
+            string mpiName = GetInstalledBlueCfdMpiName(blueCfdDir);
+            const string prefix = "MS-MPI-";
+
+            return mpiName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+                ? mpiName.Substring(prefix.Length)
+                : string.Empty;
+        }
+
+        private static string GetInstalledBlueCfdMpiName(string blueCfdDir)
+        {
+            string mpiBin = FindBlueCfdMpiBinDir(blueCfdDir);
+            if (string.IsNullOrWhiteSpace(mpiBin))
+            {
+                return string.Empty;
+            }
+
+            string mpiRoot = Directory.GetParent(mpiBin)?.FullName;
+            return string.IsNullOrWhiteSpace(mpiRoot) ? string.Empty : Path.GetFileName(mpiRoot);
         }
 
         private static string NormalizeEnginePath(string path, string defaultPath)
@@ -295,6 +376,15 @@ namespace EddyLib
 
             foreach (string candidate in candidates)
             {
+                if (!string.IsNullOrWhiteSpace(candidate) && Directory.Exists(candidate)
+                    && Directory.Exists(Path.Combine(candidate, BlueCfdOpenFoamFolderName)))
+                {
+                    return candidate;
+                }
+            }
+
+            foreach (string candidate in candidates)
+            {
                 if (!string.IsNullOrWhiteSpace(candidate) && Directory.Exists(candidate))
                 {
                     return candidate;
@@ -302,6 +392,145 @@ namespace EddyLib
             }
 
             return Path.Combine(programFiles, "blueCFD-Core-2024");
+        }
+
+        private static string NormalizeBlueCfdRoot(string blueCfdDir)
+        {
+            if (string.IsNullOrWhiteSpace(blueCfdDir))
+            {
+                return BlueCfdDir;
+            }
+
+            return TrimWrappingQuotes(blueCfdDir.Trim()).TrimEnd('\\', '/');
+        }
+
+        private static string FindBlueCfdMpiBinDir(string blueCfdDir)
+        {
+            string root = NormalizeBlueCfdRoot(blueCfdDir);
+            if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
+            {
+                return string.Empty;
+            }
+
+            foreach (var candidate in EnumerateBlueCfdMpiBinDirs(root))
+            {
+                if (File.Exists(Path.Combine(candidate, "mpiexec.exe")))
+                {
+                    return candidate;
+                }
+            }
+
+            try
+            {
+                string thirdPartyDir = Path.Combine(root, BlueCfdThirdPartyFolderName);
+                if (Directory.Exists(thirdPartyDir))
+                {
+                    foreach (var candidate in Directory.EnumerateFiles(thirdPartyDir, "mpiexec.exe", SearchOption.AllDirectories))
+                    {
+                        return Path.GetDirectoryName(candidate);
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            return string.Empty;
+        }
+
+        private static IEnumerable<string> EnumerateBlueCfdMpiBinDirs(string blueCfdRoot)
+        {
+            string thirdPartyDir = Path.Combine(blueCfdRoot, BlueCfdThirdPartyFolderName);
+            if (!Directory.Exists(thirdPartyDir))
+            {
+                yield break;
+            }
+
+            var candidateDirs = new List<string>();
+            AddBlueCfdMpiBinCandidates(candidateDirs, thirdPartyDir, "MS-MPI-10.*");
+
+            foreach (string binDir in candidateDirs
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(GetMpiVersionFromBinDir))
+            {
+                yield return binDir;
+            }
+
+            candidateDirs.Clear();
+            AddBlueCfdMpiBinCandidates(candidateDirs, thirdPartyDir, "MS-MPI-*");
+
+            foreach (string binDir in candidateDirs
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(GetMpiVersionFromBinDir))
+            {
+                yield return binDir;
+            }
+        }
+
+        private static void AddBlueCfdMpiBinCandidates(List<string> candidateDirs, string thirdPartyDir, string searchPattern)
+        {
+            try
+            {
+                foreach (string mpiDir in Directory.EnumerateDirectories(thirdPartyDir, searchPattern, SearchOption.AllDirectories))
+                {
+                    candidateDirs.Add(Path.Combine(mpiDir, "bin"));
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        private static Version GetMpiVersionFromBinDir(string binDir)
+        {
+            try
+            {
+                string mpiDir = Directory.GetParent(binDir)?.FullName;
+                string mpiName = string.IsNullOrWhiteSpace(mpiDir) ? string.Empty : Path.GetFileName(mpiDir);
+                const string prefix = "MS-MPI-";
+                if (mpiName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
+                    Version.TryParse(mpiName.Substring(prefix.Length), out Version version))
+                {
+                    return version;
+                }
+            }
+            catch
+            {
+            }
+
+            return new Version(0, 0);
+        }
+
+        private static string FindBlueCfdMpiLibDir(string blueCfdDir, string mpiName)
+        {
+            string root = NormalizeBlueCfdRoot(blueCfdDir);
+            if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(mpiName) || !Directory.Exists(root))
+            {
+                return string.Empty;
+            }
+
+            string platformsDir = Path.Combine(root, BlueCfdOpenFoamFolderName, "platforms");
+            if (!Directory.Exists(platformsDir))
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                foreach (string candidate in Directory.EnumerateDirectories(platformsDir, "lib", SearchOption.AllDirectories))
+                {
+                    string mpiLib = Path.Combine(candidate, mpiName);
+                    if (File.Exists(Path.Combine(mpiLib, "libPstream.dll")))
+                    {
+                        return mpiLib;
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            return string.Empty;
         }
 
         private static string NormalizeCacheKey(string value)
@@ -527,7 +756,7 @@ namespace EddyLib
             }
 
             string setvars = BlueCfdSetvarsBat;
-            string openFoam12Dir = Path.Combine(BlueCfdDir, "OpenFOAM-12");
+            string openFoam12Dir = Path.Combine(BlueCfdDir, BlueCfdOpenFoamFolderName);
 
             if (!File.Exists(setvars) || !Directory.Exists(openFoam12Dir))
             {

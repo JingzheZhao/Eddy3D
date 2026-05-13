@@ -12,7 +12,7 @@ namespace EddyLib
 
             public const string WorkingDir = "Working directory";
             public const string WorkingDirNick = "Dir";
-            public const string WorkingDirDesc = "Folder for simulation files. Use a simple name (e.g., 'MyProject') to create under %USERPROFILE%\\Eddy3D\\Cases on Windows (~/Eddy3D/Cases on macOS), or provide a full path.";
+            public const string WorkingDirDesc = "The folder where simulation files are stored. If left empty, a timestamped folder is automatically created in '%USERPROFILE%\\Eddy3D\\Cases' on Windows (~/Eddy3D/Cases on macOS). You can also provide a simple name (e.g., 'ProjectA') to create a folder there, or a full absolute path.";
 
             public const string MeshSettings = "Mesh settings";
             public const string MeshSettingsNick = "MSet";
@@ -78,9 +78,9 @@ namespace EddyLib
             public const string BuildingsNick = "Bldg";
             public const string BuildingsDesc = "Optional: Mesh/Brep/Surface/Extrusion geometry to export as binary STL and voxelize in FluidX3D.";
 
-            public const string WorkingDir = "Working Directory";
+            public const string WorkingDir = "Working directory";
             public const string WorkingDirNick = "Dir";
-            public const string WorkingDirDesc = "Case folder root. If you pass a simple name, it is created under Eddy3D Cases.";
+            public const string WorkingDirDesc = "The folder where simulation files are stored. If left empty, a timestamped folder is automatically created in '%USERPROFILE%\\Eddy3D\\Cases' on Windows (~/Eddy3D/Cases on macOS). You can also provide a simple name (e.g., 'ProjectA') to create a folder there, or a full absolute path.";
 
             public const string CloneUpdate = "Clone/Update Source";
             public const string CloneUpdateNick = "Git";

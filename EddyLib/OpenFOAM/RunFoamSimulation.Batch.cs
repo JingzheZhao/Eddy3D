@@ -77,17 +77,17 @@ namespace EddyLib
                 meshCmds.Add(WithDockerLog(
                     string.Format("mpiexec -np {0} snappyHexMesh -overwrite -parallel", runSettings.CPUs),
                     MeshLogFileName));
-                meshCmds.Add("reconstructPar -constant -noFields");
-                meshCmds.Add("renumberMesh -overwrite");
+                meshCmds.Add("reconstructPar -constant -latestTime -noFields");
+                meshCmds.Add("renumberMesh -constant -overwrite");
             }
             else
             {
                 meshCmds.Add(WithDockerLog("blockMesh", BlockMeshLogFileName));
                 meshCmds.Add(WithDockerLog("surfaceFeatures", SurfaceFeaturesLogFileName));
                 meshCmds.Add(WithDockerLog("snappyHexMesh -overwrite", MeshLogFileName));
-                meshCmds.Add("renumberMesh -overwrite");
+                meshCmds.Add("renumberMesh -constant -overwrite");
             }
-            meshCmds.Add("checkMesh -allGeometry -allTopology -writeSets -setFormat vtk");
+            meshCmds.Add("checkMesh -constant -allGeometry -allTopology -writeSets -setFormat vtk");
 
             var meshOnlyCmds = new List<string>(meshCmds);
             meshOnlyCmds.Add("cd " + DockerConfig.CaseMountPoint);
@@ -97,6 +97,7 @@ namespace EddyLib
             }
             WriteDockerScript(scriptsDir, "run_mesh", meshOnlyCmds, workDir, "Meshing");
 
+            // checkMesh
             // Manual helper: copy mesh/constant/polyMesh into all wind-direction cases
             var copyMeshCmds = BuildDynamicDockerMeshCopyCommands();
             WriteDockerScript(scriptsDir, "copy_mesh_to_wind_dirs", copyMeshCmds, workDir, "Copy Mesh To Wind Dirs");

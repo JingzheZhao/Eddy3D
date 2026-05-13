@@ -66,7 +66,7 @@ Local/manual execution:
 
 ```powershell
 $env:EDDY3D_RUN_OPENFOAM_TESTS = "1"
-$env:EDDY3D_BLUECFD_DIR = "C:\Program Files\blueCFD-Core-2024"
+$env:EDDY3D_BLUECFD_DIR = "C:\blueCFD-Core-2024"
 $env:EDDY3D_TEST_CPUS = "2"
 dotnet test RhinoPlugin.Test.Xunit\RhinoPlugin.Test.Xunit.csproj --filter "FullyQualifiedName~OFExecutionTests"
 ```

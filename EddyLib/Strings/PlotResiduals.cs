@@ -43,7 +43,7 @@ namespace EddyLib.Strings
                 {
                     // Bolt: Replaced File.ReadAllLines with File.ReadLines for lazy evaluation,
                     // avoiding massive LOH allocations when reading large residuals files.
-                    var headerLine = File.ReadLines(residualsPath).Skip(1).FirstOrDefault();
+                    var headerLine = Utilities.ReadLinesSafe(residualsPath).Skip(1).FirstOrDefault();
                     if (headerLine != null)
                     {
                         headerLine = headerLine.TrimStart('#').Trim();
@@ -91,9 +91,21 @@ namespace EddyLib.Strings
             }
 
             return candidates
-                .OrderBy(GetResidualsTimeDirectory)
+                .OrderByDescending(path => File.GetLastWriteTimeUtc(path))
+                .ThenByDescending(GetResidualsTimeDirectory)
                 .ThenBy(path => path, StringComparer.OrdinalIgnoreCase)
                 .First();
+        }
+
+        public static string FindResidualsFolder(string caseDir)
+        {
+            string residualsPath = FindResidualsDat(caseDir);
+            if (File.Exists(residualsPath))
+            {
+                return Path.GetDirectoryName(residualsPath);
+            }
+
+            return Path.GetDirectoryName(residualsPath);
         }
 
         /// <summary>

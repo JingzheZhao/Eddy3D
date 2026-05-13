@@ -30,7 +30,9 @@ namespace RhinoPlugin.Test.Xunit
         internal const string RhinoHostRequiresWindowsReason = "Rhino in-process hosting requires Windows (RhinoLibrary.dll P/Invoke).";
         internal const string GrasshopperMissingReason = "Skipping test because Grasshopper is not available.";
         internal const string UnsupportedPlatformReason = "Rhino tests currently support Windows and macOS only.";
-        internal const string BlueCfdMissingReason = "Skipping test because blueCFD-Core 2024 / OpenFOAM 12 is not available.";
+        internal static string BlueCfdMissingReason =>
+            $"Skipping test because blueCFD-Core 2024 / OpenFOAM 12 is not available at '{EddyLib.DefaultDirectoriesAndPaths.BlueCfdDir}'. " +
+            "Override path with EDDY3D_BLUECFD_DIR env var.";
         internal const string RadianceMissingReason = "Skipping test because Radiance is not available.";
         internal const string EnergyPlusMissingReason = "Skipping test because EnergyPlus is not available.";
         internal const string PythonMissingReason = "Skipping test because Python is not available.";

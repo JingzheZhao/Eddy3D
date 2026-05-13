@@ -34,9 +34,9 @@ decomposePar -force
 if errorlevel 1 exit /b %errorlevel%
 mpiexec -np {cpus} snappyHexMesh -overwrite -parallel
 if errorlevel 1 exit /b %errorlevel%
-reconstructPar -constant -noFields
+reconstructPar -constant -latestTime -noFields
 if errorlevel 1 exit /b %errorlevel%
-renumberMesh -overwrite
+renumberMesh -constant -overwrite
 if errorlevel 1 exit /b %errorlevel%";
         }
 

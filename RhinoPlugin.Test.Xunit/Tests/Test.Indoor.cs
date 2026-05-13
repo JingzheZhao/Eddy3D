@@ -304,7 +304,7 @@ namespace RhinoPlugin.Test.Xunit
             Assert.Contains("if errorlevel 1 exit /b %errorlevel%", runSimContent);
 
             string runAllContent = System.IO.File.ReadAllText(System.IO.Path.Combine(workingDir, "run_all.bat"));
-            Assert.Contains("reconstructPar -constant -noFields", runAllContent);
+            Assert.Contains("reconstructPar -constant -latestTime -noFields", runAllContent);
             Assert.Contains("if errorlevel 1 exit /b %errorlevel%", runAllContent);
 
             _output.WriteLine($"Full simulation setup verified in {workingDir}");

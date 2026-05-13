@@ -59,8 +59,8 @@
     <Copy SourceFiles="$(MacOsNativeSrc)" DestinationFolder="$(MacOsNativeDst)" Condition="Exists('$(MacOsNativeSrc)')" SkipUnchangedFiles="true" />
   </Target>
 
-  <!-- Run BuildInstaller.bat on Windows -->
-  <Target Name="RunBuildInstaller" AfterTargets="AfterBuild" Condition="'$(OS)' == 'Windows_NT'">
+  <!-- Run BuildInstaller.bat on Windows (Release only — LZMA compression is slow) -->
+  <Target Name="RunBuildInstaller" AfterTargets="AfterBuild" Condition="'$(OS)' == 'Windows_NT' And '$(Configuration)' == 'Release'">
     <Exec Command="call &quot;$(ProjectDir)..\Build\BuildInstaller.bat&quot; &quot;$(TargetDir)&quot;" IgnoreExitCode="true" />
   </Target>
 

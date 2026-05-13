@@ -3,8 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
+using EddyLib.Strings;
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -50,9 +50,9 @@ namespace EddyLib.Indoor.Dicts
 
             sb.AppendLine(@"(");
 
-            sb.AppendLine("\"libOpenFOAM.so\"");
-            sb.AppendLine("\"libutilityFunctionObjects.so\"");
-            sb.AppendLine("\"libsolverFunctionObjects.so\"");
+            sb.AppendLine("\"" + OpenFoamLibraryNames.Name("libOpenFOAM") + "\"");
+            sb.AppendLine("\"" + OpenFoamLibraryNames.Name("libutilityFunctionObjects") + "\"");
+            sb.AppendLine("\"" + OpenFoamLibraryNames.Name("libsolverFunctionObjects") + "\"");
 
             sb.AppendLine(@")");
 
@@ -97,10 +97,11 @@ namespace EddyLib.Indoor.Dicts
 
             sb.AppendLine("#includeFunc  residuals");
 
+            string fieldFunctionObjects = OpenFoamLibraryNames.Name("libfieldFunctionObjects");
             sb.AppendLine(@"	fieldMinMag
 {
                 type volFieldValue;
-                libs (""libfieldFunctionObjects.so"");
+                libs (""" + fieldFunctionObjects + @""");
                 operation minMag;
                 select all;
                 writeFields false;
@@ -111,7 +112,7 @@ namespace EddyLib.Indoor.Dicts
             fieldMaxMag
 {
                 type volFieldValue;
-                libs (""libfieldFunctionObjects.so"");
+                libs (""" + fieldFunctionObjects + @""");
                 operation maxMag;
                 select all;
                 writeFields false;
@@ -122,7 +123,7 @@ namespace EddyLib.Indoor.Dicts
             average
 {
                 type volFieldValue;
-                libs (""libfieldFunctionObjects.so"");
+                libs (""" + fieldFunctionObjects + @""");
                 fields (U T);
                 operation volAverage;
                 select all;
@@ -173,10 +174,7 @@ namespace EddyLib.Indoor.Dicts
             // Type of function object
             sb.AppendLine("    type            scalarTransport;");
 
-            // Library (Windows uses .dll, Linux uses .so)
-            var lib = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? "libsolverFunctionObjects.dll"
-                : "libsolverFunctionObjects.so";
+            var lib = OpenFoamLibraryNames.Name("libsolverFunctionObjects");
             sb.AppendLine($"    libs            (\"{lib}\");");
             sb.AppendLine();
 

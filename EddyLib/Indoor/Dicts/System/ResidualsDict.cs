@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using EddyLib.Strings;
 
 namespace EddyLib.Indoor.Dicts
 {
@@ -33,7 +34,7 @@ namespace EddyLib.Indoor.Dicts
             //Dictionary<string, dynamic> FunctionObjectlDict = new Dictionary<string, dynamic>();
 
             InternalDict.Add("type", "residuals");
-            InternalDict.Add("libs", " (\"libutilityFunctionObjects.so\") ");
+            InternalDict.Add("libs", " (\"" + OpenFoamLibraryNames.Name("libutilityFunctionObjects") + "\") ");
 
             InternalDict.Add("writeControl", "timeStep");
             InternalDict.Add("writeInterval", "1");

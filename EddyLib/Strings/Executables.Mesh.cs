@@ -226,6 +226,12 @@ radius " + Utilities.FormatDouble(dom.RefinementCylinder.CircleAt(0.5).Radius) +
             string maxConcave = useGpt53CodexPreset ? "70" : "80";
             string minFaceWeight = useGpt53CodexPreset ? "0.08" : "0.05";
             string minVolRatio = useGpt53CodexPreset ? "0.02" : "0.01";
+            int buildingMaxLevel = useGpt53CodexPreset
+                ? Math.Min(MeshSettings.accBuildingsMax, MeshSettings.accBuildings)
+                : MeshSettings.accBuildingsMax;
+            int featureLevel = useGpt53CodexPreset
+                ? Math.Min(MeshSettings.accFeatures, MeshSettings.accBuildings)
+                : MeshSettings.accFeatures;
 
             StringBuilder sb = new StringBuilder();
             sb.Append(@"/*--------------------------------*- C++ -*----------------------------------*\
@@ -287,8 +293,12 @@ FoamFile
             if (includeFeatureExtraction)
             {
                 sb.Append(@"
-            {file ""building.eMesh""; levels ((0.3 " + (MeshSettings.accFeatures) + @")) ;}
-            {file ""ground.eMesh""; levels ((0.3 " + (MeshSettings.accFeatures) + @")) ;}");
+            {file ""building.eMesh""; levels ((0.3 " + featureLevel + @")) ;}");
+                if (!useGpt53CodexPreset)
+                {
+                    sb.Append(@"
+            {file ""ground.eMesh""; levels ((0.3 " + featureLevel + @")) ;}");
+                }
             }
 
             sb.Append(@"
@@ -297,7 +307,7 @@ FoamFile
         {
             building
             {
-                level (" + (MeshSettings.accBuildings) + @" " + MeshSettings.accBuildingsMax + @");
+                level (" + (MeshSettings.accBuildings) + @" " + buildingMaxLevel + @");
                 patchInfo
                 {
                     type wall;

@@ -19,7 +19,7 @@ namespace EddyLib.Strings
             sb.AppendLine(@"aoa
     {
         type            scalarTransport;
-        libs (""libsolverFunctionObjects.so"");
+        libs (""" + OpenFoamLibraryNames.Name("libsolverFunctionObjects") + @""");
 
         writeControl    outputTime;
             diffusivity     constant;
@@ -55,10 +55,11 @@ namespace EddyLib.Strings
 
         private static string FunctionObjFieldMinMax()
         {
+            string fieldFunctionObjects = OpenFoamLibraryNames.Name("libfieldFunctionObjects");
             return @"fieldMinMag
 {
     type volFieldValue;
-    libs (""libfieldFunctionObjects.so"");
+    libs (""" + fieldFunctionObjects + @""");
     operation minMag;
     select all;
     writeToFile true;
@@ -70,7 +71,7 @@ namespace EddyLib.Strings
 fieldMaxMag
 {
     type volFieldValue;
-    libs (""libfieldFunctionObjects.so"");
+    libs (""" + fieldFunctionObjects + @""");
     operation maxMag;
     select all;
     writeToFile true;
@@ -85,7 +86,7 @@ fieldMaxMag
             return @"average
 {
     type            volFieldValue;
-    libs            (""libfieldFunctionObjects.so"");
+    libs            (""" + OpenFoamLibraryNames.Name("libfieldFunctionObjects") + @""");
     fields (U p);
     operation       volAverage;
     select          all;
@@ -111,7 +112,7 @@ fieldMaxMag
             sb.AppendLine(@"pressureCoefficients
 {
                     type pressure;
-                    libs (""libfieldFunctionObjects.so"");
+                    libs (""" + OpenFoamLibraryNames.Name("libfieldFunctionObjects") + @""");
                     enabled true;
                     writeControl timeStep;
                     writeInterval " + RunSettings.writeInterval + @";

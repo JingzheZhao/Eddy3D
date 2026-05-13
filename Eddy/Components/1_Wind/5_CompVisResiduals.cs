@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Text;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -23,6 +25,9 @@ namespace Eddy
 
         private static readonly Uri GithubPagesViewerUri = new Uri("https://residuals.eddy3d.com/");
         private static readonly Uri StreamlitViewerUri = new Uri("https://plot-openfoam-residuals.streamlit.app/");
+        private const int MaxViewerUrlLength = 30000;
+        private const int MinResidualSampleLines = 50;
+        private const int MaxDataLinesForCompression = 20000; // Cap to avoid massive strings before compression
 
         private ResidualViewerTarget _viewerTarget = ResidualViewerTarget.GithubPages;
 
@@ -247,16 +252,123 @@ Opens the selected residual viewer with the simulation data.
                 return;
             }
 
-            // Read the file and Base64-encode it into the URL hash fragment.
-            // This bypasses all CORS / Private Network Access / mixed-content
-            // restrictions because hash fragments are handled entirely client-side.
-            byte[] fileBytes = File.ReadAllBytes(fileToServe);
-            string base64 = Convert.ToBase64String(fileBytes);
+            string payload = BuildResidualViewerPayload(fileToServe, baseUri, out bool isCompressed);
+            string base64 = isCompressed ? CompressToBase64(payload) : Convert.ToBase64String(Encoding.UTF8.GetBytes(payload));
             string fileName = Uri.EscapeDataString(Path.GetFileName(fileToServe));
 
-            string targetUrl = $"{baseUri.AbsoluteUri}#data={base64}&name={fileName}";
+            string dataKey = isCompressed ? "zdata" : "data";
+            string targetUrl = $"{baseUri.AbsoluteUri}#{dataKey}={base64}&name={fileName}";
 
             OpenViewerInBrowser(new Uri(targetUrl));
+        }
+
+        private static string CompressToBase64(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+            byte[] bytes = Encoding.UTF8.GetBytes(text);
+            using (var mso = new MemoryStream())
+            {
+                using (var gs = new DeflateStream(mso, CompressionMode.Compress))
+                {
+                    gs.Write(bytes, 0, bytes.Length);
+                }
+                return Convert.ToBase64String(mso.ToArray());
+            }
+        }
+
+        private static string BuildResidualViewerPayload(string filePath, Uri baseUri, out bool useCompression)
+        {
+            useCompression = true; // Default to compression
+            string fileName = Uri.EscapeDataString(Path.GetFileName(filePath));
+            int overhead = (baseUri?.AbsoluteUri?.Length ?? 0) + fileName.Length + "#zdata=&name=".Length;
+
+            string[] allLines = Utilities.ReadLinesSafe(filePath).ToArray();
+
+            // Try full file first with compression if it's not pathologically large
+            if (allLines.Length < MaxDataLinesForCompression)
+            {
+                string fullPayload = string.Join("\n", allLines);
+                string b64 = CompressToBase64(fullPayload);
+                if (overhead + b64.Length <= MaxViewerUrlLength)
+                {
+                    return fullPayload;
+                }
+            }
+
+            // If too big or already too many lines, fallback to sampling
+            int payloadLimit = Math.Max(4096, ((MaxViewerUrlLength - overhead) * 3 / 4) - 1024);
+
+            // Since we use compression, we can actually have a MUCH larger payload limit.
+            // Compression ratio for residuals is often 10:1 or better.
+            // Let's assume 5:1 safely for the sampling target.
+            int compressedPayloadLimit = payloadLimit * 5;
+
+            string payload = ReadResidualPayload(filePath, compressedPayloadLimit);
+
+            // Final check and possible double-sampling if even the compressed version is too long
+            while (payload.Length > 4096)
+            {
+                string base64 = CompressToBase64(payload);
+                int urlLength = overhead + base64.Length;
+                if (urlLength <= MaxViewerUrlLength)
+                {
+                    return payload;
+                }
+
+                compressedPayloadLimit = Math.Max(4096, compressedPayloadLimit * 3 / 4);
+                payload = ReadResidualPayload(filePath, compressedPayloadLimit);
+            }
+
+            return payload;
+        }
+
+        private static string ReadResidualPayload(string filePath, int maxChars)
+        {
+            string[] lines = Utilities.ReadLinesSafe(filePath).ToArray();
+            string fullText = string.Join("\n", lines);
+            if (fullText.Length <= maxChars)
+            {
+                return fullText;
+            }
+
+            var headerLines = lines
+                .TakeWhile(line => string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("#", StringComparison.Ordinal))
+                .ToList();
+            var dataLines = lines.Skip(headerLines.Count).Where(line => !string.IsNullOrWhiteSpace(line)).ToList();
+
+            if (dataLines.Count <= MinResidualSampleLines)
+            {
+                return fullText.Length <= maxChars ? fullText : fullText.Substring(0, maxChars);
+            }
+
+            string headerText = string.Join("\n", headerLines);
+            int availableChars = Math.Max(1024, maxChars - headerText.Length - 2);
+            double averageLineLength = Math.Max(1.0, dataLines.Average(line => line.Length + 1));
+            int maxDataLines = Math.Max(MinResidualSampleLines, (int)(availableChars / averageLineLength));
+            maxDataLines = Math.Min(maxDataLines, dataLines.Count);
+
+            var sampled = new List<string>(headerLines);
+            if (maxDataLines <= 1)
+            {
+                sampled.Add(dataLines[dataLines.Count - 1]);
+            }
+            else
+            {
+                double step = (dataLines.Count - 1) / (double)(maxDataLines - 1);
+                int previousIndex = -1;
+                for (int i = 0; i < maxDataLines; i++)
+                {
+                    int index = (int)Math.Round(i * step);
+                    index = Math.Min(dataLines.Count - 1, Math.Max(0, index));
+                    if (index != previousIndex)
+                    {
+                        sampled.Add(dataLines[index]);
+                        previousIndex = index;
+                    }
+                }
+            }
+
+            return string.Join("\n", sampled);
         }
 
         private static string GetResidualsFolder(OFResult result)
@@ -271,12 +383,13 @@ Opens the selected residual viewer with the simulation data.
             var windDirs = result.Domain?.BCond?.WindDirections ?? new List<int>();
             foreach (int dir in windDirs.Distinct())
             {
-                candidates.Add(Path.Combine(result.WorkingDirectory, dir.ToString(), "postProcessing", "residuals", "0"));
+                string caseDir = Path.Combine(result.WorkingDirectory, dir.ToString());
+                candidates.Add(EddyLib.Strings.PlotResiduals.FindResidualsFolder(caseDir));
                 candidates.Add(Path.Combine(result.WorkingDirectory, dir.ToString(), "postProcessing", "residuals"));
                 candidates.Add(Path.Combine(result.WorkingDirectory, dir.ToString(), "postProcessing"));
             }
 
-            candidates.Add(Path.Combine(result.WorkingDirectory, "postProcessing", "residuals", "0"));
+            candidates.Add(EddyLib.Strings.PlotResiduals.FindResidualsFolder(result.WorkingDirectory));
             candidates.Add(Path.Combine(result.WorkingDirectory, "postProcessing", "residuals"));
             candidates.Add(Path.Combine(result.WorkingDirectory, "postProcessing"));
 

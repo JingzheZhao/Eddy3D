@@ -59,7 +59,7 @@ namespace EddyLib.Strings
 
         private static readonly List<string> RCCheckMeshSingleCPU = new List<string> {
        // "checkMesh -allGeometry -allTopology -writeAllFields -writeSets vtk",  // Not supported in OpenFOAM 5 yet
-        "checkMesh -allGeometry -allTopology -writeSets -setFormat vtk",
+        "checkMesh -constant -allGeometry -allTopology -writeSets -setFormat vtk",
         "foamToVTK -faceSet highAspectRatioCells -ascii",
         "foamToVTK -faceSet nonOrthoFaces -ascii",
         "foamToVTK -faceSet skewFaces -ascii",
@@ -122,7 +122,7 @@ namespace EddyLib.Strings
         {
             List<string> lst = new List<string>
             {
-                "reconstructPar -constant -noFields"
+                "reconstructPar -constant -latestTime -noFields"
             };
             return lst;
         }
@@ -149,9 +149,9 @@ namespace EddyLib.Strings
                 "surfaceFeatures",
                 "decomposePar -force",
                 "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite -parallel",
-                "reconstructPar -constant -noFields",
-                "renumberMesh -overwrite",
-                "checkMesh -allGeometry -allTopology -writeSets -setFormat vtk"
+                "reconstructPar -constant -latestTime -noFields",
+                "renumberMesh -constant -overwrite",
+                "checkMesh -constant -allGeometry -allTopology -writeSets -setFormat vtk"
             });
             }
             else
@@ -160,9 +160,9 @@ namespace EddyLib.Strings
                 "blockMesh",
                 "decomposePar -force",
                 "mpiexec -np " + RunSettings.CPUs + @" snappyHexMesh -overwrite -parallel",
-                "reconstructPar -constant -noFields",
-                "renumberMesh -overwrite",
-                "checkMesh -allGeometry -allTopology -writeSets -setFormat vtk"
+                "reconstructPar -constant -latestTime -noFields",
+                "renumberMesh -constant -overwrite",
+                "checkMesh -constant -allGeometry -allTopology -writeSets -setFormat vtk"
             });
             }
 
@@ -173,8 +173,8 @@ namespace EddyLib.Strings
         "blockMesh",
         "surfaceFeatures",
         "snappyHexMesh -overwrite",
-        "renumberMesh -overwrite",
-        "checkMesh -allGeometry -allTopology -writeSets -setFormat vtk"};
+        "renumberMesh -constant -overwrite",
+        "checkMesh -constant -allGeometry -allTopology -writeSets -setFormat vtk"};
 
         private static readonly List<string> divU = new List<string> { "foamPostProcess -func ttt -latestTime" };
 
@@ -571,7 +571,14 @@ namespace EddyLib.Strings
 
                 sb.AppendLine("@echo off");
                 sb.AppendLine("setlocal enableextensions");
-                sb.AppendLine($@"call ""{DefaultDirectoriesAndPaths.BlueCfdSetvarsBat}""");
+                sb.AppendLine($@"call ""{DefaultDirectoriesAndPaths.GetBlueCfdSetvarsBat(installationPath)}""");
+                sb.AppendLine($@"set ""PATH={DefaultDirectoriesAndPaths.GetBlueCfdBatchPathPrefix(installationPath)};%PATH%""");
+                string mpiName = DefaultDirectoriesAndPaths.GetBlueCfdMpiName(installationPath);
+                if (!string.IsNullOrWhiteSpace(mpiName))
+                {
+                    sb.AppendLine($@"set ""FOAM_MPI={mpiName}""");
+                }
+                sb.AppendLine();
 
                 if (needsDriveSwitch)
                     sb.AppendLine($"{driveLetter}:");
@@ -592,7 +599,7 @@ namespace EddyLib.Strings
                     if (line.StartsWith("reconstructPar ", StringComparison.OrdinalIgnoreCase) ||
                         line.Equals("reconstructPar", StringComparison.OrdinalIgnoreCase))
                     {
-                        sb.AppendLine($"{line} >> \"reconstructPar.log\" 2>&1");
+                        sb.AppendLine($"{line} 2>&1 | tee -a \"reconstructPar.log\"");
                     }
                     else
                     {
@@ -694,7 +701,7 @@ namespace EddyLib.Strings
         }
 
         public static string AppendToLog(string logFile) =>
-            $" >> \"{logFile}\" 2>&1";
+            $" 2>&1 | tee -a \"{logFile}\"";
 
         /// <summary>
         public static string SymbolicLinkCreatorBatch()

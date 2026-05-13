@@ -72,6 +72,69 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         [Fact]
+        public void BuildBlueCfdBatch_UsesDetectedInstalledMpiPath()
+        {
+            string tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            string caseDir = Path.Combine(tempDir, "case");
+            string mpiName = "MS-MPI-10.2.0";
+            string mpiBin = Path.Combine(tempDir, "ThirdParty-12", "platforms", "mingw_w64Gcc122", mpiName, "bin");
+            string olderMpiBin = Path.Combine(tempDir, "ThirdParty-12", "platforms", "mingw_w64Gcc122", "MS-MPI-10.1.2", "bin");
+            string mpiLib = Path.Combine(tempDir, "OpenFOAM-12", "platforms", "mingw_w64Gcc122DPInt32Opt", "lib", mpiName);
+
+            Directory.CreateDirectory(caseDir);
+            Directory.CreateDirectory(mpiBin);
+            Directory.CreateDirectory(olderMpiBin);
+            Directory.CreateDirectory(mpiLib);
+            File.WriteAllText(Path.Combine(tempDir, "setvars_OF12.bat"), "@echo off");
+            File.WriteAllText(Path.Combine(mpiBin, "mpiexec.exe"), string.Empty);
+            File.WriteAllText(Path.Combine(olderMpiBin, "mpiexec.exe"), string.Empty);
+            File.WriteAllText(Path.Combine(mpiLib, "libPstream.dll"), string.Empty);
+
+            try
+            {
+                string script = EddyLib.Strings.BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(
+                    new[] { "mpiexec -np 2 foamRun -solver incompressibleFluid -parallel" },
+                    caseDir,
+                    EddyLib.Strings.RunMode.Canvas,
+                    tempDir);
+
+                Assert.Contains(Path.Combine(tempDir, "setvars_OF12.bat"), script);
+                Assert.Contains(mpiBin, script);
+                Assert.Contains(mpiLib, script);
+                Assert.Contains($"FOAM_MPI={mpiName}", script);
+                Assert.Equal(mpiName, DefaultDirectoriesAndPaths.GetBlueCfdMpiName(tempDir));
+                Assert.Equal("10.2.0", DefaultDirectoriesAndPaths.GetBlueCfdMpiVersion(tempDir));
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+            }
+        }
+
+        [Fact]
+        public void FindResidualsDat_FindsNonZeroTimeDirectory()
+        {
+            string caseDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            string residualsPath = Path.Combine(caseDir, "postProcessing", "residuals", "1", "residuals.dat");
+
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(residualsPath));
+                File.WriteAllText(residualsPath, "# Residuals\n1 1e-3\n");
+
+                string foundPath = EddyLib.Strings.PlotResiduals.FindResidualsDat(caseDir);
+                string foundFolder = EddyLib.Strings.PlotResiduals.FindResidualsFolder(caseDir);
+
+                Assert.Equal(residualsPath, foundPath);
+                Assert.Equal(Path.GetDirectoryName(residualsPath), foundFolder);
+            }
+            finally
+            {
+                if (Directory.Exists(caseDir)) Directory.Delete(caseDir, true);
+            }
+        }
+
+        [Fact]
         public void TestCheckBlueCfd_PathWithSpaces_Throws()
         {
             string originalPath = DefaultDirectoriesAndPaths.BlueCfdDir;
