@@ -359,7 +359,7 @@ namespace Eddy
                     // file before parsing. Cheap no-op when no chunked output exists.
                     int chunkCountForRead = res.RunSettings.simEngine == SimEngine.Docker
                         ? 1
-                        : ProbeChunking.DecideChunkCount(points.Count, res.RunSettings.CPUs, windDirPath);
+                        : ProbeChunking.DecideChunkCount(points.Count, res.RunSettings.CPUs, currentCaseDir);
                     if (chunkCountForRead > 1)
                     {
                         ProbeChunking.MergeChunkResults(currentCaseDir, probeName, currField.FieldName, chunkCountForRead);
