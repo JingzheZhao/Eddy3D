@@ -102,6 +102,8 @@ namespace EddyLib
             ps.AppendLine("    $procs += Start-Process -FilePath $exe -ArgumentList @('-case', $case, '-func', $cn, '-time', $time) -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr");
             ps.AppendLine("}");
             ps.AppendLine("$procs | Wait-Process");
+            // Self-delete the sidecar script so the case folder stays clean after probing.
+            ps.AppendLine("try { Remove-Item -Force -LiteralPath $MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue } catch { }");
 
             try
             {

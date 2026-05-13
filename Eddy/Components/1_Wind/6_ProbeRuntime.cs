@@ -342,7 +342,7 @@ namespace Eddy
                             .Select(s => s.TrimEnd())
                             .Where(s => s.Length > 0)
                             .ToList();
-                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(commandLines, res.WorkingDirectory, RunMode.Canvas, addCountdown: true);
+                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(commandLines, res.WorkingDirectory, RunMode.Canvas);
                         Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, request.ProbeCompleted, res.WorkingDirectory);
                     }
 
@@ -452,7 +452,7 @@ namespace Eddy
                             .Select(s => s.TrimEnd())
                             .Where(s => s.Length > 0)
                             .ToList();
-                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(commandLines, res.WorkingDirectory, RunMode.Canvas, addCountdown: true);
+                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(commandLines, res.WorkingDirectory, RunMode.Canvas);
                         Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, request.ProbeCompleted, res.WorkingDirectory);
                     }
 
