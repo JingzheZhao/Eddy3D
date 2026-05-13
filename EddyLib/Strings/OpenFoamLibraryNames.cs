@@ -14,7 +14,7 @@ namespace EddyLib.Strings
             if (normalized.Equals("libsampling", System.StringComparison.OrdinalIgnoreCase) ||
                 normalized.Equals("sampling", System.StringComparison.OrdinalIgnoreCase))
             {
-                return "sampling";
+                return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "libsampling" : "sampling";
             }
 
             if (normalized.EndsWith(".so", System.StringComparison.OrdinalIgnoreCase) ||
