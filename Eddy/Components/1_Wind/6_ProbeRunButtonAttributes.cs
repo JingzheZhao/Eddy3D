@@ -19,6 +19,14 @@ namespace Eddy
         public Action<bool> HandleToggle;
         public bool Toggle;
 
+        // Parameterless ctor is REQUIRED by Grasshopper's parameter deserializer. Without it,
+        // loading any .gh file that contains a Probe component throws "Parameter type is unknown"
+        // and "Input parameter chunk is missing", which forced users to rewire from scratch.
+        public GH_ToggleParam()
+            : this("Run", "Run", "Run the component.", false)
+        {
+        }
+
         public GH_ToggleParam(string name, string nickname, string description, bool defaultItem = false)
             : base(name, nickname, description, EddyVersion.Name, "Params")
         {

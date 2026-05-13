@@ -356,8 +356,25 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     string systemDir = Path.Combine(currCase, "system");
                     if (!Directory.Exists(systemDir)) Directory.CreateDirectory(systemDir);
 
-                    string path = Path.Combine(systemDir, probeNameByUser);
-                    File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
+                    int chunkCount = RES.RunSettings.simEngine == SimEngine.Docker
+                        ? 1
+                        : ProbeChunking.DecideChunkCount(Probes.Count, Environment.ProcessorCount);
+
+                    if (chunkCount <= 1)
+                    {
+                        string path = Path.Combine(systemDir, probeNameByUser);
+                        File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
+                    }
+                    else
+                    {
+                        var chunks = ProbeChunking.Split(Probes, chunkCount);
+                        for (int c = 0; c < chunkCount; c++)
+                        {
+                            string chunkName = ProbeChunking.ChunkName(probeNameByUser, c);
+                            string chunkPath = Path.Combine(systemDir, chunkName);
+                            File.WriteAllText(chunkPath, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(chunks[c], chunkName, Probing.ReformatIS(InterpolationScheme)));
+                        }
+                    }
 
                     if (!File.Exists(pathToPointFile))
                     {
@@ -383,8 +400,18 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     else
                     {
                         int latestTime = ProbingNew.GetLatestTime(currCase, RES);
-                        command.AppendLine(@"if exist """ + RES.Domain.BCond.WindDirections[i] + @"\postProcessing\" + probeNameByUser + @""" rmdir /S /Q """ + RES.Domain.BCond.WindDirections[i] + @"\postProcessing\" + probeNameByUser + @"""");
-                        command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + latestTime);
+                        string windDirStr = RES.Domain.BCond.WindDirections[i].ToString();
+                        if (chunkCount <= 1)
+                        {
+                            command.AppendLine(@"if exist """ + windDirStr + @"\postProcessing\" + probeNameByUser + @""" rmdir /S /Q """ + windDirStr + @"\postProcessing\" + probeNameByUser + @"""");
+                            command.AppendLine(@"postProcess -case " + windDirStr + " -func " + probeNameByUser + @" -time " + latestTime);
+                        }
+                        else
+                        {
+                            // Cleanup of per-chunk postProcessing folders is folded into the PS
+                            // command itself, so we emit exactly one line per wind direction.
+                            command.AppendLine(ProbeChunking.BuildParallelLaunchCommand(RES.WorkingDirectory, "postProcess", windDirStr, probeNameByUser, chunkCount, latestTime));
+                        }
                     }
                 }
 
@@ -399,11 +426,20 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     }
                     else
                     {
-                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
+                        var commandLines = command.ToString()
+                            .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(s => s.TrimEnd())
+                            .Where(s => s.Length > 0)
+                            .ToList();
+                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(commandLines, RES.WorkingDirectory, RunMode.Canvas);
                         Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, probingComplete, RES.WorkingDirectory);
                         return;
                     }
                 }
+
+                int chunkCountForRead = RES.RunSettings.simEngine == SimEngine.Docker
+                    ? 1
+                    : ProbeChunking.DecideChunkCount(Probes.Count, Environment.ProcessorCount);
 
                 for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
                 {
@@ -412,6 +448,11 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     foreach (field f in Enum.GetValues(typeof(field)))
                     {
                         var currField = new OFFieldNew(probeNameByUser, f, InterpolationScheme);
+
+                        if (chunkCountForRead > 1)
+                        {
+                            ProbeChunking.MergeChunkResults(currentCaseDir, probeNameByUser, currField.FieldName, chunkCountForRead);
+                        }
                         //  var currField = new OFFieldNew(probeNameByUser, field.U);
 
                         try

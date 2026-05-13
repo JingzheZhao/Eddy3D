@@ -6,6 +6,7 @@ using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
+using GH_IO.Serialization;
 using Rhino.Geometry;
 using System;
 using System.Collections;
@@ -34,6 +35,18 @@ namespace Eddy
         private IGH_Param _pointsInput;
         private IGH_Param _runInput;
         private IGH_Param _probePointsOutput;
+        // Mode-specific inputs/outputs are cached so that ApplyLayout reuses the same param
+        // instances across rebuilds. Without caching, every layout switch (including the one
+        // that runs right after a .gh file load) would create fresh Param_* objects, which
+        // unbinds every existing wire on the component.
+        private IGH_Param _ofNameInput;
+        private IGH_Param _ofInterpolationInput;
+        private IGH_Param _ofFieldInput;
+        private IGH_Param _ofResultOutput;
+        private IGH_Param _fxQuantityInput;
+        private IGH_Param _fxTimeModeInput;
+        private IGH_Param _fxTargetTimeInput;
+        private IGH_Param _fxTimeWindowInput;
 
         private readonly FluidX3DPointProbeState _fluidX3DState = new FluidX3DPointProbeState();
 
@@ -63,6 +76,28 @@ namespace Eddy
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
+        }
+
+        public override bool Read(GH_IReader reader)
+        {
+            // Cached field references captured in the constructor (and from prior layout passes)
+            // are stale once base.Read replaces Params.Input/Output with the freshly deserialized
+            // instances from the archive. Clearing them forces EnsureCommonParams / BuildLayout
+            // to re-discover the loaded params by nickname so wires survive the load.
+            _resultInput = null;
+            _pointsInput = null;
+            _runInput = null;
+            _probePointsOutput = null;
+            _ofNameInput = null;
+            _ofInterpolationInput = null;
+            _ofFieldInput = null;
+            _ofResultOutput = null;
+            _fxQuantityInput = null;
+            _fxTimeModeInput = null;
+            _fxTargetTimeInput = null;
+            _fxTimeWindowInput = null;
+            _layoutMode = ProbeLayoutMode.Neutral;
+            return base.Read(reader);
         }
 
         public override void AddedToDocument(GH_Document document)
@@ -114,7 +149,7 @@ namespace Eddy
         {
             List<Point3d> points = new List<Point3d>();
             string probeName = string.Empty;
-            int interpolationScheme = 3;
+            int interpolationScheme = 0;
             int fieldIndex = 0;
             bool run = false;
 
@@ -419,25 +454,32 @@ namespace Eddy
 
             if (mode == ProbeLayoutMode.OpenFoam)
             {
+                _ofNameInput          ??= Params.Input.FirstOrDefault(p => p.NickName == "Name") ?? CreateOpenFoamNameInput();
+                _ofInterpolationInput ??= Params.Input.FirstOrDefault(p => p.NickName == "IS")   ?? CreateOpenFoamInterpolationInput();
+                _ofFieldInput         ??= Params.Input.FirstOrDefault(p => p.NickName == "Field") ?? CreateOpenFoamFieldInput();
                 return new List<IGH_Param>
                 {
                     _resultInput,
                     _pointsInput,
-                    CreateOpenFoamNameInput(),
-                    CreateOpenFoamInterpolationInput(),
-                    CreateOpenFoamFieldInput(),
+                    _ofNameInput,
+                    _ofInterpolationInput,
+                    _ofFieldInput,
                     _runInput
                 };
             }
 
+            _fxQuantityInput   ??= Params.Input.FirstOrDefault(p => p.NickName == GH_Strings.FluidX3DProbe.QuantityNick) ?? CreateFluidX3DQuantityInput();
+            _fxTimeModeInput   ??= Params.Input.FirstOrDefault(p => p.NickName == GH_Strings.FluidX3DProbe.TimeModeNick) ?? CreateFluidX3DTimeModeInput();
+            _fxTargetTimeInput ??= Params.Input.FirstOrDefault(p => p.NickName == GH_Strings.FluidX3DProbe.TargetTimeNick) ?? CreateFluidX3DTargetTimeInput();
+            _fxTimeWindowInput ??= Params.Input.FirstOrDefault(p => p.NickName == GH_Strings.FluidX3DProbe.TimeWindowNick) ?? CreateFluidX3DTimeWindowInput();
             return new List<IGH_Param>
             {
                 _resultInput,
                 _pointsInput,
-                CreateFluidX3DQuantityInput(),
-                CreateFluidX3DTimeModeInput(),
-                CreateFluidX3DTargetTimeInput(),
-                CreateFluidX3DTimeWindowInput(),
+                _fxQuantityInput,
+                _fxTimeModeInput,
+                _fxTargetTimeInput,
+                _fxTimeWindowInput,
                 _runInput
             };
         }
@@ -453,10 +495,11 @@ namespace Eddy
 
             if (mode == ProbeLayoutMode.OpenFoam)
             {
+                _ofResultOutput ??= Params.Output.FirstOrDefault(p => p.NickName == "Res") ?? CreateOpenFoamResultOutput();
                 return new List<IGH_Param>
                 {
                     _probePointsOutput,
-                    CreateOpenFoamResultOutput()
+                    _ofResultOutput
                 };
             }
 
@@ -593,10 +636,14 @@ namespace Eddy
 
         private void EnsureCommonParams()
         {
-            _resultInput ??= Params.Input.FirstOrDefault(p => p.NickName == "Res") ?? CreateGenericInput("Result", "Res", "Eddy simulation result.", GH_ParamAccess.item, false);
-            _pointsInput ??= CreatePointInput("Probe Points", "Pts", "Probe points.", GH_ParamAccess.list, false);
-            _runInput ??= CreateBooleanInput("Run", "Run", "Run the component.", GH_ParamAccess.item, false);
-            _probePointsOutput ??= CreatePointOutput("Probe Points", "Pts", "Probe points.", GH_ParamAccess.list);
+            // After a .gh file load, base.Read has already restored the params with their wires
+            // into Params.Input/Output but the cached field references are null. Look them up
+            // by nickname so we adopt the loaded instances instead of creating fresh ones
+            // (which would unbind every wire on the next layout apply).
+            _resultInput       ??= Params.Input.FirstOrDefault(p => p.NickName == "Res")  ?? CreateGenericInput("Result", "Res", "Eddy simulation result.", GH_ParamAccess.item, false);
+            _pointsInput       ??= Params.Input.FirstOrDefault(p => p.NickName == "Pts" || p.NickName == "Points") ?? CreatePointInput("Probe Points", "Pts", "Probe points.", GH_ParamAccess.list, false);
+            _runInput          ??= Params.Input.FirstOrDefault(p => p is GH_ToggleParam || p.NickName == "Run") ?? CreateBooleanInput("Run", "Run", "Run the component.", GH_ParamAccess.item, false);
+            _probePointsOutput ??= Params.Output.FirstOrDefault(p => p.NickName == "Pts" || p.NickName == "Probes") ?? CreatePointOutput("Probe Points", "Pts", "Probe points.", GH_ParamAccess.list);
         }
 
         private static void ConfigureParam(IGH_Param param, string name, string nick, string description, GH_ParamAccess access, bool optional)
@@ -636,7 +683,7 @@ namespace Eddy
 
         private static IGH_Param CreateOpenFoamInterpolationInput()
         {
-            Param_Integer param = CreateIntegerInput("Interpolation Scheme", "IS", "Interpolation Scheme.", GH_ParamAccess.item, false, 3);
+            Param_Integer param = CreateIntegerInput("Interpolation Scheme", "IS", "Interpolation Scheme.", GH_ParamAccess.item, false, 0);
             param.AddNamedValue("cell", 0);
             param.AddNamedValue("cellPoint", 1);
             param.AddNamedValue("cellPointFace", 2);

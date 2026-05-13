@@ -400,27 +400,16 @@ namespace EddyLib.Strings
 
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
+                // Always run serial — probing operates on the reconstructed case.
                 string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
-                if (RunSettings.CPUs > 1)
-                {
-                    sb.Append(dockerPrefix).Append($"if [ -d \"processor0\" ]; then mpirun -np {RunSettings.CPUs} foamPostProcess -parallel -func ttt -latestTime; else foamPostProcess -func ttt -latestTime; fi");
-                }
-                else
-                {
-                    sb.Append(dockerPrefix).Append("foamPostProcess -func ttt -latestTime");
-                }
+                sb.Append(dockerPrefix).Append("foamPostProcess -func ttt -latestTime");
             }
             else
             {
-                List<string> cmds = new List<string>();
-                if (RunSettings.CPUs > 1)
-                {
-                    cmds.Add($"if exist \"processor0\" ( mpiexec -np {RunSettings.CPUs} foamPostProcess -parallel -func ttt -latestTime ) else ( foamPostProcess -func ttt -latestTime )");
-                }
-                else
-                {
-                    cmds.Add("foamPostProcess -func ttt -latestTime");
-                }
+                // Always run serial — probing operates on the reconstructed case and does not
+                // need MPI. The previous parallel branch (mpiexec + -parallel) caused indefinite
+                // hangs with BlueCFD 2024 / OpenMPI when processor0 folders were still present.
+                var cmds = new List<string> { "foamPostProcess -func ttt -latestTime" };
                 sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(cmds, caseWorkingDir));
             }
 

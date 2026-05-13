@@ -73,6 +73,17 @@ namespace EddyLib
                     sw.Write(scriptContent);
                 }
 
+                // Debug snapshot: persist the script content to the working directory so we can
+                // inspect what actually ran after the temp file is deleted on cleanup.
+                if (!string.IsNullOrWhiteSpace(workingDir) && Directory.Exists(workingDir))
+                {
+                    try
+                    {
+                        File.WriteAllText(Path.Combine(workingDir, "_last_eddy_command.bat"), scriptContent);
+                    }
+                    catch { }
+                }
+
                 ThreadStart ths = new ThreadStart(() =>
                 {
                     Process p = new Process();

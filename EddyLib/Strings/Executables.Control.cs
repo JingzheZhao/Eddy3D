@@ -56,7 +56,8 @@ libs
             writeCompression uncompressed;
             timeFormat general;
             timePrecision   6;
-            runTimeModifiable true;
+            runTimeModifiable false;
+            fileModificationChecking off;
 ");
 
             return sb.ToString();

@@ -245,8 +245,26 @@ namespace Eddy
                         Directory.CreateDirectory(systemDir);
                     }
 
-                    string path = Path.Combine(systemDir, probeName);
-                    File.WriteAllText(path, OFExecDicts.SampleProbes(points, currField));
+                    int chunkCount = res.RunSettings.simEngine == SimEngine.Docker
+                        ? 1
+                        : ProbeChunking.DecideChunkCount(points.Count, Environment.ProcessorCount);
+
+                    if (chunkCount <= 1)
+                    {
+                        string path = Path.Combine(systemDir, probeName);
+                        File.WriteAllText(path, OFExecDicts.SampleProbes(points, currField));
+                    }
+                    else
+                    {
+                        var chunks = ProbeChunking.Split(points, chunkCount);
+                        for (int c = 0; c < chunkCount; c++)
+                        {
+                            string chunkName = ProbeChunking.ChunkName(probeName, c);
+                            var chunkField = new OFField(currField.FieldName, chunkName, request.InterpolationScheme);
+                            string chunkPath = Path.Combine(systemDir, chunkName);
+                            File.WriteAllText(chunkPath, OFExecDicts.SampleProbes(chunks[c], chunkField));
+                        }
+                    }
 
                     if (!File.Exists(pathToPointFile))
                     {
@@ -281,17 +299,26 @@ namespace Eddy
                     else
                     {
                         int latestTime = Probing.GetLatestTime(windDirPath, res, currField);
-                        command.AppendLine(
-                            @"if exist """
-                            + windDir
-                            + @"\postProcessing\"
-                            + probeName
-                            + @""" rmdir /S /Q """
-                            + windDir
-                            + @"\postProcessing\"
-                            + probeName
-                            + @"""");
-                        command.AppendLine(@"foamPostProcess -case " + windDir + " -func " + probeName + " -time " + latestTime);
+                        if (chunkCount <= 1)
+                        {
+                            command.AppendLine(
+                                @"if exist """
+                                + windDir
+                                + @"\postProcessing\"
+                                + probeName
+                                + @""" rmdir /S /Q """
+                                + windDir
+                                + @"\postProcessing\"
+                                + probeName
+                                + @"""");
+                            command.AppendLine(@"foamPostProcess -case " + windDir + " -func " + probeName + " -time " + latestTime);
+                        }
+                        else
+                        {
+                            // Cleanup of per-chunk postProcessing folders is folded into the PS
+                            // command itself, so we emit exactly one line per wind direction.
+                            command.AppendLine(ProbeChunking.BuildParallelLaunchCommand(res.WorkingDirectory, "foamPostProcess", windDir, probeName, chunkCount, latestTime));
+                        }
                     }
                 }
 
@@ -310,7 +337,12 @@ namespace Eddy
                     }
                     else
                     {
-                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, res.WorkingDirectory, RunMode.Canvas, addCountdown: true);
+                        var commandLines = command.ToString()
+                            .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(s => s.TrimEnd())
+                            .Where(s => s.Length > 0)
+                            .ToList();
+                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(commandLines, res.WorkingDirectory, RunMode.Canvas, addCountdown: true);
                         Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, request.ProbeCompleted, res.WorkingDirectory);
                     }
 
@@ -322,6 +354,17 @@ namespace Eddy
                 for (int i = 0; i < res.Domain.BCond.WindDirections.Count; i++)
                 {
                     string currentCaseDir = Path.Combine(res.WorkingDirectory, res.Domain.BCond.WindDirections[i].ToString());
+
+                    // If chunked probes were used, stitch their outputs into the canonical single
+                    // file before parsing. Cheap no-op when no chunked output exists.
+                    int chunkCountForRead = res.RunSettings.simEngine == SimEngine.Docker
+                        ? 1
+                        : ProbeChunking.DecideChunkCount(points.Count, Environment.ProcessorCount);
+                    if (chunkCountForRead > 1)
+                    {
+                        ProbeChunking.MergeChunkResults(currentCaseDir, probeName, currField.FieldName, chunkCountForRead);
+                    }
+
                     string pathToProbeFile = Probing.GetPathToProbedResults(currentCaseDir, currField, res);
                     if (File.Exists(pathToProbeFile))
                     {
@@ -404,7 +447,12 @@ namespace Eddy
                     }
                     else
                     {
-                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, res.WorkingDirectory, RunMode.Canvas, addCountdown: true);
+                        var commandLines = command.ToString()
+                            .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(s => s.TrimEnd())
+                            .Where(s => s.Length > 0)
+                            .ToList();
+                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(commandLines, res.WorkingDirectory, RunMode.Canvas, addCountdown: true);
                         Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, request.ProbeCompleted, res.WorkingDirectory);
                     }
 
