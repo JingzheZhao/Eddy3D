@@ -9,7 +9,7 @@ namespace EddyLib
     {
         public class StartProcess
         {
-            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe", EventHandler eh = null)
+            public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe", EventHandler eh = null, string workingDir = null)
             {
                 if (!File.Exists(executable)) { return; }
                 ValidatePathForShell(executable);
@@ -23,7 +23,9 @@ namespace EddyLib
                             FileName = @"C:\Windows\System32\cmd.exe",
                             UseShellExecute = false,
                             CreateNoWindow = createnowindow,
+                            WorkingDirectory = workingDir ?? string.Empty
                         };
+
                         psi.ArgumentList.Add("/c");
                         psi.ArgumentList.Add(executable);
                         if (!string.IsNullOrEmpty(argument))
@@ -33,7 +35,10 @@ namespace EddyLib
 
                         using (Process p = Process.Start(psi))
                         {
-                            p?.WaitForExit();
+                            if (waitforexit)
+                            {
+                                p?.WaitForExit();
+                            }
                             eh?.Invoke(p, EventArgs.Empty);
                         }
                     }
@@ -43,11 +48,18 @@ namespace EddyLib
                     }
                 });
 
-                Thread th = new Thread(ths) { IsBackground = true };
-                th.Start();
+                if (startInNewThread)
+                {
+                    Thread th = new Thread(ths) { IsBackground = true };
+                    th.Start();
+                }
+                else
+                {
+                    ths();
+                }
             }
 
-            public static void StartBatchScriptCMDNT(string scriptContent, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, EventHandler eh = null)
+            public static void StartBatchScriptCMDNT(string scriptContent, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, EventHandler eh = null, string workingDir = null)
             {
                 if (string.IsNullOrWhiteSpace(scriptContent)) { return; }
 
@@ -67,6 +79,8 @@ namespace EddyLib
                     p.StartInfo.FileName = cmdExe;
                     p.StartInfo.UseShellExecute = false;
                     p.StartInfo.CreateNoWindow = createnowindow;
+                    p.StartInfo.WorkingDirectory = workingDir ?? string.Empty;
+
                     p.StartInfo.ArgumentList.Add("/c");
                     p.StartInfo.ArgumentList.Add(tempBatchFile);
 
@@ -95,7 +109,10 @@ namespace EddyLib
                         {
                             try
                             {
-                                File.Delete(tempBatchFile);
+                                if (File.Exists(tempBatchFile))
+                                {
+                                    File.Delete(tempBatchFile);
+                                }
                             }
                             catch
                             {
@@ -107,7 +124,7 @@ namespace EddyLib
 
                 if (startInNewThread)
                 {
-                    Thread th = new Thread(ths);
+                    Thread th = new Thread(ths) { IsBackground = true };
                     th.Start();
                 }
                 else

@@ -139,7 +139,16 @@ namespace EddyLib
             int lastIter = ProbeTimeHelper.GetLatestIteration(workingDirectory, null);
             string fullPath = ProbePathHelper.BuildProbeFilePath(workingDirectory, ofField.ProbeName, ofField.FieldName, lastIter);
 
-            return File.Exists(fullPath) ? fullPath : string.Empty;
+            if (File.Exists(fullPath)) return fullPath;
+
+            // Fallback to time 0 if latest iteration doesn't have the file (common in OpenFOAM 12)
+            if (lastIter != 0)
+            {
+                string zeroPath = ProbePathHelper.BuildProbeFilePath(workingDirectory, ofField.ProbeName, ofField.FieldName, 0);
+                if (File.Exists(zeroPath)) return zeroPath;
+            }
+
+            return string.Empty;
         }
 
         /// <summary>

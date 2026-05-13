@@ -310,8 +310,8 @@ namespace Eddy
                     }
                     else
                     {
-                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, res.WorkingDirectory, RunMode.Canvas);
-                        Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, request.ProbeCompleted);
+                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, res.WorkingDirectory, RunMode.Canvas, addCountdown: true);
+                        Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, request.ProbeCompleted, res.WorkingDirectory);
                     }
 
                     output.CanRunAfter = request.CanRun;
@@ -404,8 +404,8 @@ namespace Eddy
                     }
                     else
                     {
-                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, res.WorkingDirectory, RunMode.Canvas);
-                        Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, request.ProbeCompleted);
+                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, res.WorkingDirectory, RunMode.Canvas, addCountdown: true);
+                        Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, request.ProbeCompleted, res.WorkingDirectory);
                     }
 
                     output.CanRunAfter = request.CanRun;

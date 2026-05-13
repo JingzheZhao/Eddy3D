@@ -425,24 +425,24 @@ GH_Strings.SimpleFoam.Desc + EddyVersion.toString(),
                 // BlueCFD: run via batch files (Windows only)
                 if (makeTrees == true && canRun)
                 {
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", "run_make_trees.bat"), taskComplete);
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", "run_make_trees.bat"), taskComplete, baseWorkingDirectory);
                 }
 
                 if (runMeshing == true && runSimulation == true && canRun)
                 {
                     Utilities.DeletePhi(MeshSettings, DOM);
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", "run.bat"), taskComplete);
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", "run.bat"), taskComplete, baseWorkingDirectory);
                 }
                 else if (runMeshing == true && runSimulation == false && canRun)
                 {
                     Utilities.DeletePhi(MeshSettings, DOM);
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", "run_mesh.bat"), taskComplete);
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", "run_mesh.bat"), taskComplete, baseWorkingDirectory);
                 }
                 else if (runMeshing == false && runSimulation == true && canRun)
                 {
                     Utilities.DeletePhi(MeshSettings, DOM);
                     string simBat = hasExistingIterations ? "run_sim_continue_all.bat" : "run_sim_all.bat";
-                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", simBat), taskComplete);
+                    Utilities.StartProcess.StartProcessCMDNT("", false, true, false, true, Path.Combine(baseWorkingDirectory, "Scripts", simBat), taskComplete, baseWorkingDirectory);
                 }
             }
 

@@ -44,14 +44,14 @@ namespace EddyLib.Strings
                     {
                         sb.Append(dockerPrefix).Append(str);
                     }
-                    sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+                    sb.AppendLine("timeout /t 15");
                 }
             }
             else
             {
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(TopoSet, MeshSettings.meshWorkingDir));
-                    sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+                    sb.Append(WindowsCountdown());
                 }
             }
             return sb.ToString();
@@ -407,7 +407,7 @@ namespace EddyLib.Strings
                     {
                         sb.Append(dockerPrefix).Append(str);
                     }
-                    sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+                    sb.AppendLine("timeout /t 15");
                 }
                 else
                 {
@@ -416,7 +416,7 @@ namespace EddyLib.Strings
                     {
                         sb.Append(dockerPrefix).Append(str);
                     }
-                    sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+                    sb.AppendLine("timeout /t 15");
                 }
             }
             else
@@ -424,12 +424,12 @@ namespace EddyLib.Strings
                 if (RunSettings.CPUs > 1)
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(divU, caseWorkingDir));
-                    sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+                    sb.AppendLine("timeout /t 15");
                 }
                 else
                 {
                     sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(divU, caseWorkingDir));
-                    sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+                    sb.AppendLine("timeout /t 15");
                 }
             }
 
@@ -471,12 +471,12 @@ namespace EddyLib.Strings
                 {
                     sb.Append(dockerPrefix).Append(str);
                 }
-                sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+                sb.AppendLine("timeout /t 15");
             }
             else
             {
                 sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(reconstructMesh(), MeshSettings.meshWorkingDir));
-                sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+                sb.AppendLine("timeout /t 15");
             }
             return sb.ToString();
         }
@@ -491,9 +491,7 @@ namespace EddyLib.Strings
                 sb.AppendLine(@"call ""%~dp0" + i + @"_run_sim.bat""");
             }
 
-#if DEBUG
-            //sb.AppendLine("PAUSE");
-#endif
+            sb.Append(WindowsCountdown());
             return sb.ToString();
         }
 
@@ -504,9 +502,7 @@ namespace EddyLib.Strings
             {
                 sb.AppendLine("call \"%~dp0" + i + "_run_sim.bat\"");
             }
-#if DEBUG
-            //sb.AppendLine("PAUSE");
-#endif
+            sb.Append(WindowsCountdown());
             return sb.ToString();
         }
 
@@ -517,6 +513,7 @@ namespace EddyLib.Strings
             {
                 sb.AppendLine("call \"%~dp0" + i + "_run_sim_continue.bat\"");
             }
+            sb.Append(WindowsCountdown());
             return sb.ToString();
         }
 
@@ -527,9 +524,7 @@ namespace EddyLib.Strings
             {
                 sb.AppendLine("call \"%~dp0" + i + "_run_postprocess_U.bat\"" + " <nul");
             }
-#if DEBUG
-            //sb.AppendLine("PAUSE");
-#endif
+            sb.Append(WindowsCountdown());
             return sb.ToString();
         }
 
@@ -546,12 +541,14 @@ namespace EddyLib.Strings
             /// </param>
             /// <param name="installationPath">Path to blueCFD installation (trailing backslash optional).</param>
             /// <param name="logFile">Name of the log file to tee into.</param>
+            /// <param name="addCountdown">Whether to add a 15-second countdown at the end.</param>
             public static string BuildBlueCfdBatch(
                 IEnumerable<string> commands,
                 string caseDir,
                 RunMode runMode = RunMode.Batchfile,
                 string installationPath = null,
-                string logFile = "log.txt")
+                string logFile = "log.txt",
+                bool addCountdown = false)
             {
                 if (commands is null) throw new ArgumentNullException(nameof(commands));
                 if (string.IsNullOrWhiteSpace(caseDir)) throw new ArgumentException("caseDir is required.", nameof(caseDir));
@@ -595,16 +592,22 @@ namespace EddyLib.Strings
                 foreach (var line in commands.Select(c => (c ?? string.Empty).Trim())
                              .Where(c => !string.IsNullOrEmpty(c)))
                 {
+                    sb.AppendLine($@"echo Running: {line.Replace("\"", "\"\"")}");
                     var logForThisCommand = InferLogFileName(line, "log.txt");
                     if (line.StartsWith("reconstructPar ", StringComparison.OrdinalIgnoreCase) ||
                         line.Equals("reconstructPar", StringComparison.OrdinalIgnoreCase))
                     {
-                        sb.AppendLine($"{line} 2>&1 | tee -a \"reconstructPar.log\"");
+                        sb.AppendLine($"{line}{AppendToLog("reconstructPar.log")}");
                     }
                     else
                     {
                         sb.AppendLine($"{line}{AppendToLog(logForThisCommand)}");
                     }
+                }
+
+                if (addCountdown)
+                {
+                    sb.Append(WindowsCountdown());
                 }
 
                 return sb.ToString();
@@ -701,7 +704,20 @@ namespace EddyLib.Strings
         }
 
         public static string AppendToLog(string logFile) =>
-            $" 2>&1 | tee -a \"{logFile}\"";
+            $" 2>&1 | %SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$Input | Tee-Object -FilePath '{logFile}' -Append\"";
+
+        public static string WindowsCountdown()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine();
+            sb.AppendLine("echo.");
+            sb.AppendLine("echo ============================================================");
+            sb.AppendLine("echo Task completed. Window will close in 15 seconds.");
+            sb.AppendLine("echo Press any key to close now.");
+            sb.AppendLine("echo ============================================================");
+            sb.AppendLine("timeout /t 15 || ping -n 16 127.0.0.1 >nul");
+            return sb.ToString();
+        }
 
         /// <summary>
         public static string SymbolicLinkCreatorBatch()
@@ -741,7 +757,7 @@ namespace EddyLib.Strings
             sb.AppendLine("echo Done.");
             sb.AppendLine("echo Created: !CREATED!   Skipped/Failed: !SKIPPED!");
             sb.AppendLine("echo =========================================");
-            sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+            sb.AppendLine("timeout /t 15");
             return sb.ToString();
         }
 
@@ -755,7 +771,7 @@ namespace EddyLib.Strings
             sb.AppendLine("echo Updating decomposeParDict and batch files to use %cores% physical cores...");
             sb.AppendLine("powershell -NoProfile -Command \"$cores = [int]$env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
-            sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+            sb.AppendLine("timeout /t 15");
             return sb.ToString();
         }
 
@@ -768,7 +784,7 @@ namespace EddyLib.Strings
             sb.AppendLine("echo Updating decomposeParDict and batch files to use %cores% processors...");
             sb.AppendLine("powershell -NoProfile -Command \"$cores = [int]$env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
-            sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+            sb.AppendLine("timeout /t 15");
             return sb.ToString();
         }
 
@@ -783,7 +799,7 @@ namespace EddyLib.Strings
             sb.AppendLine("echo Updating decomposeParDict and batch files to use %cores% cores...");
             sb.AppendLine("powershell -Command \"$cores = $env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
-            sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+            sb.AppendLine("timeout /t 15");
             return sb.ToString();
         }
         public static string DeleteProcessorFolders()
@@ -805,7 +821,7 @@ namespace EddyLib.Strings
             sb.AppendLine("");
             sb.AppendLine("echo -------------------------------------");
             sb.AppendLine("echo Done.");
-            sb.AppendLine("ping -n 6 127.0.0.1 >nul");
+            sb.AppendLine("timeout /t 15");
             return sb.ToString();
         }
     }

@@ -127,6 +127,27 @@ namespace RhinoPlugin.Test.Xunit
 
             var residualPlot = CreateResidualPlotPng(caseDir, windDir);
             Assert.True(File.Exists(residualPlot), $"Residual plot not found: {residualPlot}");
+
+            // Add probing check
+            var probeName = "testProbe";
+            var probePoints = new List<Point3d> { new Point3d(0, 0, 1.5) };
+            var fieldName = "U";
+            var ofField = new OFField(fieldName, probeName, 1);
+            string windDirPath = Path.Combine(caseDir, windDir.ToString());
+            File.WriteAllText(Path.Combine(windDirPath, "system", probeName), EddyLib.Strings.OFExecDicts.SampleProbes(probePoints, ofField));
+
+            var postProcessCmd = $"foamPostProcess -case {windDir} -func {probeName}";
+            var ppBatchPath = Path.Combine(caseDir, "Scripts", "run_probing.bat");
+            File.WriteAllText(ppBatchPath, EddyLib.Strings.BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { postProcessCmd }, caseDir, EddyLib.Strings.RunMode.Canvas));
+            
+            var (ppSuccess, ppLog) = RunBatchFileInteractive(caseDir, Path.Combine("Scripts", "run_probing.bat"));
+            Assert.True(ppSuccess, $"Post-processing failed: {ppLog}");
+
+            var res = new OFResult(domBox, runSettings, meshSettings, caseDir);
+            var probing = new Probing(probePoints, windDirPath, caseDir, ofField, res, rerun: true, currWindDir: windDir.ToString());
+            Assert.NotNull(probing.ResultVec);
+            Assert.Single(probing.ResultVec);
+            Assert.NotNull(probing.ResultVec[0]);
         }
 
         // Runs a batch file headless and captures output for diagnostics.
