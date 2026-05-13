@@ -51,6 +51,8 @@ namespace EddyLib.Docker
         {
             _dockerExe = dockerExe ?? DockerEnvironment.GetDockerPath();
             _imageName = imageName ?? DockerConfig.ImageName;
+            Utilities.ValidatePathForShell(_dockerExe);
+            Utilities.ValidatePathForShell(_imageName);
         }
 
         /// <summary>
@@ -62,6 +64,8 @@ namespace EddyLib.Docker
         /// <param name="timeoutMs">Timeout in ms (0 = no timeout).</param>
         public DockerCommandResult RunHeadless(string bashCmd, string hostCasePath, int timeoutMs = 0)
         {
+            Utilities.ValidatePathForShell(hostCasePath);
+
             if (string.IsNullOrEmpty(_dockerExe))
             {
                 return new DockerCommandResult(-1, string.Empty,
@@ -142,6 +146,8 @@ namespace EddyLib.Docker
         /// <returns>Log of the launch process.</returns>
         public string RunInteractive(string bashCmd, string hostCasePath)
         {
+            Utilities.ValidatePathForShell(hostCasePath);
+
             var log = new StringBuilder();
 
             if (string.IsNullOrEmpty(_dockerExe))
@@ -189,6 +195,9 @@ namespace EddyLib.Docker
         /// <param name="hostCasePath">Host path to mount as /case.</param>
         public void WriteDockerRunScript(string scriptPath, string bashCmd, string hostCasePath)
         {
+            Utilities.ValidatePathForShell(scriptPath);
+            Utilities.ValidatePathForShell(hostCasePath);
+
             hostCasePath = SanitizeDockerPath(hostCasePath);
             var dockerExe = _dockerExe ?? "/usr/local/bin/docker";
             var escapedCmd = bashCmd.Replace("'", "'\"'\"'");
@@ -327,8 +336,13 @@ echo ""----------------------------------------""
         /// <param name="title">Title shown in the terminal window.</param>
         public static string BuildCommandFileContent(IReadOnlyList<string> commands, string hostCasePath, string title)
         {
+            Utilities.ValidatePathForShell(hostCasePath);
+
             hostCasePath = SanitizeDockerPath(hostCasePath);
             var dockerExe = DockerEnvironment.GetDockerPath() ?? "docker";
+            Utilities.ValidatePathForShell(dockerExe);
+            Utilities.ValidatePathForShell(DockerConfig.ImageName);
+
             var chain = BuildCommandChain(commands);
             var escapedChain = chain.Replace("'", "'\"'\"'");
 
