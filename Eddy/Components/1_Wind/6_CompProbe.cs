@@ -455,8 +455,8 @@ namespace Eddy
             if (mode == ProbeLayoutMode.OpenFoam)
             {
                 _ofNameInput          ??= Params.Input.FirstOrDefault(p => p.NickName == "Name") ?? CreateOpenFoamNameInput();
-                _ofInterpolationInput ??= Params.Input.FirstOrDefault(p => p.NickName == "IS")   ?? CreateOpenFoamInterpolationInput();
-                _ofFieldInput         ??= Params.Input.FirstOrDefault(p => p.NickName == "Field") ?? CreateOpenFoamFieldInput();
+                _ofInterpolationInput ??= AdoptOrCreate("IS",    Params.Input, p => PopulateInterpolationNamedValues((Param_Integer)p), CreateOpenFoamInterpolationInput);
+                _ofFieldInput         ??= AdoptOrCreate("Field", Params.Input, p => PopulateFieldNamedValues((Param_Integer)p),         CreateOpenFoamFieldInput);
                 return new List<IGH_Param>
                 {
                     _resultInput,
@@ -468,8 +468,8 @@ namespace Eddy
                 };
             }
 
-            _fxQuantityInput   ??= Params.Input.FirstOrDefault(p => p.NickName == GH_Strings.FluidX3DProbe.QuantityNick) ?? CreateFluidX3DQuantityInput();
-            _fxTimeModeInput   ??= Params.Input.FirstOrDefault(p => p.NickName == GH_Strings.FluidX3DProbe.TimeModeNick) ?? CreateFluidX3DTimeModeInput();
+            _fxQuantityInput   ??= AdoptOrCreate(GH_Strings.FluidX3DProbe.QuantityNick, Params.Input, p => PopulateFluidX3DQuantityNamedValues((Param_Integer)p), CreateFluidX3DQuantityInput);
+            _fxTimeModeInput   ??= AdoptOrCreate(GH_Strings.FluidX3DProbe.TimeModeNick, Params.Input, p => PopulateFluidX3DTimeModeNamedValues((Param_Integer)p), CreateFluidX3DTimeModeInput);
             _fxTargetTimeInput ??= Params.Input.FirstOrDefault(p => p.NickName == GH_Strings.FluidX3DProbe.TargetTimeNick) ?? CreateFluidX3DTargetTimeInput();
             _fxTimeWindowInput ??= Params.Input.FirstOrDefault(p => p.NickName == GH_Strings.FluidX3DProbe.TimeWindowNick) ?? CreateFluidX3DTimeWindowInput();
             return new List<IGH_Param>
@@ -681,20 +681,36 @@ namespace Eddy
             return CreateTextInput("Name of instance", "Name", "Name of instance to be probed.", GH_ParamAccess.item, true);
         }
 
-        private static IGH_Param CreateOpenFoamInterpolationInput()
+        // Adopt an existing loaded param by nickname (running the populate action on it so the
+        // right-click named-value menu survives a .gh load), or create a fresh one if none
+        // exists. Named values aren't persisted in the archive, so they must be re-added after
+        // every deserialization.
+        private static IGH_Param AdoptOrCreate(string nickName, IList<IGH_Param> existing, Action<IGH_Param> populate, Func<IGH_Param> create)
         {
-            Param_Integer param = CreateIntegerInput("Interpolation Scheme", "IS", "Interpolation Scheme.", GH_ParamAccess.item, false, 0);
+            IGH_Param found = existing.FirstOrDefault(p => p.NickName == nickName);
+            if (found != null)
+            {
+                try { populate(found); } catch { /* tolerate type mismatch from foreign archives */ }
+                return found;
+            }
+            return create();
+        }
+
+        private static void PopulateInterpolationNamedValues(Param_Integer param)
+        {
+            if (param == null) return;
+            param.ClearNamedValues();
             param.AddNamedValue("cell", 0);
             param.AddNamedValue("cellPoint", 1);
             param.AddNamedValue("cellPointFace", 2);
             param.AddNamedValue("pointMVC", 3);
             param.AddNamedValue("cellPatchConstrained", 4);
-            return param;
         }
 
-        private static IGH_Param CreateOpenFoamFieldInput()
+        private static void PopulateFieldNamedValues(Param_Integer param)
         {
-            Param_Integer param = CreateIntegerInput("Name of field", "Field", "Name of field to be probed.", GH_ParamAccess.item, false, 0);
+            if (param == null) return;
+            param.ClearNamedValues();
             param.AddNamedValue("Velocity (U) [m/s]", 0);
             param.AddNamedValue("Pressure coefficient (total(p)_coeff) [-]", 1);
             param.AddNamedValue("Pressure (p) [m^2/s^2]", 2);
@@ -705,6 +721,36 @@ namespace Eddy
             param.AddNamedValue("Mass flow (phi) [m^3/s]", 7);
             param.AddNamedValue("Age of air (aoa) [s]", 8);
             param.AddNamedValue("Particle Concentration (covid19) []", 9);
+        }
+
+        private static void PopulateFluidX3DQuantityNamedValues(Param_Integer param)
+        {
+            if (param == null) return;
+            param.ClearNamedValues();
+            param.AddNamedValue("Velocity U", 0);
+            param.AddNamedValue("Density rho", 1);
+        }
+
+        private static void PopulateFluidX3DTimeModeNamedValues(Param_Integer param)
+        {
+            if (param == null) return;
+            param.ClearNamedValues();
+            param.AddNamedValue("Latest", 0);
+            param.AddNamedValue("Closest physical time", 1);
+            param.AddNamedValue("Average over [T0, T1]", 2);
+        }
+
+        private static IGH_Param CreateOpenFoamInterpolationInput()
+        {
+            Param_Integer param = CreateIntegerInput("Interpolation Scheme", "IS", "Interpolation Scheme.", GH_ParamAccess.item, false, 0);
+            PopulateInterpolationNamedValues(param);
+            return param;
+        }
+
+        private static IGH_Param CreateOpenFoamFieldInput()
+        {
+            Param_Integer param = CreateIntegerInput("Name of field", "Field", "Name of field to be probed.", GH_ParamAccess.item, false, 0);
+            PopulateFieldNamedValues(param);
             return param;
         }
 
