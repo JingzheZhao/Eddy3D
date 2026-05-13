@@ -210,6 +210,12 @@ namespace EddyLib
                 entries.Add(mpiLib);
             }
 
+            string thirdPartyMpiLib = FindBlueCfdThirdPartyMpiLibDir(root, mpiName);
+            if (!string.IsNullOrWhiteSpace(thirdPartyMpiLib))
+            {
+                entries.Add(thirdPartyMpiLib);
+            }
+
             string mpiBin = FindBlueCfdMpiBinDir(root);
             if (!string.IsNullOrWhiteSpace(mpiBin))
             {
@@ -523,6 +529,43 @@ namespace EddyLib
                     if (File.Exists(Path.Combine(mpiLib, "libPstream.dll")))
                     {
                         return mpiLib;
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            return string.Empty;
+        }
+
+        private static string FindBlueCfdThirdPartyMpiLibDir(string blueCfdDir, string mpiName)
+        {
+            string root = NormalizeBlueCfdRoot(blueCfdDir);
+            if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(mpiName) || !Directory.Exists(root))
+            {
+                return string.Empty;
+            }
+
+            string thirdPartyDir = Path.Combine(root, BlueCfdThirdPartyFolderName, "platforms");
+            if (!Directory.Exists(thirdPartyDir))
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                foreach (string candidate in Directory.EnumerateDirectories(thirdPartyDir, mpiName, SearchOption.AllDirectories))
+                {
+                    if (!candidate.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                        .Any(part => part.Equals("lib", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        continue;
+                    }
+
+                    if (Directory.EnumerateFiles(candidate, "*.dll").Any())
+                    {
+                        return candidate;
                     }
                 }
             }

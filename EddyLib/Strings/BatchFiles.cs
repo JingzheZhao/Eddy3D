@@ -392,24 +392,34 @@ namespace EddyLib.Strings
             return sb.ToString();
         }
 
-        public static string Run_postprocess_U(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, OFExecutionMode mode, int d)
+        public static List<string> GetProbingCommands(OFRunSettings RunSettings, string probeName, string timeArg)
+        {
+            // Always run serial. The previous parallel branch (mpiexec/mpirun + -parallel)
+            // hung indefinitely on BlueCFD 2024 / OpenMPI when processor0 folders remained
+            // after reconstruction. Probing operates on the reconstructed case and does not
+            // need MPI; large probe sets are instead parallelized by chunking in C#
+            // (see ProbeChunking + 6_ProbeRuntime / WProbes).
+            return new List<string> { $"foamPostProcess -func {probeName} {timeArg}" };
+        }
+
+        public static string Run_postprocess_U(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, OFExecutionMode mode, int d, string probeName = "ttt", string time = null)
         {
             StringBuilder sb = new StringBuilder();
 
             string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.WindDirections[d];
+            string timeArg = string.IsNullOrEmpty(time) ? "-latestTime" : $"-time {time}";
+            var cmds = GetProbingCommands(RunSettings, probeName, timeArg);
 
             if (RunSettings.simEngine == SimEngine.Docker)//Docker
             {
-                // Always run serial — probing operates on the reconstructed case.
                 string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
-                sb.Append(dockerPrefix).Append("foamPostProcess -func ttt -latestTime");
+                foreach (var cmd in cmds)
+                {
+                    sb.Append(dockerPrefix).Append(cmd);
+                }
             }
             else
             {
-                // Always run serial — probing operates on the reconstructed case and does not
-                // need MPI. The previous parallel branch (mpiexec + -parallel) caused indefinite
-                // hangs with BlueCFD 2024 / OpenMPI when processor0 folders were still present.
-                var cmds = new List<string> { "foamPostProcess -func ttt -latestTime" };
                 sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(cmds, caseWorkingDir));
             }
 
@@ -570,7 +580,7 @@ namespace EddyLib.Strings
                 foreach (var line in commands.Select(c => (c ?? string.Empty).Trim())
                              .Where(c => !string.IsNullOrEmpty(c)))
                 {
-                    sb.AppendLine($@"echo Running: {line.Replace("\"", "\"\"")}");
+                    sb.AppendLine($@"echo Running: {line}");
                     var logForThisCommand = InferLogFileName(line, "log.txt");
                     if (line.StartsWith("reconstructPar ", StringComparison.OrdinalIgnoreCase) ||
                         line.Equals("reconstructPar", StringComparison.OrdinalIgnoreCase))
@@ -682,7 +692,7 @@ namespace EddyLib.Strings
         }
 
         public static string AppendToLog(string logFile) =>
-            $" 2>&1 | %SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$Input | Tee-Object -FilePath '{logFile}' -Append\"";
+            $" 2>&1 | tee -a \"{logFile}\"";
 
         public static string WindowsCountdown()
         {

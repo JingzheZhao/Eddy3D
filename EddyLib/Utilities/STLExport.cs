@@ -43,11 +43,19 @@ namespace EddyLib
                     var pt2 = m.Vertices[m.Faces[i].B];
                     var pt3 = m.Vertices[m.Faces[i].C];
 
-                    sb.AppendLine("\tfacet normal " + Utilities.FormatPV(m.FaceNormals[i]));
+                    sb.Append("\tfacet normal ");
+                    Utilities.AppendPV(sb, m.FaceNormals[i]);
+                    sb.AppendLine();
                     sb.AppendLine("\t\touter loop");
-                    sb.AppendLine("\t\t\tvertex " + Utilities.FormatPV(pt1));
-                    sb.AppendLine("\t\t\tvertex " + Utilities.FormatPV(pt2));
-                    sb.AppendLine("\t\t\tvertex " + Utilities.FormatPV(pt3));
+                    sb.Append("\t\t\tvertex ");
+                    Utilities.AppendPV(sb, pt1);
+                    sb.AppendLine();
+                    sb.Append("\t\t\tvertex ");
+                    Utilities.AppendPV(sb, pt2);
+                    sb.AppendLine();
+                    sb.Append("\t\t\tvertex ");
+                    Utilities.AppendPV(sb, pt3);
+                    sb.AppendLine();
                     sb.AppendLine("\t\tendloop");
                     sb.AppendLine("\tendfacet");
 
@@ -95,11 +103,19 @@ namespace EddyLib
                 var pt2 = m.Vertices[m.Faces[i].B];
                 var pt3 = m.Vertices[m.Faces[i].C];
 
-                sb.AppendLine("\tfacet normal " + Utilities.FormatPV(m.FaceNormals[i]));
+                sb.Append("\tfacet normal ");
+                Utilities.AppendPV(sb, m.FaceNormals[i]);
+                sb.AppendLine();
                 sb.AppendLine("\t\touter loop");
-                sb.AppendLine("\t\t\tvertex " + Utilities.FormatPV(pt1));
-                sb.AppendLine("\t\t\tvertex " + Utilities.FormatPV(pt2));
-                sb.AppendLine("\t\t\tvertex " + Utilities.FormatPV(pt3));
+                sb.Append("\t\t\tvertex ");
+                Utilities.AppendPV(sb, pt1);
+                sb.AppendLine();
+                sb.Append("\t\t\tvertex ");
+                Utilities.AppendPV(sb, pt2);
+                sb.AppendLine();
+                sb.Append("\t\t\tvertex ");
+                Utilities.AppendPV(sb, pt3);
+                sb.AppendLine();
                 sb.AppendLine("\t\tendloop");
                 sb.AppendLine("\tendfacet");
 

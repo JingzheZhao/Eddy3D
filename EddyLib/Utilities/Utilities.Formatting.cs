@@ -18,6 +18,24 @@ namespace EddyLib
         public static string FormatPV(Vector3d v) =>
         String.Format(eddy3dculture, "{0:0.###} {1:0.###} {2:0.###}", v.X, v.Y, v.Z);
 
+        public static void AppendPV(System.Text.StringBuilder sb, Point3d p)
+        {
+            sb.Append(p.X.ToString("0.###", eddy3dculture))
+              .Append(' ')
+              .Append(p.Y.ToString("0.###", eddy3dculture))
+              .Append(' ')
+              .Append(p.Z.ToString("0.###", eddy3dculture));
+        }
+
+        public static void AppendPV(System.Text.StringBuilder sb, Vector3d v)
+        {
+            sb.Append(v.X.ToString("0.###", eddy3dculture))
+              .Append(' ')
+              .Append(v.Y.ToString("0.###", eddy3dculture))
+              .Append(' ')
+              .Append(v.Z.ToString("0.###", eddy3dculture));
+        }
+
         public static string FormatDouble(double d) =>
         // Preserve small non-zero physical values (e.g. roughness length z0 = 0.00015).
         String.Format(eddy3dculture, "{0:0.########}", d);

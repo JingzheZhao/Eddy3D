@@ -57,6 +57,8 @@ namespace EddyLib
 
         public static readonly int[] CumulativeDays = new int[] { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
 
+        public static readonly int[] DayToMonth = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11 };
+
         public int HourInYear(int monthIndex, int dayIndex, int hourIndex)
         {
             return (CumulativeDays[monthIndex] + dayIndex) * 24 + hourIndex;
@@ -64,24 +66,19 @@ namespace EddyLib
 
         public void DayOfYear_To_MonthAndDay(int dayOfYear, out int month, out int day)
         {
-            month = 0;
-            day = 0;
-            int doy = 0;
-            for (int m = 0; m < 12; m++)
+            if (dayOfYear < 0 || dayOfYear >= 365)
             {
-                if (doy + DaysInMonth[m] > dayOfYear)
-                {
-                    month = m;
-                    day = dayOfYear - doy;
-                    return;
-                }
-                doy += DaysInMonth[m];
+                // Handle edge case (e.g. leap year or wrong hour) by modulo
+                // Typically we only process h < 8760, so dayOfYear < 365
+                dayOfYear = ((dayOfYear % 365) + 365) % 365;
             }
+            month = DayToMonth[dayOfYear];
+            day = dayOfYear - CumulativeDays[month];
         }
 
         public void HourOfYear_To_MDH(int hourOfYear, out int month, out int day, out int hour)
         {
-            int dayOfYear = (int)Math.Floor(hourOfYear / 24d);
+            int dayOfYear = hourOfYear / 24;
             DayOfYear_To_MonthAndDay(dayOfYear, out month, out day);
             hour = hourOfYear - dayOfYear * 24;
         }
