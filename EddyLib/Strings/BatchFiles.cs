@@ -392,35 +392,53 @@ namespace EddyLib.Strings
             return sb.ToString();
         }
 
-        public static string Run_postprocess_U(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, OFExecutionMode mode, int d)
+        public static List<string> GetProbingCommands(OFRunSettings RunSettings, string probeName, string timeArg)
         {
-            StringBuilder sb = new StringBuilder();
-
-            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.WindDirections[d];
-
-            if (RunSettings.simEngine == SimEngine.Docker)//Docker
+            List<string> cmds = new List<string>();
+            if (RunSettings.simEngine == SimEngine.Docker)
             {
-                string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
                 if (RunSettings.CPUs > 1)
                 {
-                    sb.Append(dockerPrefix).Append($"if [ -d \"processor0\" ]; then mpirun -np {RunSettings.CPUs} foamPostProcess -parallel -func ttt -latestTime; else foamPostProcess -func ttt -latestTime; fi");
+                    cmds.Add($"if [ -d \"processor0\" ]; then mpirun -np {RunSettings.CPUs} foamPostProcess -parallel -func {probeName} {timeArg}; else foamPostProcess -func {probeName} {timeArg}; fi");
                 }
                 else
                 {
-                    sb.Append(dockerPrefix).Append("foamPostProcess -func ttt -latestTime");
+                    cmds.Add($"foamPostProcess -func {probeName} {timeArg}");
                 }
             }
             else
             {
-                List<string> cmds = new List<string>();
                 if (RunSettings.CPUs > 1)
                 {
-                    cmds.Add($"if exist \"processor0\" ( mpiexec -np {RunSettings.CPUs} foamPostProcess -parallel -func ttt -latestTime ) else ( foamPostProcess -func ttt -latestTime )");
+                    cmds.Add($"if exist \"processor0\" mpiexec -np {RunSettings.CPUs} foamPostProcess -parallel -func {probeName} {timeArg}");
+                    cmds.Add($"if not exist \"processor0\" foamPostProcess -func {probeName} {timeArg}");
                 }
                 else
                 {
-                    cmds.Add("foamPostProcess -func ttt -latestTime");
+                    cmds.Add($"foamPostProcess -func {probeName} {timeArg}");
                 }
+            }
+            return cmds;
+        }
+
+        public static string Run_postprocess_U(OFMeshSettings MeshSettings, OFRunSettings RunSettings, OFBaseDomain DOM, OFExecutionMode mode, int d, string probeName = "ttt", string time = null)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            string caseWorkingDir = MeshSettings.baseWorkingDir + "\\" + DOM.BCond.WindDirections[d];
+            string timeArg = string.IsNullOrEmpty(time) ? "-latestTime" : $"-time {time}";
+            var cmds = GetProbingCommands(RunSettings, probeName, timeArg);
+
+            if (RunSettings.simEngine == SimEngine.Docker)//Docker
+            {
+                string dockerPrefix = DockerPrefixPath(DOM, MeshSettings, RunSettings, mode, d);
+                foreach (var cmd in cmds)
+                {
+                    sb.Append(dockerPrefix).Append(cmd).Append("\"");
+                }
+            }
+            else
+            {
                 sb.Append(BlueCfdScriptBuilder.BuildBlueCfdBatch(cmds, caseWorkingDir));
             }
 
@@ -581,7 +599,7 @@ namespace EddyLib.Strings
                 foreach (var line in commands.Select(c => (c ?? string.Empty).Trim())
                              .Where(c => !string.IsNullOrEmpty(c)))
                 {
-                    sb.AppendLine($@"echo Running: {line.Replace("\"", "\"\"")}");
+                    sb.AppendLine($@"echo Running: {line}");
                     var logForThisCommand = InferLogFileName(line, "log.txt");
                     if (line.StartsWith("reconstructPar ", StringComparison.OrdinalIgnoreCase) ||
                         line.Equals("reconstructPar", StringComparison.OrdinalIgnoreCase))
@@ -693,7 +711,7 @@ namespace EddyLib.Strings
         }
 
         public static string AppendToLog(string logFile) =>
-            $" 2>&1 | %SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$Input | Tee-Object -FilePath '{logFile}' -Append\"";
+            $" 2>&1 | tee -a \"{logFile}\"";
 
         public static string WindowsCountdown()
         {

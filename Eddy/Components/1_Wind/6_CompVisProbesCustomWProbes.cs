@@ -343,19 +343,18 @@ Generates visualizations of the wind field, including vector arrows and streamli
 
             try
             {
-                StringBuilder command = new StringBuilder();
+                var blueCfdCmds = new List<string>();
                 var dockerProbeCmds = new List<string>();
 
                 for (int i = 0; i < RES.Domain.BCond.WindDirections.Count; i++)
                 {
-                    // Check if mesh exists
+                    string windDir = RES.Domain.BCond.WindDirections[i].ToString();
+                    string currCase = Path.Combine(RES.WorkingDirectory, windDir);
+                    string pathToPointFile = Path.Combine(currCase, "constant", "polyMesh", "points");
 
-                    // Write the dicts for both Docker and BlueCFD
-                    string pathToPointFile = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString(), "constant", "polyMesh", "points");
-                    string currCase = Path.Combine(RES.WorkingDirectory, RES.Domain.BCond.WindDirections[i].ToString());
+                    // Write the dicts
                     string systemDir = Path.Combine(currCase, "system");
                     if (!Directory.Exists(systemDir)) Directory.CreateDirectory(systemDir);
-
                     string path = Path.Combine(systemDir, probeNameByUser);
                     File.WriteAllText(path, EddyLib.Strings.OFExecDicts.SampleProbesAllFields(Probes, probeNameByUser, Probing.ReformatIS(InterpolationScheme)));
 
@@ -366,25 +365,26 @@ Generates visualizations of the wind field, including vector arrows and streamli
                         else continue;
                     }
 
+                    string timeArg = "-latestTime";
+                    if (RES.RunSettings.simEngine != SimEngine.Docker)
+                    {
+                        int latestTime = ProbingNew.GetLatestTime(currCase, RES);
+                        timeArg = "-time " + latestTime;
+                    }
+
+                    var probeCmds = BatFiles.GetProbingCommands(RES.RunSettings, probeNameByUser, timeArg);
+
                     if (RES.RunSettings.simEngine == SimEngine.Docker)
                     {
-                        if (i > 0) dockerProbeCmds.Add("cd " + DockerConfig.CaseMountPoint);
-                        string source = string.Format("{0}/mesh/constant/polyMesh", DockerConfig.CaseMountPoint);
-                        string targetConstant = string.Format("{0}/{1}/constant", DockerConfig.CaseMountPoint, RES.Domain.BCond.WindDirections[i]);
-                        string target = string.Format("{0}/polyMesh", targetConstant);
-                        dockerProbeCmds.Add(string.Format("if [ ! -d \"{0}\" ]; then echo \"ERROR: Mesh source not found at {0}\"; exit 1; fi", source));
-                        dockerProbeCmds.Add(string.Format("mkdir -p \"{0}\"", targetConstant));
-                        dockerProbeCmds.Add(string.Format("rm -rf \"{0}\"", target));
-                        dockerProbeCmds.Add(string.Format("cp -r \"{0}\" \"{1}\"", source, target));
-                        dockerProbeCmds.Add(string.Format("cd {0}", RES.Domain.BCond.WindDirections[i]));
-                        dockerProbeCmds.Add(string.Format("rm -rf \"postProcessing/{0}\"", probeNameByUser));
-                        dockerProbeCmds.Add(string.Format("postProcess -func {0} -latestTime", probeNameByUser));
+                        dockerProbeCmds.Add($"cd {windDir}");
+                        dockerProbeCmds.Add($"rm -rf \"postProcessing/{probeNameByUser}\"");
+                        dockerProbeCmds.AddRange(probeCmds);
                     }
                     else
                     {
-                        int latestTime = ProbingNew.GetLatestTime(currCase, RES);
-                        command.AppendLine(@"if exist """ + RES.Domain.BCond.WindDirections[i] + @"\postProcessing\" + probeNameByUser + @""" rmdir /S /Q """ + RES.Domain.BCond.WindDirections[i] + @"\postProcessing\" + probeNameByUser + @"""");
-                        command.AppendLine(@"postProcess -case " + RES.Domain.BCond.WindDirections[i] + " -func " + probeNameByUser + @" -time " + latestTime);
+                        blueCfdCmds.Add($"cd /d \"%~dp0..\\{windDir}\"");
+                        blueCfdCmds.Add($"if exist \"postProcessing\\{probeNameByUser}\" rmdir /S /Q \"postProcessing\\{probeNameByUser}\"");
+                        blueCfdCmds.AddRange(probeCmds);
                     }
                 }
 
@@ -399,7 +399,7 @@ Generates visualizations of the wind field, including vector arrows and streamli
                     }
                     else
                     {
-                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(new List<string> { command.ToString() }, RES.WorkingDirectory, RunMode.Canvas);
+                        var cmdArg = BatFiles.BlueCfdScriptBuilder.BuildBlueCfdBatch(blueCfdCmds, RES.WorkingDirectory, RunMode.Canvas);
                         Utilities.StartProcess.StartBatchScriptCMDNT(cmdArg, false, true, true, true, probingComplete, RES.WorkingDirectory);
                         return;
                     }
