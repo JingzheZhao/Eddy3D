@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 ﻿using System.Text;
 
 namespace EddyLib.Strings
@@ -39,28 +41,26 @@ namespace EddyLib.Strings
             return @"Please run the probing component.";
         }
 
-        public static string PointsOutsideDomain(int[] IndecesOfExtremeProbes)
+        public static string PointsOutsideDomain(int[] indicesOfExtremeProbes)
         {
-            StringBuilder sb = new StringBuilder();
+            if (indicesOfExtremeProbes == null || indicesOfExtremeProbes.Length == 0)
+                return string.Empty;
 
-            sb.Append(@"The probes with the indices:
+            const int maxDisplay = 10;
+            string indicesStr;
 
-");
-
-            for (int i = 0; i < IndecesOfExtremeProbes.Length; i++)
+            if (indicesOfExtremeProbes.Length > maxDisplay)
             {
-                sb.Append(IndecesOfExtremeProbes[i].ToString() + ", ");
-
-                if (i == 10)
-                {
-                    sb.Append(@"\n");
-                }
+                indicesStr = string.Join(", ", indicesOfExtremeProbes.Take(maxDisplay)) + $" ... and {indicesOfExtremeProbes.Length - maxDisplay} more";
             }
-            sb.Append(@"
+            else
+            {
+                indicesStr = string.Join(", ", indicesOfExtremeProbes);
+            }
 
-can't be probed within the simulation domain and have been discarded.");
-
-            return sb.ToString();
+            return "The probes with the indices:" + Environment.NewLine + Environment.NewLine +
+                   indicesStr + Environment.NewLine + Environment.NewLine +
+                   "can't be probed within the simulation domain and have been discarded.";
         }
 
         public static string ProbingFuncObjects(OFResult RES, OFField field)

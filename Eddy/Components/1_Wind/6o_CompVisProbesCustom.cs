@@ -569,10 +569,10 @@ Samples the wind field at specific locations. Use this to query wind speed and p
                             listVecs.Add((GH_Vector)item);
                         }
 
-                        int[] IndecesOfExtremeProbes = Probing.ReturnProbeIndicesOutsideDomain(listVecs);
-                        if (IndecesOfExtremeProbes.Length > 0)
+                        int[] indicesOfExtremeProbes = Probing.ReturnProbeIndicesOutsideDomain(listVecs);
+                        if (indicesOfExtremeProbes.Length > 0)
                         {
-                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, EddyLib.Strings.ReturnMsg.PointsOutsideDomain(IndecesOfExtremeProbes));
+                            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, ReturnMsg.PointsOutsideDomain(indicesOfExtremeProbes));
                         }
                     }
                 }
