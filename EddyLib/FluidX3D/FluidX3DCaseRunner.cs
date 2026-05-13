@@ -436,6 +436,7 @@ namespace EddyLib.FluidX3D
 
             try
             {
+                Utilities.ValidatePathForShell(fullScriptPath);
                 string workingDirectory = Path.GetDirectoryName(fullScriptPath) ?? string.Empty;
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
