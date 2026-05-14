@@ -40,6 +40,7 @@ namespace Eddy.Components.Radiation
         {
             private static System.Reflection.MethodInfo _attachCursorMethod;
             private object[] _cursorArgs = new object[2];
+            private int _hoverIndex = -1;
 
             public CustomAttributes(InspectPolygon_Component owner) : base(owner)
             {
@@ -61,6 +62,7 @@ namespace Eddy.Components.Radiation
             protected override void Layout()
             {
                 base.Layout();
+                _hoverIndex = -1;
 
                 //We'll extend the basic layout by adding three regions to the bottom of this component,
                 isSensor = new RectangleF(Bounds.X, Bounds.Bottom, Bounds.Width, 20);
@@ -106,30 +108,49 @@ namespace Eddy.Components.Radiation
 
             public override GH_ObjectResponse RespondToMouseMove(GH_Canvas sender, GH_CanvasMouseEvent e)
             {
-                var hoverSensor = isSensor;
-                hoverSensor.Inflate(2f, 2f);
-                var hoverHour = isHour;
-                hoverHour.Inflate(2f, 2f);
-
-                if (hoverSensor.Contains(e.CanvasLocation) || hoverHour.Contains(e.CanvasLocation))
+                int newHover = -1;
+                if (!Owner.Locked)
                 {
-                    if (_attachCursorMethod != null)
+                    var hoverSensor = isSensor;
+                    hoverSensor.Inflate(2f, 2f);
+                    var hoverHour = isHour;
+                    hoverHour.Inflate(2f, 2f);
+
+                    if (hoverSensor.Contains(e.CanvasLocation))
                     {
-                        var cursorServer = Grasshopper.Instances.CursorServer;
-                        if (cursorServer != null)
+                        newHover = 0;
+                    }
+                    else if (hoverHour.Contains(e.CanvasLocation))
+                    {
+                        newHover = 1;
+                    }
+
+                    if (newHover != -1)
+                    {
+                        if (_attachCursorMethod != null)
                         {
-                            _cursorArgs[0] = sender;
-                            _cursorArgs[1] = "GH_Hand";
-                            _attachCursorMethod.Invoke(cursorServer, _cursorArgs);
-                            return GH_ObjectResponse.Handled;
+                            var cursorServer = Grasshopper.Instances.CursorServer;
+                            if (cursorServer != null)
+                            {
+                                _cursorArgs[0] = sender;
+                                _cursorArgs[1] = "GH_Hand";
+                                _attachCursorMethod.Invoke(cursorServer, _cursorArgs);
+                            }
+                        }
+                        else
+                        {
+                            try { ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(sender, "GH_Hand"); } catch { }
                         }
                     }
-                    else
-                    {
-                        try { ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(sender, "GH_Hand"); return GH_ObjectResponse.Handled; } catch { }
-                    }
                 }
-                return base.RespondToMouseMove(sender, e);
+
+                if (newHover != _hoverIndex)
+                {
+                    _hoverIndex = newHover;
+                    sender.Invalidate();
+                }
+
+                return _hoverIndex != -1 ? GH_ObjectResponse.Handled : base.RespondToMouseMove(sender, e);
             }
 
             #endregion Custom Mouse handling
@@ -148,11 +169,11 @@ namespace Eddy.Components.Radiation
                         InspectPolygon_Component comp = Owner as InspectPolygon_Component;
 
                         GH_Capsule buttonSensor = GH_Capsule.CreateTextCapsule(isSensor, isSensor, comp.ProbePolyMode == "Polygon" ? GH_Palette.Grey : GH_Palette.White, "Polygon", 2, 0);
-                        buttonSensor.Render(graphics, this.Selected, Owner.Locked, Owner.Hidden);
+                        buttonSensor.Render(graphics, Selected || _hoverIndex == 0, Owner.Locked, Owner.Hidden);
                         buttonSensor.Dispose();
 
                         GH_Capsule buttonHour = GH_Capsule.CreateTextCapsule(isHour, isHour, comp.ProbePolyMode == "Hour" ? GH_Palette.Grey : GH_Palette.White, "Hour", 2, 0);
-                        buttonHour.Render(graphics, this.Selected, Owner.Locked, Owner.Hidden);
+                        buttonHour.Render(graphics, Selected || _hoverIndex == 1, Owner.Locked, Owner.Hidden);
                         buttonHour.Dispose();
 
                         break;

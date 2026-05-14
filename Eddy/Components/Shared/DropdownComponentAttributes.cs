@@ -185,6 +185,7 @@ namespace Eddy
         private void ShowMenu(GH_Canvas canvas, DropdownDef def, RectangleF bounds)
         {
             _hoveredParamIndex = -1;
+            canvas.Invalidate();
             var intParam = Owner.Params.Input[def.ParamIndex] as Param_Integer;
             if (intParam == null) return;
 
