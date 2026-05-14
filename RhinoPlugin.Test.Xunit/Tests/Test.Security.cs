@@ -1,6 +1,7 @@
 using System;
 using Xunit;
 using EddyLib;
+using EddyLib.Docker;
 
 namespace RhinoPlugin.Test.Xunit
 {
@@ -53,6 +54,46 @@ namespace RhinoPlugin.Test.Xunit
                 // On Unix, backslash is a metacharacter and should throw
                 Assert.Throws<ArgumentException>(() => Utilities.ValidatePathForShell(path));
             }
+        }
+
+        [Theory]
+        [InlineData("path;rm -rf /")]
+        [InlineData("path&whoami")]
+        [InlineData("path\"quote")]
+        public void DockerRunner_Methods_ThrowOnMaliciousPaths(string maliciousPath)
+        {
+            // Use a safe dockerExe and imageName for instantiation
+            var runner = new DockerRunner("docker", "busybox");
+
+            // Assert that all methods taking hostCasePath throw ArgumentException
+            Assert.Throws<ArgumentException>(() => runner.RunHeadless("ls", maliciousPath));
+            Assert.Throws<ArgumentException>(() => runner.RunInteractive("ls", maliciousPath));
+            Assert.Throws<ArgumentException>(() => runner.WriteDockerRunScript("safe.sh", "ls", maliciousPath));
+            Assert.Throws<ArgumentException>(() => DockerRunner.BuildCommandFileContent(new[] { "ls" }, maliciousPath, "Title"));
+
+            // Assert that WriteDockerRunScript also throws if scriptPath is malicious
+            Assert.Throws<ArgumentException>(() => runner.WriteDockerRunScript(maliciousPath, "ls", "safe_path"));
+        }
+
+        [Fact]
+        public void DockerRunner_Constructor_ThrowsOnMaliciousParameters()
+        {
+            Assert.Throws<ArgumentException>(() => new DockerRunner("docker;malicious", "busybox"));
+            Assert.Throws<ArgumentException>(() => new DockerRunner("docker", "busybox&malicious"));
+        }
+
+        [Fact]
+        public void DockerRunner_DefaultConstructor_DoesNotThrow()
+        {
+            // Verifies that null/default parameters don't cause ArgumentException
+            var runner = new DockerRunner();
+            Assert.NotNull(runner);
+        }
+
+        [Fact]
+        public void DockerRunner_BuildCommandFileContent_ThrowsOnMaliciousPath()
+        {
+            Assert.Throws<ArgumentException>(() => DockerRunner.BuildCommandFileContent(new[] { "ls" }, "path;malicious", "Title"));
         }
     }
 }
