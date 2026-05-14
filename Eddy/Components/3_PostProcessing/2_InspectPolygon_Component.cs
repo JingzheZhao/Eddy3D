@@ -106,7 +106,12 @@ namespace Eddy.Components.Radiation
 
             public override GH_ObjectResponse RespondToMouseMove(GH_Canvas sender, GH_CanvasMouseEvent e)
             {
-                if (isSensor.Contains(e.CanvasLocation) || isHour.Contains(e.CanvasLocation))
+                var hoverSensor = isSensor;
+                hoverSensor.Inflate(2f, 2f);
+                var hoverHour = isHour;
+                hoverHour.Inflate(2f, 2f);
+
+                if (hoverSensor.Contains(e.CanvasLocation) || hoverHour.Contains(e.CanvasLocation))
                 {
                     if (_attachCursorMethod != null)
                     {
@@ -118,6 +123,10 @@ namespace Eddy.Components.Radiation
                             _attachCursorMethod.Invoke(cursorServer, _cursorArgs);
                             return GH_ObjectResponse.Handled;
                         }
+                    }
+                    else
+                    {
+                        try { ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(sender, "GH_Hand"); return GH_ObjectResponse.Handled; } catch { }
                     }
                 }
                 return base.RespondToMouseMove(sender, e);
