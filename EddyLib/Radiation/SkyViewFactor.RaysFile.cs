@@ -47,6 +47,39 @@ namespace EddyLib.Radiation
             return Rays(pt, (IList<Vector3d>)pts_norm);
         }
 
+        public static void WriteSensorPoints(TextWriter tw, IList<Point3d> pts, IList<Vector3d> pts_norm)
+        {
+            for (int k = 0; k < pts.Count; k++)
+            {
+                WritePointAndNormal(tw, pts[k], pts_norm[k]);
+                tw.WriteLine();
+            }
+        }
+
+        public static void WriteRays(TextWriter tw, Point3d pt, IList<Vector3d> pts_norm)
+        {
+            for (int k = 0; k < pts_norm.Count; k++)
+            {
+                WritePointAndNormal(tw, pt, pts_norm[k]);
+                tw.WriteLine();
+            }
+        }
+
+        private static void WritePointAndNormal(TextWriter tw, Point3d p, Vector3d n)
+        {
+            tw.Write(p.X.ToString("0.000", radianceCulture));
+            tw.Write(' ');
+            tw.Write(p.Y.ToString("0.000", radianceCulture));
+            tw.Write(' ');
+            tw.Write(p.Z.ToString("0.000", radianceCulture));
+            tw.Write(' ');
+            tw.Write(n.X.ToString("0.000", radianceCulture));
+            tw.Write(' ');
+            tw.Write(n.Y.ToString("0.000", radianceCulture));
+            tw.Write(' ');
+            tw.Write(n.Z.ToString("0.000", radianceCulture));
+        }
+
         private static string FormatPointAndNormal(Point3d p, Vector3d n)
         {
             return String.Format(radianceCulture, "{0:0.000} {1:0.000} {2:0.000} {3:0.000} {4:0.000} {5:0.000}", p.X, p.Y, p.Z, n.X, n.Y, n.Z);

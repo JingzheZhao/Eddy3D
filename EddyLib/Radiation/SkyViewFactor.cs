@@ -150,16 +150,16 @@ namespace EddyLib.Radiation
 
             // 4. RaysFile
 
-            StringBuilder sunRaysFile = new StringBuilder();
-
-            foreach (Point3d p in sensors)
+            // Bolt: Stream ray coordinates directly to disk to avoid massive LOH allocations
+            // and potential OOM exceptions for large sensor counts.
+            using (var sw = new StreamWriter(sunRaysFilePath, false, Encoding.UTF8, 65536))
             {
-                sunRaysFile.AppendLine(Rays(p, equiSolidAngleVectors4PI()));
+                var rays = equiSolidAngleVectors4PI();
+                foreach (Point3d p in sensors)
+                {
+                    WriteRays(sw, p, rays);
+                }
             }
-
-            File.WriteAllText(sunRaysFilePath, sunRaysFile.ToString());
-
-            //A = "Final File Length: " + finalFile.Length;
 
             // 5. RayCast
 
