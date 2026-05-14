@@ -781,8 +781,13 @@ namespace EddyLib.Strings
             sb.AppendLine(":ask");
             sb.AppendLine("set /p \"cores=Enter number of cores: \"");
             sb.AppendLine("if \"%cores%\"==\"\" goto ask");
+            sb.AppendLine("echo %cores%| findstr /r \"^[0-9][0-9]*$\" >nul");
+            sb.AppendLine("if errorlevel 1 (");
+            sb.AppendLine("    echo Error: Please enter a valid numeric value for cores.");
+            sb.AppendLine("    goto ask");
+            sb.AppendLine(")");
             sb.AppendLine("echo Updating decomposeParDict and batch files to use %cores% cores...");
-            sb.AppendLine("powershell -Command \"$cores = $env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
+            sb.AppendLine("powershell -NoProfile -ExecutionPolicy Bypass -Command \"$cores = [int]$env:cores; Get-ChildItem -Path '%~dp0..' -Recurse | Where-Object { $_.Name -eq 'decomposeParDict' -or $_.Extension -eq '.bat' } | ForEach-Object { (Get-Content $_.FullName) -replace 'numberOfSubdomains\\s+\\d+;', ('numberOfSubdomains ' + $cores + ';') -replace '-np\\s+\\d+', ('-np ' + $cores) | Set-Content $_.FullName }\"");
             sb.AppendLine("echo Done.");
             return sb.ToString();
         }
