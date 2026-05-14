@@ -77,3 +77,8 @@
 **Vulnerability:** File.WriteAllText followed by external chmod call creates a TOCTOU vulnerability and command injection risk.
 **Learning:** In .NET 8, use FileStreamOptions.UnixCreateMode to atomically create executable files with the desired permissions.
 **Prevention:** Avoid external chmod processes and set permissions directly during file creation using UnixCreateMode.
+
+## 2024-05-27 - Improper Neutralization of Argument Delimiters in DockerEnvironment
+**Vulnerability:** Command injection via argument delimiters when creating `ProcessStartInfo` instances manually without `ArgumentList` in `DockerEnvironment.cs`.
+**Learning:** Using `ProcessStartInfo.Arguments = "some command " + userInput` allows an attacker to inject spaces and subsequent flags/parameters. For instance, in `image inspect`, an attacker could supply `"imageName\" --format \"malicious\""`.
+**Prevention:** Always use `ProcessStartInfo.ArgumentList` and explicitly `Add()` each argument, allowing .NET to securely escape the parameters to the OS, rather than relying on string concatenation for the `Arguments` property.
