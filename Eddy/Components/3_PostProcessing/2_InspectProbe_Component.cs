@@ -28,13 +28,40 @@ namespace Eddy.Components.Radiation
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
             ProbeInspectorMode = reader.GetString("type");
-            //dd.Text = Type;
+            UpdateLabels();
             return base.Read(reader);
         }
 
         public override void CreateAttributes()
         {
             m_attributes = new CustomAttributes(this);
+        }
+
+        private void UpdateLabels()
+        {
+            if (Params.Input.Count < 3 || Params.Output.Count < 3) return;
+
+            var input = Params.Input[2];
+            var output = Params.Output[2];
+
+            if (ProbeInspectorMode == "Hour")
+            {
+                input.Name = "Hour";
+                input.NickName = "h";
+                input.Description = "The hour index (0-8759) to visualize across all sensors.";
+
+                output.Name = "Sensor Data";
+                output.Description = "Data values for all sensors at the selected hour.";
+            }
+            else
+            {
+                input.Name = "Sensor Index";
+                input.NickName = "i";
+                input.Description = "The sensor index to visualize across all hours.";
+
+                output.Name = "Annual Data";
+                output.Description = "Data values for all hours at the selected sensor.";
+            }
         }
 
         public class CustomAttributes : GH_ComponentAttributes
@@ -65,11 +92,14 @@ namespace Eddy.Components.Radiation
                 base.Layout();
                 _hoverIndex = -1;
 
-                //We'll extend the basic layout by adding three regions to the bottom of this component,
-                isSensor = new RectangleF(Bounds.X, Bounds.Bottom, Bounds.Width, 20);
-                isHour = new RectangleF(Bounds.X, Bounds.Bottom + 20, Bounds.Width, 20);
+                float btnHeight = 20;
+                float margin = 2;
 
-                Bounds = new RectangleF(Bounds.X, Bounds.Y, Bounds.Width, Bounds.Height + 40);
+                //We'll extend the basic layout by adding two regions to the bottom of this component,
+                isSensor = new RectangleF(Bounds.X + margin, Bounds.Bottom + margin, Bounds.Width - 2 * margin, btnHeight - margin);
+                isHour = new RectangleF(Bounds.X + margin, Bounds.Bottom + btnHeight, Bounds.Width - 2 * margin, btnHeight - margin);
+
+                Bounds = new RectangleF(Bounds.X, Bounds.Y, Bounds.Width, Bounds.Height + 2 * btnHeight + margin);
             }
 
             #endregion Custom layout logic
@@ -89,6 +119,7 @@ namespace Eddy.Components.Radiation
                         if (comp.ProbeInspectorMode == "Sensor") return GH_ObjectResponse.Handled;
                         comp.RecordUndoEvent("Sensor");
                         comp.ProbeInspectorMode = "Sensor";
+                        comp.UpdateLabels();
                         comp.ExpireSolution(true);
                         return GH_ObjectResponse.Handled;
                     }
@@ -100,6 +131,7 @@ namespace Eddy.Components.Radiation
                         if (comp.ProbeInspectorMode == "Hour") return GH_ObjectResponse.Handled;
                         comp.RecordUndoEvent("Hour");
                         comp.ProbeInspectorMode = "Hour";
+                        comp.UpdateLabels();
                         comp.ExpireSolution(true);
                         return GH_ObjectResponse.Handled;
                     }
@@ -204,6 +236,7 @@ Visualizes simulation data at specific sensor points. Displays metrics like Wind
 
 " + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
         {
+            UpdateLabels();
         }
 
         /// <summary>
@@ -273,6 +306,12 @@ Visualizes simulation data at specific sensor points. Displays metrics like Wind
 
             if (ProbeInspectorMode == "Hour")
             {
+                if (rprobeList.Count > 0 && (h < 0 || h >= rprobeList[0].UTCI.Length))
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Hour index {h} is outside the valid range 0-{rprobeList[0].UTCI.Length - 1}.");
+                    return;
+                }
+
                 foreach (var rprobe in rprobeList)
                 {
                     points.Add(rprobe.Point.Value);
@@ -311,7 +350,11 @@ Visualizes simulation data at specific sensor points. Displays metrics like Wind
             }
             else
             {
-                if (h >= rprobeList.Count) return;
+                if (h < 0 || h >= rprobeList.Count)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Sensor index {h} is outside the valid range 0-{rprobeList.Count - 1}.");
+                    return;
+                }
 
                 var rprobe = rprobeList[h];
 
