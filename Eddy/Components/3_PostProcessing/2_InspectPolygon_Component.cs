@@ -27,13 +27,40 @@ namespace Eddy.Components.Radiation
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
             ProbePolyMode = reader.GetString("type");
-            //dd.Text = Type;
+            UpdateLabels();
             return base.Read(reader);
         }
 
         public override void CreateAttributes()
         {
             m_attributes = new CustomAttributes(this);
+        }
+
+        private void UpdateLabels()
+        {
+            if (Params.Input.Count < 3 || Params.Output.Count < 3) return;
+
+            var input = Params.Input[2];
+            var output = Params.Output[2];
+
+            if (ProbePolyMode == "Hour")
+            {
+                input.Name = "Hour";
+                input.NickName = "h";
+                input.Description = "The hour index (0-8759) to visualize across all polygons.";
+
+                output.Name = "Polygon Data";
+                output.Description = "Data values for all polygons at the selected hour.";
+            }
+            else
+            {
+                input.Name = "Polygon Index";
+                input.NickName = "i";
+                input.Description = "The polygon index to visualize across all hours.";
+
+                output.Name = "Annual Data";
+                output.Description = "Data values for all hours at the selected polygon.";
+            }
         }
 
         public class CustomAttributes : GH_ComponentAttributes
@@ -56,7 +83,7 @@ namespace Eddy.Components.Radiation
 
             #region Custom layout logic
 
-            private RectangleF isSensor { get; set; }
+            private RectangleF isPolygon { get; set; }
             private RectangleF isHour { get; set; }
 
             protected override void Layout()
@@ -64,11 +91,14 @@ namespace Eddy.Components.Radiation
                 base.Layout();
                 _hoverIndex = -1;
 
-                //We'll extend the basic layout by adding three regions to the bottom of this component,
-                isSensor = new RectangleF(Bounds.X, Bounds.Bottom, Bounds.Width, 20);
-                isHour = new RectangleF(Bounds.X, Bounds.Bottom + 20, Bounds.Width, 20);
+                float btnHeight = 20;
+                float margin = 2;
 
-                Bounds = new RectangleF(Bounds.X, Bounds.Y, Bounds.Width, Bounds.Height + 40);
+                //We'll extend the basic layout by adding two regions to the bottom of this component,
+                isPolygon = new RectangleF(Bounds.X + margin, Bounds.Bottom + margin, Bounds.Width - 2 * margin, btnHeight - margin);
+                isHour = new RectangleF(Bounds.X + margin, Bounds.Bottom + btnHeight, Bounds.Width - 2 * margin, btnHeight - margin);
+
+                Bounds = new RectangleF(Bounds.X, Bounds.Y, Bounds.Width, Bounds.Height + 2 * btnHeight + margin);
             }
 
             #endregion Custom layout logic
@@ -81,13 +111,14 @@ namespace Eddy.Components.Radiation
                 {
                     InspectPolygon_Component comp = Owner as InspectPolygon_Component;
 
-                    var clickSensor = isSensor;
-                    clickSensor.Inflate(2f, 2f);
-                    if (clickSensor.Contains(e.CanvasLocation))
+                    var clickPolygon = isPolygon;
+                    clickPolygon.Inflate(2f, 2f);
+                    if (clickPolygon.Contains(e.CanvasLocation))
                     {
                         if (comp.ProbePolyMode == "Polygon") return GH_ObjectResponse.Handled;
                         comp.RecordUndoEvent("Polygon");
                         comp.ProbePolyMode = "Polygon";
+                        comp.UpdateLabels();
                         comp.ExpireSolution(true);
                         return GH_ObjectResponse.Handled;
                     }
@@ -99,6 +130,7 @@ namespace Eddy.Components.Radiation
                         if (comp.ProbePolyMode == "Hour") return GH_ObjectResponse.Handled;
                         comp.RecordUndoEvent("Hour");
                         comp.ProbePolyMode = "Hour";
+                        comp.UpdateLabels();
                         comp.ExpireSolution(true);
                         return GH_ObjectResponse.Handled;
                     }
@@ -111,12 +143,12 @@ namespace Eddy.Components.Radiation
                 int newHover = -1;
                 if (!Owner.Locked)
                 {
-                    var hoverSensor = isSensor;
-                    hoverSensor.Inflate(2f, 2f);
+                    var hoverPolygon = isPolygon;
+                    hoverPolygon.Inflate(2f, 2f);
                     var hoverHour = isHour;
                     hoverHour.Inflate(2f, 2f);
 
-                    if (hoverSensor.Contains(e.CanvasLocation))
+                    if (hoverPolygon.Contains(e.CanvasLocation))
                     {
                         newHover = 0;
                     }
@@ -168,9 +200,9 @@ namespace Eddy.Components.Radiation
 
                         InspectPolygon_Component comp = Owner as InspectPolygon_Component;
 
-                        GH_Capsule buttonSensor = GH_Capsule.CreateTextCapsule(isSensor, isSensor, comp.ProbePolyMode == "Polygon" ? GH_Palette.Grey : GH_Palette.White, "Polygon", 2, 0);
-                        buttonSensor.Render(graphics, Selected || _hoverIndex == 0, Owner.Locked, Owner.Hidden);
-                        buttonSensor.Dispose();
+                        GH_Capsule buttonPolygon = GH_Capsule.CreateTextCapsule(isPolygon, isPolygon, comp.ProbePolyMode == "Polygon" ? GH_Palette.Grey : GH_Palette.White, "Polygon", 2, 0);
+                        buttonPolygon.Render(graphics, Selected || _hoverIndex == 0, Owner.Locked, Owner.Hidden);
+                        buttonPolygon.Dispose();
 
                         GH_Capsule buttonHour = GH_Capsule.CreateTextCapsule(isHour, isHour, comp.ProbePolyMode == "Hour" ? GH_Palette.Grey : GH_Palette.White, "Hour", 2, 0);
                         buttonHour.Render(graphics, Selected || _hoverIndex == 1, Owner.Locked, Owner.Hidden);
@@ -203,6 +235,7 @@ Visualizes simulation results on surface polygons (e.g., building facades, groun
 
 " + EddyVersion.toString(), EddyVersion.Name, "3 | PostProcessing")
         {
+            UpdateLabels();
         }
 
         /// <summary>
@@ -281,6 +314,20 @@ Visualizes simulation results on surface polygons (e.g., building facades, groun
 
             if (ProbePolyMode == "Hour")
             {
+                if (rpolyList.Count > 0)
+                {
+                    var firstPoly = rpolyList[0];
+                    int maxHour = -1;
+                    if (firstPoly.SurfaceTemperature != null) maxHour = firstPoly.SurfaceTemperature.Length;
+                    else if (firstPoly.TemperatureOverride != null) maxHour = firstPoly.TemperatureOverride.Length;
+
+                    if (maxHour != -1 && (h < 0 || h >= maxHour))
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Hour index {h} is outside the valid range 0-{maxHour - 1}.");
+                        return;
+                    }
+                }
+
                 foreach (var p in rpolyList)
                 {
                     if (p == null) continue;
