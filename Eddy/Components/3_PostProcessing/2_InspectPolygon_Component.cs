@@ -185,6 +185,35 @@ namespace Eddy.Components.Radiation
                 return _hoverIndex != -1 ? GH_ObjectResponse.Handled : base.RespondToMouseMove(sender, e);
             }
 
+            public override bool IsTooltipRegion(PointF canvasPoint)
+            {
+                var hoverPolygon = isPolygon;
+                hoverPolygon.Inflate(2f, 2f);
+                var hoverHour = isHour;
+                hoverHour.Inflate(2f, 2f);
+
+                return hoverPolygon.Contains(canvasPoint) || hoverHour.Contains(canvasPoint);
+            }
+
+            public override void SetupTooltip(PointF canvasPoint, GH_TooltipDisplayEventArgs e)
+            {
+                var hoverPolygon = isPolygon;
+                hoverPolygon.Inflate(2f, 2f);
+                var hoverHour = isHour;
+                hoverHour.Inflate(2f, 2f);
+
+                if (hoverPolygon.Contains(canvasPoint))
+                {
+                    e.Title = "Polygon Mode";
+                    e.Text = "Switch to visualize annual data for a specific polygon index.";
+                }
+                else if (hoverHour.Contains(canvasPoint))
+                {
+                    e.Title = "Hour Mode";
+                    e.Text = "Switch to visualize spatial data for a specific hour (0-8759).";
+                }
+            }
+
             #endregion Custom Mouse handling
 
             #region Custom Render logic

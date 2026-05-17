@@ -5,3 +5,7 @@
 ## 2026-03-10 - Dynamic parameter labeling for modal components
 **Learning:** For Grasshopper components that switch between different modes of operation (e.g., visualizing by 'Hour' vs. 'Sensor'), dynamically updating the metadata (Name, NickName, Description) of input and output parameters in response to mode changes significantly reduces user confusion. This should be implemented via a dedicated `UpdateLabels()` method called from the constructor, `Read()`, and UI event handlers.
 **Action:** Identify components with modal behavior and implement `UpdateLabels()` to ensure parameter context matches the active UI state.
+
+## 2024-05-17 - Custom ToolTips for non-standard component regions
+**Learning:** For Grasshopper components with custom rendered UI elements (like mode-switching buttons added to the capsule), standard tooltips for parameters do not cover these extra regions. Overriding `IsTooltipRegion(PointF)` and `SetupTooltip(PointF, GH_TooltipDisplayEventArgs)` allows providing context-sensitive help for these custom interactive areas, significantly improving discoverability of cryptic mode icons.
+**Action:** When adding custom interactive regions to `GH_ComponentAttributes`, always implement corresponding tooltip overrides to explain the functionality of those regions.
