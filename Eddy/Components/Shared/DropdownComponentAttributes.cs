@@ -101,7 +101,8 @@ namespace Eddy
                     new PointF(cx, cy + s * 0.7f)
                 };
                 
-                using var brush = new SolidBrush(Color.FromArgb((int)(alpha * 0.8f), SystemColors.ControlText));
+                float arrowAlpha = (def.ParamIndex == _hoveredParamIndex) ? 1.0f : 0.8f;
+                using var brush = new SolidBrush(Color.FromArgb((int)(alpha * arrowAlpha), SystemColors.ControlText));
                 graphics.FillPolygon(brush, pts);
             }
 
