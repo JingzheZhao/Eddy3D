@@ -1,10 +1,11 @@
-## 2025-05-14 - Initial Journal
-**Learning:** Found that `ReturnMsg.PointsOutsideDomain` uses literal `\n` in a verbatim string and has a typo in the parameter name ('Indeces'). It also leaves a trailing comma in the list of indices.
-**Action:** Fix the typo (while maintaining internal compatibility if needed), use proper newlines, and remove the trailing comma for better readability in Grasshopper remarks.
-## 2024-05-13 - [Inflating Hitboxes Requires Syncing MouseMove and MouseDown]
-**Learning:** Small interactive controls in Grasshopper (like toggles or arrows) can be difficult to hit precisely. Inflate their hit-test bounding boxes by a few pixels (e.g., `bounds.Inflate(2f, 2f)`) identically inside BOTH `RespondToMouseMove` and `RespondToMouseDown`. Failing to update the click handler creates a frustrating UX where the visual affordance (hand cursor) mismatches the actual clickable area.
-**Action:** When expanding hitboxes for hover effects, always verify that the corresponding click handler uses the same expanded bounding box.
+## 2024-05-14 - ToolTips on dynamic status labels
+**Learning:** In Eto.Forms, when enhancing UX, it's beneficial to explicitly initialize interactive and informational UI elements (like read-only Labels displaying dynamic data such as status or progress) with descriptive `ToolTip` properties to improve accessibility. However, it's critical to avoid adding redundant ToolTips to static text labels that already visibly describe their context (e.g., a label that already has the text "Elapsed: 00:00:00" doesn't need an "Elapsed time" tooltip), as this creates an accessibility anti-pattern.
+**Action:** When adding ToolTips to progress dialogs or similar UI components, target dynamic data fields while omitting labels that contain built-in text prefixes.
 
-## 2025-05-15 - [Interactive Hover Feedback for Custom Component Buttons]
-**Learning:** Custom buttons in Grasshopper components (rendered via `GH_Capsule`) feel "dead" without visual feedback. Tracking a hover state (e.g., via `_hoverIndex`) and passing it to the `GH_Capsule.Render` method's `highlighted` parameter significantly improves the perceived responsiveness of the UI.
-**Action:** For all custom interactive areas in `GH_ComponentAttributes`, implement hover tracking in `RespondToMouseMove` and trigger `sender.Invalidate()` to provide immediate visual feedback.
+## 2026-03-10 - Dynamic parameter labeling for modal components
+**Learning:** For Grasshopper components that switch between different modes of operation (e.g., visualizing by 'Hour' vs. 'Sensor'), dynamically updating the metadata (Name, NickName, Description) of input and output parameters in response to mode changes significantly reduces user confusion. This should be implemented via a dedicated `UpdateLabels()` method called from the constructor, `Read()`, and UI event handlers.
+**Action:** Identify components with modal behavior and implement `UpdateLabels()` to ensure parameter context matches the active UI state.
+
+## 2024-05-17 - Custom ToolTips for non-standard component regions
+**Learning:** For Grasshopper components with custom rendered UI elements (like mode-switching buttons added to the capsule), standard tooltips for parameters do not cover these extra regions. Overriding `IsTooltipRegion(PointF)` and `SetupTooltip(PointF, GH_TooltipDisplayEventArgs)` allows providing context-sensitive help for these custom interactive areas, significantly improving discoverability of cryptic mode icons.
+**Action:** When adding custom interactive regions to `GH_ComponentAttributes`, always implement corresponding tooltip overrides to explain the functionality of those regions.
