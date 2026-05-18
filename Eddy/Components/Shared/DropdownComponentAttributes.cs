@@ -217,5 +217,40 @@ namespace Eddy
             var screenPt = canvas.PointToScreen(Point.Round(new PointF(bounds.Left, bounds.Bottom)));
             menu.Show(screenPt);
         }
+
+        public override bool IsTooltipRegion(PointF canvasPoint)
+        {
+            foreach (var def in _defs)
+            {
+                if (!_btnBounds.TryGetValue(def.ParamIndex, out var r)) continue;
+                var param = Owner.Params.Input[def.ParamIndex];
+                if (param.SourceCount > 0) continue;
+
+                var clickRect = r;
+                clickRect.Inflate(2f, 2f);
+                if (clickRect.Contains(canvasPoint)) return true;
+            }
+            return base.IsTooltipRegion(canvasPoint);
+        }
+
+        public override void SetupTooltip(PointF canvasPoint, GH_TooltipDisplayEventArgs e)
+        {
+            foreach (var def in _defs)
+            {
+                if (!_btnBounds.TryGetValue(def.ParamIndex, out var r)) continue;
+                var param = Owner.Params.Input[def.ParamIndex];
+                if (param.SourceCount > 0) continue;
+
+                var clickRect = r;
+                clickRect.Inflate(2f, 2f);
+                if (clickRect.Contains(canvasPoint))
+                {
+                    e.Title = $"Select {param.Name}";
+                    e.Text = "Click to choose a value from the list.";
+                    return;
+                }
+            }
+            base.SetupTooltip(canvasPoint, e);
+        }
     }
 }
