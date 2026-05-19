@@ -232,6 +232,33 @@ namespace Eddy
             return new RectangleF(x, y, ToggleSize, ToggleSize);
         }
 
+        public override bool IsTooltipRegion(PointF canvasPoint)
+        {
+            foreach (var entry in _toggleBounds)
+            {
+                var clickRect = entry.Value;
+                clickRect.Inflate(2f, 2f);
+                if (clickRect.Contains(canvasPoint)) return true;
+            }
+            return base.IsTooltipRegion(canvasPoint);
+        }
+
+        public override void SetupTooltip(PointF canvasPoint, GH_TooltipDisplayEventArgs e)
+        {
+            foreach (var entry in _toggleBounds)
+            {
+                var clickRect = entry.Value;
+                clickRect.Inflate(2f, 2f);
+                if (clickRect.Contains(canvasPoint))
+                {
+                    e.Title = entry.Key.Name;
+                    e.Text = entry.Key.Description;
+                    return;
+                }
+            }
+            base.SetupTooltip(canvasPoint, e);
+        }
+
         private static void AttachHandCursor(GH_Canvas canvas)
         {
             if (!_attachCursorMethodSearched)
