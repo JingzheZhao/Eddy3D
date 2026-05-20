@@ -9,3 +9,7 @@
 ## 2024-05-17 - Custom ToolTips for non-standard component regions
 **Learning:** For Grasshopper components with custom rendered UI elements (like mode-switching buttons added to the capsule), standard tooltips for parameters do not cover these extra regions. Overriding `IsTooltipRegion(PointF)` and `SetupTooltip(PointF, GH_TooltipDisplayEventArgs)` allows providing context-sensitive help for these custom interactive areas, significantly improving discoverability of cryptic mode icons.
 **Action:** When adding custom interactive regions to `GH_ComponentAttributes`, always implement corresponding tooltip overrides to explain the functionality of those regions.
+
+## 2026-03-10 - Undo support and cursor states for manual toggles
+**Learning:** Manual toggle components (like Safety Toggle) that bypass standard parameter wiring must explicitly call `RecordUndoEvent` before state changes to remain consistent with Grasshopper's UX. Additionally, `RespondToMouseMove` overrides should always check `!Owner.Locked` before changing the cursor to a "Hand" to avoid misleading users when the component is interaction-locked.
+**Action:** Always wrap state changes in manual interaction handlers with undo events and respect the `Locked` property in mouse move handlers.
