@@ -1,5 +1,8 @@
+using Grasshopper.GUI;
+using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
 using System;
+using System.Drawing;
 
 namespace Eddy
 {
@@ -41,12 +44,13 @@ namespace Eddy
 
         public override void AppendAdditionalMenuItems(System.Windows.Forms.ToolStripDropDown menu)
         {
-            Menu_AppendItem(menu, "TRUE", (s, e) => { _run = true; ExpireSolution(true); }, true, _run);
-            Menu_AppendItem(menu, "FALSE", (s, e) => { _run = false; ExpireSolution(true); }, true, !_run);
+            Menu_AppendItem(menu, "TRUE", (s, e) => { RecordUndoEvent("Toggle Safety"); _run = true; ExpireSolution(true); }, true, _run);
+            Menu_AppendItem(menu, "FALSE", (s, e) => { RecordUndoEvent("Toggle Safety"); _run = false; ExpireSolution(true); }, true, !_run);
         }
 
         public void Toggle()
         {
+            RecordUndoEvent("Toggle Safety");
             _run = !_run;
             ExpireSolution(true);
         }
@@ -89,9 +93,20 @@ namespace Eddy
             return Grasshopper.GUI.Canvas.GH_ObjectResponse.Handled;
         }
 
+        public override bool IsTooltipRegion(PointF canvasPoint)
+        {
+            return Bounds.Contains(canvasPoint);
+        }
+
+        public override void SetupTooltip(PointF canvasPoint, GH_TooltipDisplayEventArgs e)
+        {
+            e.Title = "Safety Toggle";
+            e.Text = "Double-click to toggle the 'Run' state. This component always resets to FALSE when the file is opened.";
+        }
+
         public override Grasshopper.GUI.Canvas.GH_ObjectResponse RespondToMouseMove(Grasshopper.GUI.Canvas.GH_Canvas sender, Grasshopper.GUI.GH_CanvasMouseEvent e)
         {
-            if (Bounds.Contains(e.CanvasLocation))
+            if (!Owner.Locked && Bounds.Contains(e.CanvasLocation))
             {
                 if (_attachCursorMethod != null)
                 {
