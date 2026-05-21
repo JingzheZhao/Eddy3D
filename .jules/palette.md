@@ -13,3 +13,7 @@
 ## 2026-03-10 - Undo support and cursor states for manual toggles
 **Learning:** Manual toggle components (like Safety Toggle) that bypass standard parameter wiring must explicitly call `RecordUndoEvent` before state changes to remain consistent with Grasshopper's UX. Additionally, `RespondToMouseMove` overrides should always check `!Owner.Locked` before changing the cursor to a "Hand" to avoid misleading users when the component is interaction-locked.
 **Action:** Always wrap state changes in manual interaction handlers with undo events and respect the `Locked` property in mouse move handlers.
+
+## 2026-03-10 - Immediate Canvas and Viewport Feedback
+**Learning:** For Grasshopper components that calculate or visualize orientation (like the Wind Compass), providing immediate feedback on the canvas via the `Message` property (e.g., displaying "North") and adding fixed orientation markers (like an "N" indicator) in the viewport preview significantly improves usability. It reduces the need for users to connect additional components (like Panels) just to understand the current state or orientation of the component.
+**Action:** Always consider adding a summary `Message` to components that have an internal state or primary result, and include orientation markers for spatial visualization components.

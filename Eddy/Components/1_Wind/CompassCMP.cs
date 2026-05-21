@@ -23,6 +23,7 @@ namespace Eddy
 
         private Color _currentPreviewColor = Color.DimGray;
         private Polyline _arrow;
+        private Polyline _northIndicator;
         private Curve _circleCurve;
         private double _currentRadius = 10.0;
         private Point3d _currentCenter = Point3d.Origin;
@@ -112,6 +113,16 @@ namespace Eddy
             _arrow.Add(tip);
             _arrow.Add(p2);
 
+            // ── North Indicator ──
+            double s = radius * 0.05 * scale;
+            Point3d np = center + new Vector3d(0, radius * 1.1, 0);
+            _northIndicator = new Polyline();
+            _northIndicator.Add(np + new Vector3d(-s, -s, 0));
+            _northIndicator.Add(np + new Vector3d(-s, s, 0));
+            _northIndicator.Add(np + new Vector3d(s, -s, 0));
+            _northIndicator.Add(np + new Vector3d(s, s, 0));
+
+            Message = name;
             DA.SetData(0, direction);
             DA.SetData(1, name);
         }
@@ -123,6 +134,9 @@ namespace Eddy
             // Only one circle drawn here, no outputs to duplicate it
             if (_circleCurve != null)
                 args.Display.DrawCurve(_circleCurve, _currentPreviewColor, 2);
+
+            if (_northIndicator != null)
+                args.Display.DrawPolyline(_northIndicator, _currentPreviewColor, 2);
 
             if (_arrow != null)
                 args.Display.DrawPolyline(_arrow, _currentPreviewColor, 2);
