@@ -112,42 +112,45 @@ namespace Eddy
         public override GH_ObjectResponse RespondToMouseMove(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
             int newHover = -1;
-            foreach (var def in _defs)
+            if (!Owner.Locked)
             {
-                if (!_btnBounds.TryGetValue(def.ParamIndex, out var r)) continue;
-                var param = Owner.Params.Input[def.ParamIndex];
-                if (param.SourceCount > 0) continue;
-
-                // We expand the click target slightly for ease of use
-                var clickRect = new RectangleF(r.X - 2f, r.Y - 2f, r.Width + 4f, r.Height + 4f);
-                if (clickRect.Contains(e.CanvasLocation))
+                foreach (var def in _defs)
                 {
-                    newHover = def.ParamIndex;
+                    if (!_btnBounds.TryGetValue(def.ParamIndex, out var r)) continue;
+                    var param = Owner.Params.Input[def.ParamIndex];
+                    if (param.SourceCount > 0) continue;
 
-                    if (!_attachCursorMethodSearched)
+                    // We expand the click target slightly for ease of use
+                    var clickRect = new RectangleF(r.X - 2f, r.Y - 2f, r.Width + 4f, r.Height + 4f);
+                    if (clickRect.Contains(e.CanvasLocation))
                     {
-                        var cursorServerType = Grasshopper.Instances.CursorServer.GetType();
-                        _attachCursorMethod = cursorServerType.GetMethod("AttachCursor", new[] { typeof(object), typeof(string) });
-                        _attachCursorMethodSearched = true;
-                    }
+                        newHover = def.ParamIndex;
 
-                    if (_attachCursorMethod != null)
-                    {
-                        _attachCursorMethod.Invoke(Grasshopper.Instances.CursorServer, new object[] { sender, "GH_Hand" });
-                    }
-                    else
-                    {
-                        // Fallback using dynamic to bypass compilation dependency on System.Windows.Forms.Control
-                        try
+                        if (!_attachCursorMethodSearched)
                         {
-                            ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(sender, "GH_Hand");
+                            var cursorServerType = Grasshopper.Instances.CursorServer.GetType();
+                            _attachCursorMethod = cursorServerType.GetMethod("AttachCursor", new[] { typeof(object), typeof(string) });
+                            _attachCursorMethodSearched = true;
                         }
-                        catch
+
+                        if (_attachCursorMethod != null)
                         {
-                            // Ignore failure
+                            _attachCursorMethod.Invoke(Grasshopper.Instances.CursorServer, new object[] { sender, "GH_Hand" });
                         }
+                        else
+                        {
+                            // Fallback using dynamic to bypass compilation dependency on System.Windows.Forms.Control
+                            try
+                            {
+                                ((dynamic)Grasshopper.Instances.CursorServer).AttachCursor(sender, "GH_Hand");
+                            }
+                            catch
+                            {
+                                // Ignore failure
+                            }
+                        }
+                        break;
                     }
-                    break;
                 }
             }
 
@@ -162,7 +165,7 @@ namespace Eddy
 
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
-            if (e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left && !Owner.Locked)
             {
                 foreach (var def in _defs)
                 {
