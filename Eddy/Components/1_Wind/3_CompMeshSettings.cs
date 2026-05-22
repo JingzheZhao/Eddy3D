@@ -12,6 +12,15 @@ namespace Eddy
 {
     public class MeshSettings_Component : GH_Component
     {
+        private static readonly string[] ModeNames =
+        {
+            "No snapping, no layers",
+            "With Snapping, no layers",
+            "With Snapping, with layers (not always robust, >> RAM)"
+        };
+
+        private static readonly string[] PresetNames = { "Default", "GPT-53 Codex" };
+
         public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
         /// <summary>
@@ -25,6 +34,15 @@ namespace Eddy
               EddyVersion.Name,
               "1 | Wind")
         {
+        }
+
+        public override void CreateAttributes()
+        {
+            m_attributes = new DropdownComponentAttributes(this, new DropdownComponentAttributes.DropdownDef[]
+            {
+                new DropdownComponentAttributes.DropdownDef(7, ModeNames, 1),
+                new DropdownComponentAttributes.DropdownDef(8, PresetNames, 0)
+            });
         }
 
         /// <summary>
@@ -73,9 +91,10 @@ namespace Eddy
                 GH_ParamAccess.item, 1);
             if (pManager[7] is Param_Integer param1)
             {
-                param1.AddNamedValue("No snapping, no layers", 0);
-                param1.AddNamedValue("With Snapping, no layers", 1);
-                param1.AddNamedValue("With Snapping, with layers (not always robust, >> RAM)", 2);
+                foreach (string name in ModeNames)
+                {
+                    param1.AddNamedValue(name, Array.IndexOf(ModeNames, name));
+                }
             }
 
             pManager.AddIntegerParameter(
@@ -84,8 +103,10 @@ namespace Eddy
                 GH_ParamAccess.item, 0);
             if (pManager[8] is Param_Integer presetParam)
             {
-                presetParam.AddNamedValue("Default", 0);
-                presetParam.AddNamedValue("GPT-53 Codex", 1);
+                foreach (string name in PresetNames)
+                {
+                    presetParam.AddNamedValue(name, Array.IndexOf(PresetNames, name));
+                }
             }
             pManager[8].Optional = true;
         }

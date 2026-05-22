@@ -12,6 +12,29 @@ namespace Eddy
 {
     public class RunSettings_Component : GH_Component
     {
+        private static readonly string[] TurbNames =
+        {
+            "Laminar (no turbulence)",
+            "k-epsilon (fast, robust)",
+            "RNG k-epsilon (improved)",
+            "Realizable k-epsilon (accurate)",
+            "k-omega SST (best near walls)"
+        };
+
+        private static readonly string[] RelaxNames =
+        {
+            "Fast (may diverge)",
+            "Fluent-style",
+            "Robust (stable)",
+            "Optimized (recommended)"
+        };
+
+        private static readonly string[] SchemeNames =
+        {
+            "Default (OpenFOAM standard)",
+            "Optimized (recommended)"
+        };
+
         public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
         /// <summary>
@@ -25,6 +48,16 @@ namespace Eddy
               EddyVersion.Name,
               "1 | Wind")
         {
+        }
+
+        public override void CreateAttributes()
+        {
+            m_attributes = new DropdownComponentAttributes(this, new DropdownComponentAttributes.DropdownDef[]
+            {
+                new DropdownComponentAttributes.DropdownDef(3, TurbNames, 2),
+                new DropdownComponentAttributes.DropdownDef(4, RelaxNames, 3),
+                new DropdownComponentAttributes.DropdownDef(5, SchemeNames, 1)
+            });
         }
 
         /// <summary>
@@ -65,11 +98,10 @@ namespace Eddy
                 GH_ParamAccess.item, 2);
             if (pManager[3] is Param_Integer turb)
             {
-                turb.AddNamedValue("Laminar (no turbulence)", 0);
-                turb.AddNamedValue("k-epsilon (fast, robust)", 1);
-                turb.AddNamedValue("RNG k-epsilon (improved)", 2);
-                turb.AddNamedValue("Realizable k-epsilon (accurate)", 3);
-                turb.AddNamedValue("k-omega SST (best near walls)", 4);
+                foreach (string name in TurbNames)
+                {
+                    turb.AddNamedValue(name, Array.IndexOf(TurbNames, name));
+                }
             }
 
             pManager.AddIntegerParameter(
@@ -78,10 +110,10 @@ namespace Eddy
                 GH_ParamAccess.item, 3);
             if (pManager[4] is Param_Integer relaxationFactors)
             {
-                relaxationFactors.AddNamedValue("Fast (may diverge)", 0);
-                relaxationFactors.AddNamedValue("Fluent-style", 1);
-                relaxationFactors.AddNamedValue("Robust (stable)", 2);
-                relaxationFactors.AddNamedValue("Optimized (recommended)", 3);
+                foreach (string name in RelaxNames)
+                {
+                    relaxationFactors.AddNamedValue(name, Array.IndexOf(RelaxNames, name));
+                }
             }
 
             pManager.AddIntegerParameter(
@@ -90,8 +122,10 @@ namespace Eddy
                 GH_ParamAccess.item, 1);
             if (pManager[5] is Param_Integer simulationMode)
             {
-                simulationMode.AddNamedValue("Default (OpenFOAM standard)", 0);
-                simulationMode.AddNamedValue("Optimized (recommended)", 1);
+                foreach (string name in SchemeNames)
+                {
+                    simulationMode.AddNamedValue(name, Array.IndexOf(SchemeNames, name));
+                }
             }
 
             pManager.AddBooleanParameter(

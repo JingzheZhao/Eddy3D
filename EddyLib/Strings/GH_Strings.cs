@@ -409,7 +409,7 @@ namespace EddyLib
 
             public const string Mode = "Mode";
             public const string ModeNick = "Mode";
-            public const string ModeDesc = "0: Delete everything, 1: Keep mesh, 2: Keep results";
+            public const string ModeDesc = "0: Mesh, 1: Simulation cases, 2: Both";
 
             public const string Run = "Run";
             public const string RunNick = "Run!";

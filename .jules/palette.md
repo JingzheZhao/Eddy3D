@@ -17,3 +17,7 @@
 ## 2026-03-10 - Immediate Canvas and Viewport Feedback
 **Learning:** For Grasshopper components that calculate or visualize orientation (like the Wind Compass), providing immediate feedback on the canvas via the `Message` property (e.g., displaying "North") and adding fixed orientation markers (like an "N" indicator) in the viewport preview significantly improves usability. It reduces the need for users to connect additional components (like Panels) just to understand the current state or orientation of the component.
 **Action:** Always consider adding a summary `Message` to components that have an internal state or primary result, and include orientation markers for spatial visualization components.
+
+## 2024-05-18 - On-face dropdowns for complex settings
+**Learning:** For components with many categorical integer inputs (like Mesh Mode or Turbulence Model), the standard Grasshopper right-click menu is often undiscovered by users. Implementing `DropdownComponentAttributes` with visible arrow (▼) menus on the component capsule significantly improves discoverability and ease of use. It is crucial that these custom attributes explicitly check `Owner.Locked` in their interaction handlers (`RespondToMouseDown`, `RespondToMouseMove`) to prevent misleading cursor changes or menu interactions on locked components.
+**Action:** Use `DropdownComponentAttributes` for components with hidden categorical options and ensure the attributes respect the component's `Locked` state.
