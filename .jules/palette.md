@@ -21,3 +21,7 @@
 ## 2024-05-18 - On-face dropdowns for complex settings
 **Learning:** For components with many categorical integer inputs (like Mesh Mode or Turbulence Model), the standard Grasshopper right-click menu is often undiscovered by users. Implementing `DropdownComponentAttributes` with visible arrow (▼) menus on the component capsule significantly improves discoverability and ease of use. It is crucial that these custom attributes explicitly check `Owner.Locked` in their interaction handlers (`RespondToMouseDown`, `RespondToMouseMove`) to prevent misleading cursor changes or menu interactions on locked components.
 **Action:** Use `DropdownComponentAttributes` for components with hidden categorical options and ensure the attributes respect the component's `Locked` state.
+
+## 2026-03-11 - Momentary push-buttons on component capsules
+**Learning:** For components that trigger one-off actions (like starting a simulation), implementing momentary push-buttons on the component capsule using `GH_ToggleParam` and `ProbeRunButtonAttributes` provides a superior UX compared to standard boolean inputs. To prevent the component from entering a "missing data" warning state when no external wire is connected, these parameters must be explicitly set as `Optional = true` in `RegisterInputParams`.
+**Action:** When implementing on-face toggle buttons, always ensure the corresponding `GH_ToggleParam` is marked as `Optional` to maintain a clean component state.
