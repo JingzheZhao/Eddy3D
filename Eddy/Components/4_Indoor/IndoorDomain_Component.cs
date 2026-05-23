@@ -1,6 +1,7 @@
 ﻿using Eddy.Components.Indoor.Params;
 using Eddy.Properties;
 using Eddy.Analytics;
+using Eddy;
 using EddyLib;
 using EddyLib.BCs;
 using EddyLib.Docker;
@@ -52,6 +53,11 @@ Requires connected walls, inlets, outlets, and optional heat sources.
             _selectedEngine = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? SimEngine.BlueCFD
                 : SimEngine.Docker;
+        }
+
+        public override void CreateAttributes()
+        {
+            Attributes = new ProbeRunButtonAttributes(this);
         }
 
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
@@ -138,16 +144,16 @@ Requires connected walls, inlets, outlets, and optional heat sources.
                 GH_ParamAccess.item, 2);
             pManager[8].Optional = true;
 
-            pManager.AddBooleanParameter(
+            pManager.AddParameter(
+                new GH_ToggleParam(GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick, GH_Strings.Common.RunMeshingDesc),
                 GH_Strings.Common.RunMeshing, GH_Strings.Common.RunMeshingNick,
-                GH_Strings.Common.RunMeshingDesc,
-                GH_ParamAccess.item, false);
+                GH_Strings.Common.RunMeshingDesc, GH_ParamAccess.item);
             pManager[9].Optional = true;
 
-            pManager.AddBooleanParameter(
+            pManager.AddParameter(
+                new GH_ToggleParam(GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick, GH_Strings.Common.RunSimulationDesc),
                 GH_Strings.Common.RunSimulation, GH_Strings.Common.RunSimulationNick,
-                GH_Strings.Common.RunSimulationDesc,
-                GH_ParamAccess.item, false);
+                GH_Strings.Common.RunSimulationDesc, GH_ParamAccess.item);
             pManager[10].Optional = true;
         }
 
@@ -286,10 +292,8 @@ Requires connected walls, inlets, outlets, and optional heat sources.
 
             var RES = new OFResult(dom, runSettings, meshSettings, BaseWorkingDir);
 
-            bool runMeshing = false;
-            DA.GetData(9, ref runMeshing);
-            bool runSimulation = false;
-            DA.GetData(10, ref runSimulation);
+            bool runMeshing = ConsumeToggleOrWired(DA, 9);
+            bool runSimulation = ConsumeToggleOrWired(DA, 10);
 
             #region START PROCESSES
 
@@ -377,6 +381,43 @@ Requires connected walls, inlets, outlets, and optional heat sources.
         {
             canRun = false;
             this.ExpireSolution(true);
+        }
+
+        /// <summary>
+        /// Reads a run input from either a wired external source or the built-in
+        /// round toggle button. External sources are read via DA.GetData;
+        /// the toggle is consumed and immediately reset.
+        /// </summary>
+        private bool ConsumeToggleOrWired(IGH_DataAccess DA, int inputIndex)
+        {
+            bool run = false;
+            if (Params.Input[inputIndex].SourceCount > 0)
+            {
+                DA.GetData(inputIndex, ref run);
+            }
+            return run || ConsumeToggleRun(inputIndex);
+        }
+
+        /// <summary>
+        /// Checks whether the toggle at the given input index was clicked,
+        /// and immediately resets it so it behaves like a momentary push-button.
+        /// </summary>
+        private bool ConsumeToggleRun(int inputIndex)
+        {
+            if (inputIndex < 0
+                || inputIndex >= Params.Input.Count
+                || !(Params.Input[inputIndex] is GH_ToggleParam toggle)
+                || !toggle.Toggle)
+            {
+                return false;
+            }
+
+            toggle.Toggle = false;
+            toggle.PersistentData.Clear();
+            toggle.PersistentData.Append(new GH_Boolean(false));
+
+            OnPingDocument()?.ScheduleSolution(5, _ => { });
+            return true;
         }
 
         private void DoWork(CancellationTokenSource cts)
