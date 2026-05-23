@@ -10,7 +10,7 @@ namespace EddyLib.Helpers
         private static readonly JsonSerializerSettings DefaultSettings = new JsonSerializerSettings
         {
             Formatting = Formatting.Indented,
-            TypeNameHandling = TypeNameHandling.Auto,
+            TypeNameHandling = TypeNameHandling.None,
             NullValueHandling = NullValueHandling.Ignore
         };
 
