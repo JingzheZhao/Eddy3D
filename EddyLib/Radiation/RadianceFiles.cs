@@ -160,9 +160,9 @@ namespace EddyLib
                     int v1 = _m.Faces[i].B;
                     int v2 = _m.Faces[i].C;
 
-                    sw.WriteLine(FormatPoint(_m.Vertices[v0]));
-                    sw.WriteLine(FormatPoint(_m.Vertices[v1]));
-                    sw.WriteLine(FormatPoint(_m.Vertices[v2]));
+                    Utilities.WritePV(sw, _m.Vertices[v0]); sw.WriteLine();
+                    Utilities.WritePV(sw, _m.Vertices[v1]); sw.WriteLine();
+                    Utilities.WritePV(sw, _m.Vertices[v2]); sw.WriteLine();
                     sw.WriteLine();
                 }
                 else
@@ -177,10 +177,10 @@ namespace EddyLib
                     int v2 = _m.Faces[i].C;
                     int v3 = _m.Faces[i].D;
 
-                    sw.WriteLine(FormatPoint(_m.Vertices[v0]));
-                    sw.WriteLine(FormatPoint(_m.Vertices[v1]));
-                    sw.WriteLine(FormatPoint(_m.Vertices[v2]));
-                    sw.WriteLine(FormatPoint(_m.Vertices[v3]));
+                    Utilities.WritePV(sw, _m.Vertices[v0]); sw.WriteLine();
+                    Utilities.WritePV(sw, _m.Vertices[v1]); sw.WriteLine();
+                    Utilities.WritePV(sw, _m.Vertices[v2]); sw.WriteLine();
+                    Utilities.WritePV(sw, _m.Vertices[v3]); sw.WriteLine();
                     sw.WriteLine();
                 }
             }
@@ -239,9 +239,9 @@ namespace EddyLib
                     int v1 = _m.Faces[i].B;
                     int v2 = _m.Faces[i].C;
 
-                    sw.WriteLine(FormatPoint(_m.Vertices[v0]));
-                    sw.WriteLine(FormatPoint(_m.Vertices[v1]));
-                    sw.WriteLine(FormatPoint(_m.Vertices[v2]));
+                    Utilities.WritePV(sw, _m.Vertices[v0]); sw.WriteLine();
+                    Utilities.WritePV(sw, _m.Vertices[v1]); sw.WriteLine();
+                    Utilities.WritePV(sw, _m.Vertices[v2]); sw.WriteLine();
                     sw.WriteLine();
                 }
                 else
@@ -256,10 +256,10 @@ namespace EddyLib
                     int v2 = _m.Faces[i].C;
                     int v3 = _m.Faces[i].D;
 
-                    sw.WriteLine(FormatPoint(_m.Vertices[v0]));
-                    sw.WriteLine(FormatPoint(_m.Vertices[v1]));
-                    sw.WriteLine(FormatPoint(_m.Vertices[v2]));
-                    sw.WriteLine(FormatPoint(_m.Vertices[v3]));
+                    Utilities.WritePV(sw, _m.Vertices[v0]); sw.WriteLine();
+                    Utilities.WritePV(sw, _m.Vertices[v1]); sw.WriteLine();
+                    Utilities.WritePV(sw, _m.Vertices[v2]); sw.WriteLine();
+                    Utilities.WritePV(sw, _m.Vertices[v3]); sw.WriteLine();
                     sw.WriteLine();
                 }
             }
@@ -343,9 +343,9 @@ namespace EddyLib
                         int v1 = _m.Faces[i].B;
                         int v2 = _m.Faces[i].C;
 
-                        sw.WriteLine(FormatPoint(_m.Vertices[v0]));
-                        sw.WriteLine(FormatPoint(_m.Vertices[v1]));
-                        sw.WriteLine(FormatPoint(_m.Vertices[v2]));
+                        Utilities.WritePV(sw, _m.Vertices[v0]); sw.WriteLine();
+                        Utilities.WritePV(sw, _m.Vertices[v1]); sw.WriteLine();
+                        Utilities.WritePV(sw, _m.Vertices[v2]); sw.WriteLine();
                         sw.WriteLine();
                     }
                     else
@@ -360,10 +360,10 @@ namespace EddyLib
                         int v2 = _m.Faces[i].C;
                         int v3 = _m.Faces[i].D;
 
-                        sw.WriteLine(FormatPoint(_m.Vertices[v0]));
-                        sw.WriteLine(FormatPoint(_m.Vertices[v1]));
-                        sw.WriteLine(FormatPoint(_m.Vertices[v2]));
-                        sw.WriteLine(FormatPoint(_m.Vertices[v3]));
+                        Utilities.WritePV(sw, _m.Vertices[v0]); sw.WriteLine();
+                        Utilities.WritePV(sw, _m.Vertices[v1]); sw.WriteLine();
+                        Utilities.WritePV(sw, _m.Vertices[v2]); sw.WriteLine();
+                        Utilities.WritePV(sw, _m.Vertices[v3]); sw.WriteLine();
                         sw.WriteLine();
                     }
                     polyCnt++;
@@ -378,7 +378,8 @@ namespace EddyLib
             using var sw = new StreamWriter(pts_path);
             for (int k = 0; k < pts.Count; k++)
             {
-                sw.WriteLine(FormatPointAndNormal(pts[k], pts_norm[k]));
+                Utilities.WritePV(sw, pts[k], pts_norm[k]);
+                sw.WriteLine();
             }
         }
 
@@ -389,7 +390,8 @@ namespace EddyLib
             using var sw = new StreamWriter(pts_path);
             for (int k = 0; k < pts.Count; k++)
             {
-                sw.WriteLine(FormatPointAndNormal(pts[k], Vector3d.ZAxis));
+                Utilities.WritePV(sw, pts[k], Vector3d.ZAxis);
+                sw.WriteLine();
             }
         }
 

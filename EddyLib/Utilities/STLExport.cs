@@ -10,8 +10,13 @@ namespace EddyLib
     {
         public static void ExportASCI(string filePath, List<Mesh> meshObjects)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("solid OBJECT");
+            var dir = Path.GetDirectoryName(filePath);
+            if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+
+            // Bolt: Replaced StringBuilder with StreamWriter to stream directly to disk,
+            // preventing LOH allocations and OOM exceptions on large datasets.
+            using var sw = new StreamWriter(filePath, false, Encoding.ASCII, 65536);
+            sw.WriteLine("solid OBJECT");
 
             foreach (Mesh m in meshObjects)
             {
@@ -21,59 +26,40 @@ namespace EddyLib
 
                 for (int i = 0; i < m.Faces.Count; i++)
                 {
-                    //if (m.Faces[i].IsQuad)
-                    //{
-                    //    var pt1 = m.Vertices[m.Faces[i].A];
-                    //    var pt2 = m.Vertices[m.Faces[i].B];
-                    //    var pt3 = m.Vertices[m.Faces[i].C];
-                    //    var pt4 = m.Vertices[m.Faces[i].D];
-
-                    // sb.AppendLine("\tfacet normal " + m.FaceNormals[i].X + " " +
-                    // m.FaceNormals[i].Y + " " + m.FaceNormals[i].Z); sb.AppendLine("\t\touter
-                    // loop"); sb.AppendLine("\t\t\tvertex " + pt1.X + " " + pt1.Y + " " + pt1.Z);
-                    // sb.AppendLine("\t\t\tvertex " + pt2.X + " " + pt2.Y + " " + pt2.Z);
-                    // sb.AppendLine("\t\t\tvertex " + pt3.X + " " + pt3.Y + " " + pt3.Z);
-                    // sb.AppendLine("\t\t\tvertex " + pt4.X + " " + pt4.Y + " " + pt4.Z);
-                    // sb.AppendLine("\t\tendloop"); sb.AppendLine("\tendfacet");
-
-                    //}
-
-                    //else {
                     var pt1 = m.Vertices[m.Faces[i].A];
                     var pt2 = m.Vertices[m.Faces[i].B];
                     var pt3 = m.Vertices[m.Faces[i].C];
 
-                    sb.Append("\tfacet normal ");
-                    Utilities.AppendPV(sb, m.FaceNormals[i]);
-                    sb.AppendLine();
-                    sb.AppendLine("\t\touter loop");
-                    sb.Append("\t\t\tvertex ");
-                    Utilities.AppendPV(sb, pt1);
-                    sb.AppendLine();
-                    sb.Append("\t\t\tvertex ");
-                    Utilities.AppendPV(sb, pt2);
-                    sb.AppendLine();
-                    sb.Append("\t\t\tvertex ");
-                    Utilities.AppendPV(sb, pt3);
-                    sb.AppendLine();
-                    sb.AppendLine("\t\tendloop");
-                    sb.AppendLine("\tendfacet");
-
-                    //}
+                    sw.Write("\tfacet normal ");
+                    Utilities.WritePV(sw, m.FaceNormals[i]);
+                    sw.WriteLine();
+                    sw.WriteLine("\t\touter loop");
+                    sw.Write("\t\t\tvertex ");
+                    Utilities.WritePV(sw, pt1);
+                    sw.WriteLine();
+                    sw.Write("\t\t\tvertex ");
+                    Utilities.WritePV(sw, pt2);
+                    sw.WriteLine();
+                    sw.Write("\t\t\tvertex ");
+                    Utilities.WritePV(sw, pt3);
+                    sw.WriteLine();
+                    sw.WriteLine("\t\tendloop");
+                    sw.WriteLine("\tendfacet");
                 }
             }
 
-            sb.AppendLine("endsolid OBJECT");
-
-            var dir = Path.GetDirectoryName(filePath);
-            if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllText(filePath, sb.ToString());
+            sw.WriteLine("endsolid OBJECT");
         }
 
         public static void ExportASCI(string filePath, Mesh m)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("solid OBJECT");
+            var dir = Path.GetDirectoryName(filePath);
+            if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+
+            // Bolt: Replaced StringBuilder with StreamWriter to stream directly to disk,
+            // preventing LOH allocations and OOM exceptions on large datasets.
+            using var sw = new StreamWriter(filePath, false, Encoding.ASCII, 65536);
+            sw.WriteLine("solid OBJECT");
 
             m.Faces.ConvertQuadsToTriangles();   // STL supports trinangles only!
 
@@ -81,52 +67,28 @@ namespace EddyLib
 
             for (int i = 0; i < m.Faces.Count; i++)
             {
-                //if (m.Faces[i].IsQuad)
-                //{
-                //    var pt1 = m.Vertices[m.Faces[i].A];
-                //    var pt2 = m.Vertices[m.Faces[i].B];
-                //    var pt3 = m.Vertices[m.Faces[i].C];
-                //    var pt4 = m.Vertices[m.Faces[i].D];
-
-                // sb.AppendLine("\tfacet normal " + m.FaceNormals[i].X + " " + m.FaceNormals[i].Y +
-                // " " + m.FaceNormals[i].Z); sb.AppendLine("\t\touter loop");
-                // sb.AppendLine("\t\t\tvertex " + pt1.X + " " + pt1.Y + " " + pt1.Z);
-                // sb.AppendLine("\t\t\tvertex " + pt2.X + " " + pt2.Y + " " + pt2.Z);
-                // sb.AppendLine("\t\t\tvertex " + pt3.X + " " + pt3.Y + " " + pt3.Z);
-                // sb.AppendLine("\t\t\tvertex " + pt4.X + " " + pt4.Y + " " + pt4.Z);
-                // sb.AppendLine("\t\tendloop"); sb.AppendLine("\tendfacet");
-
-                //}
-
-                //else {
                 var pt1 = m.Vertices[m.Faces[i].A];
                 var pt2 = m.Vertices[m.Faces[i].B];
                 var pt3 = m.Vertices[m.Faces[i].C];
 
-                sb.Append("\tfacet normal ");
-                Utilities.AppendPV(sb, m.FaceNormals[i]);
-                sb.AppendLine();
-                sb.AppendLine("\t\touter loop");
-                sb.Append("\t\t\tvertex ");
-                Utilities.AppendPV(sb, pt1);
-                sb.AppendLine();
-                sb.Append("\t\t\tvertex ");
-                Utilities.AppendPV(sb, pt2);
-                sb.AppendLine();
-                sb.Append("\t\t\tvertex ");
-                Utilities.AppendPV(sb, pt3);
-                sb.AppendLine();
-                sb.AppendLine("\t\tendloop");
-                sb.AppendLine("\tendfacet");
-
-                //}
+                sw.Write("\tfacet normal ");
+                Utilities.WritePV(sw, m.FaceNormals[i]);
+                sw.WriteLine();
+                sw.WriteLine("\t\touter loop");
+                sw.Write("\t\t\tvertex ");
+                Utilities.WritePV(sw, pt1);
+                sw.WriteLine();
+                sw.Write("\t\t\tvertex ");
+                Utilities.WritePV(sw, pt2);
+                sw.WriteLine();
+                sw.Write("\t\t\tvertex ");
+                Utilities.WritePV(sw, pt3);
+                sw.WriteLine();
+                sw.WriteLine("\t\tendloop");
+                sw.WriteLine("\tendfacet");
             }
 
-            sb.AppendLine("endsolid OBJECT");
-
-            var dir = Path.GetDirectoryName(filePath);
-            if (dir != null && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllText(filePath, sb.ToString());
+            sw.WriteLine("endsolid OBJECT");
         }
 
         public static void ExportASCII(string filePath, List<Mesh> meshObjects)
