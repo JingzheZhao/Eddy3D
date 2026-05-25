@@ -88,8 +88,12 @@ void plastic Generic_20
             try
             {
                 string workingDir = setCon.WorkDir;
+                // ✅ GOOD: Validate paths before use in shell-based or process operations
+                Utilities.ValidatePathForShell(workingDir);
 
                 string varNameBase = setCon.ProjectName;
+                // ✅ GOOD: Validate project name as it is used in file paths and process arguments
+                Utilities.ValidatePathForShell(varNameBase);
 
                 string AB = setCon.AB.ToString();
                 string AD = setCon.AD.ToString();
@@ -225,7 +229,11 @@ void plastic Generic_20
                 try
                 {
                     startInfo.FileName = "radfiles2daysim";
-                    startInfo.Arguments = workingDir + @"/" + varianten_name + @".hea -m -g";
+                    startInfo.ArgumentList.Clear();
+                    // ✅ GOOD: Use ArgumentList to securely pass arguments to the process
+                    startInfo.ArgumentList.Add(Path.Combine(workingDir, varianten_name + ".hea"));
+                    startInfo.ArgumentList.Add("-m");
+                    startInfo.ArgumentList.Add("-g");
                     p = Process.Start(startInfo);
 
                     p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
@@ -261,7 +269,12 @@ void plastic Generic_20
                 try
                 {
                     startInfo.FileName = "gen_dc";
-                    startInfo.Arguments = workingDir + @"\" + (varianten_name) + @".hea -dif -af test_dif.amb";
+                    startInfo.ArgumentList.Clear();
+                    // ✅ GOOD: Use ArgumentList to securely pass arguments to the process
+                    startInfo.ArgumentList.Add(Path.Combine(workingDir, varianten_name + ".hea"));
+                    startInfo.ArgumentList.Add("-dif");
+                    startInfo.ArgumentList.Add("-af");
+                    startInfo.ArgumentList.Add("test_dif.amb");
                     p = Process.Start(startInfo);
                     p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
                            Console.WriteLine("output>>" + e.Data);
@@ -281,7 +294,12 @@ void plastic Generic_20
                 try
                 {
                     startInfo.FileName = "gen_dc";
-                    startInfo.Arguments = workingDir + @"\" + (varianten_name) + @".hea -dir -af test_dif.amb";
+                    startInfo.ArgumentList.Clear();
+                    // ✅ GOOD: Use ArgumentList to securely pass arguments to the process
+                    startInfo.ArgumentList.Add(Path.Combine(workingDir, varianten_name + ".hea"));
+                    startInfo.ArgumentList.Add("-dir");
+                    startInfo.ArgumentList.Add("-af");
+                    startInfo.ArgumentList.Add("test_dif.amb");
                     p = Process.Start(startInfo);
                     p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
                            Console.WriteLine("output>>" + e.Data);
@@ -326,7 +344,9 @@ void plastic Generic_20
                 try
                 {
                     startInfo.FileName = "ds_illum";
-                    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".hea";
+                    startInfo.ArgumentList.Clear();
+                    // ✅ GOOD: Use ArgumentList to securely pass arguments to the process
+                    startInfo.ArgumentList.Add(Path.Combine(workingDir, varianten_name + ".hea"));
                     p = Process.Start(startInfo);
                     p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
                            Console.WriteLine("output>>" + e.Data);
@@ -348,7 +368,9 @@ void plastic Generic_20
                 try
                 {
                     startInfo.FileName = "ds_illum";
-                    startInfo.Arguments = workingDir + @"/" + (varianten_name) + @".dif.hea";
+                    startInfo.ArgumentList.Clear();
+                    // ✅ GOOD: Use ArgumentList to securely pass arguments to the process
+                    startInfo.ArgumentList.Add(Path.Combine(workingDir, varianten_name + ".dif.hea"));
                     p = Process.Start(startInfo);
                     p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
                            Console.WriteLine("output>>" + e.Data);
