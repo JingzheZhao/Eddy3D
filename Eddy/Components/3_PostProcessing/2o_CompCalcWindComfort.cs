@@ -14,7 +14,18 @@ namespace Eddy
 
 {
     public class CompCalcWindComfort : GH_Component
-    {// exposure
+    {
+        private static readonly string[] MetricNames =
+        {
+            "Lawson General",
+            "Lawson LDDC",
+            "Lawson 2001",
+            "Davenport",
+            "NEN 8100 Comfort",
+            "NEN 8100 Safety"
+        };
+
+        // exposure
         public override GH_Exposure Exposure
         {
             get { return GH_Exposure.secondary | GH_Exposure.obscure; }
@@ -130,15 +141,14 @@ NEN8100 Safety
 
             pManager.AddGenericParameter("Wind Factors Annual", "WFA", @"Wind Factors Annual Object", GH_ParamAccess.item);
 
-            pManager.AddIntegerParameter("Wind Comfort Metric", "WCmftMetr", "Select a Wind Comfort Metric with a right click.", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Wind Comfort Metric", "WCmftMetr", "Select a Wind Comfort Metric.", GH_ParamAccess.item, 0);
 
             //Using an enum to generate the dropdown items
-            var types = Enum.GetNames(typeof(WindComfortHelper.PedCmftMetric));
             Param_Integer param = pManager[2] as Param_Integer;
 
-            for (int i = 0; i < types.Length; i++)
+            for (int i = 0; i < MetricNames.Length; i++)
             {
-                param.AddNamedValue(types[i], i);
+                param.AddNamedValue(MetricNames[i], i);
             }
         }
 
@@ -234,5 +244,13 @@ NEN8100 Safety
         /// change otherwise old ghx files that use the old ID will partially fail during loading.
         /// </summary>
         public override Guid ComponentGuid => new Guid("{15983E86-27F6-4F75-ABB4-16C329E7FFCB}");
+
+        public override void CreateAttributes()
+        {
+            m_attributes = new DropdownComponentAttributes(this, new DropdownComponentAttributes.DropdownDef[]
+            {
+                new DropdownComponentAttributes.DropdownDef(2, MetricNames, 0)
+            });
+        }
     }
 }
