@@ -1,11 +1,10 @@
-﻿using ProtoBuf;
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text.RegularExpressions;
 
 namespace EddyLib.Radiation
 {
@@ -124,8 +123,8 @@ namespace EddyLib.Radiation
     public class EsoReader
     {
         // IDs 1-6 are reserved for timestamp/environment data
-        private static readonly HashSet<string> ReservedIds =
-            new HashSet<string> { "1", "2", "3", "4", "5", "6" };
+        private static readonly HashSet<int> ReservedIds =
+            new HashSet<int> { 1, 2, 3, 4, 5, 6 };
 
         private static readonly NumberStyles NumberStyle =
             NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent | NumberStyles.AllowLeadingSign;
@@ -138,127 +137,109 @@ namespace EddyLib.Radiation
         };
 
         /// <summary>
-        /// Loads and parses an ESO file.
+        /// Loads and parses an ESO file using a single-pass optimized reader.
         /// </summary>
         public static List<EsoResult> LoadEsoFile(string path)
         {
             if (!File.Exists(path)) return null;
 
-            var dictVars = new List<string>();
-            var dataLines = new List<string>();
+            var results = new Dictionary<int, EsoResult>();
 
-            // Read file in two passes: dictionary section and data section
-            ReadEsoFileSections(path, dictVars, dataLines);
-
-            // Build result containers from dictionary
-            var results = BuildResultContainers(dictVars);
-
-            // Populate values from data lines
-            PopulateValues(dataLines, results);
-
-            return results.Values.ToList();
-        }
-
-        /// <summary>
-        /// Reads ESO file and separates dictionary and data sections.
-        /// </summary>
-        private static void ReadEsoFileSections(string path, List<string> dictVars, List<string> dataLines)
-        {
-            using (var fs = File.Open(path, FileMode.Open))
-            using (var bs = new BufferedStream(fs))
-            using (var sr = new StreamReader(bs))
+            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 65536))
+            using (var sr = new StreamReader(fs))
             {
-                sr.ReadLine(); // Skip first line
+                sr.ReadLine(); // Skip first line (Program Version)
 
-                bool pastHeader = false;
-                bool pastEnd = false;
+                bool inDictionary = true;
                 string line;
 
                 while ((line = sr.ReadLine()) != null)
                 {
-                    line = line.Trim();
+                    ReadOnlySpan<char> span = line.AsSpan().Trim();
+                    if (span.IsEmpty) continue;
 
-                    if (!pastHeader)
+                    if (inDictionary)
                     {
-                        if (line == "End of Data Dictionary")
+                        if (span.SequenceEqual("End of Data Dictionary".AsSpan()))
                         {
-                            pastHeader = true;
+                            inDictionary = false;
+                            continue;
                         }
-                        else
+
+                        // Dictionary lines are comma-separated: ID,Count,Zone,Variable...
+                        int comma1 = span.IndexOf(',');
+                        if (comma1 == -1) continue;
+
+                        if (int.TryParse(span.Slice(0, comma1), out int id))
                         {
-                            dictVars.Add(line);
+                            if (ReservedIds.Contains(id)) continue;
+
+                            // Find next commas
+                            var remainder = span.Slice(comma1 + 1);
+                            int comma2 = remainder.IndexOf(',');
+                            if (comma2 == -1) continue;
+
+                            var remainder2 = remainder.Slice(comma2 + 1);
+                            int comma3 = remainder2.IndexOf(',');
+                            if (comma3 == -1) continue;
+
+                            string zone = remainder2.Slice(0, comma3).ToString();
+                            foreach (var pattern in ZoneCleanupPatterns)
+                            {
+                                zone = zone.Replace(pattern, "");
+                            }
+
+                            // Variable info is in the 4th field: "Variable Name [unit] !Resolution"
+                            var varInfo = remainder2.Slice(comma3 + 1);
+                            int bangIndex = varInfo.IndexOf('!');
+                            if (bangIndex == -1) continue;
+
+                            var nameAndUnit = varInfo.Slice(0, bangIndex);
+                            var resolutionPart = varInfo.Slice(bangIndex + 1).Trim();
+                            int spaceIdx = resolutionPart.IndexOf(' ');
+                            string resolution = spaceIdx == -1 ? resolutionPart.ToString() : resolutionPart.Slice(0, spaceIdx).ToString();
+
+                            string unit = "";
+                            int bracketOpen = nameAndUnit.IndexOf('[');
+                            int bracketClose = nameAndUnit.IndexOf(']');
+                            if (bracketOpen != -1 && bracketClose != -1 && bracketClose > bracketOpen)
+                            {
+                                unit = nameAndUnit.Slice(bracketOpen + 1, bracketClose - bracketOpen - 1).ToString();
+                            }
+
+                            string variable = bracketOpen == -1 ? nameAndUnit.Trim().ToString() : nameAndUnit.Slice(0, bracketOpen).Trim().ToString();
+
+                            results.Add(id, new EsoResult(zone, variable, unit, resolution));
                         }
                     }
-                    else if (!pastEnd)
+                    else
                     {
-                        if (line == "End of Data")
+                        if (span.SequenceEqual("End of Data".AsSpan())) break;
+
+                        // Data lines: ID,Value
+                        int commaIndex = span.IndexOf(',');
+                        if (commaIndex == -1) continue;
+
+                        if (int.TryParse(span.Slice(0, commaIndex), out int id))
                         {
-                            pastEnd = true;
-                        }
-                        else
-                        {
-                            dataLines.Add(line);
+                            if (results.TryGetValue(id, out var result))
+                            {
+                                var valueSpan = span.Slice(commaIndex + 1);
+                                // Check for trailing commas in case of multi-value lines (we only want the first data value)
+                                int nextComma = valueSpan.IndexOf(',');
+                                if (nextComma != -1) valueSpan = valueSpan.Slice(0, nextComma);
+
+                                if (double.TryParse(valueSpan, NumberStyle, CultureInfo.InvariantCulture, out double val))
+                                {
+                                    result.values.Add(val);
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
 
-        /// <summary>
-        /// Builds EsoResult containers from dictionary entries.
-        /// </summary>
-        private static Dictionary<string, EsoResult> BuildResultContainers(List<string> dictVars)
-        {
-            var results = new Dictionary<string, EsoResult>();
-
-            foreach (string s in dictVars)
-            {
-                var parts = s.Split(',');
-                string id = parts[0];
-
-                if (ReservedIds.Contains(id)) continue;
-                if (parts.Length < 4) continue;
-
-                // Clean up zone name
-                string zone = parts[2];
-                foreach (var pattern in ZoneCleanupPatterns)
-                {
-                    zone = zone.Replace(pattern, "");
-                }
-
-                // Parse variable info: "Variable Name [unit] !Resolution"
-                var varParts = parts[3].Split('!');
-                if (varParts.Length < 2) continue;
-
-                string resolution = varParts[1].Split(' ')[0];
-                string unit = Regex.Match(varParts[0], @"\[([^\]]*)\]").Groups[1].Value;
-                string variable = varParts[0].Split('[')[0].Trim();
-
-                results.Add(id, new EsoResult(zone, variable, unit, resolution));
-            }
-
-            return results;
-        }
-
-        /// <summary>
-        /// Populates result values from data lines.
-        /// </summary>
-        private static void PopulateValues(List<string> dataLines, Dictionary<string, EsoResult> results)
-        {
-            foreach (string line in dataLines)
-            {
-                var parts = line.Split(',');
-                if (parts.Length < 2) continue;
-
-                string id = parts[0];
-                if (ReservedIds.Contains(id)) continue;
-                if (!results.ContainsKey(id)) continue;
-
-                if (double.TryParse(parts[1], NumberStyle, CultureInfo.InvariantCulture, out double val))
-                {
-                    results[id].values.Add(val);
-                }
-            }
+            return results.Values.ToList();
         }
     }
 }
