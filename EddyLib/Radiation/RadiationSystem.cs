@@ -369,20 +369,22 @@ Dz = sin(Ralt);
 
             ReportProgress(ref stepCnt, steps);
 
-            for (int i = 0; i < Probes.Count; i++)
+            // Bolt: Parallelized probe data population to improve result mapping speed.
+            Parallel.For(0, Probes.Count, i =>
             {
+                var probe = Probes[i];
                 // Initialize arrays
-                Probes[i].TotalRad = new float[totalIll.Length];
-                Probes[i].DirRad = new float[dirIll.Length];
-                Probes[i].SolarGain_dMRT = new float[dMRT.Length];
+                probe.TotalRad = new float[totalIll.Length];
+                probe.DirRad = new float[dirIll.Length];
+                probe.SolarGain_dMRT = new float[dMRT.Length];
 
                 for (int h = 0; h < totalIll.Length; h++)
                 {
-                    Probes[i].TotalRad[h] = totalIll[h][i];
-                    Probes[i].DirRad[h] = dirIll[h][i];
-                    Probes[i].SolarGain_dMRT[h] = dMRT[h][i];
+                    probe.TotalRad[h] = totalIll[h][i];
+                    probe.DirRad[h] = dirIll[h][i];
+                    probe.SolarGain_dMRT[h] = dMRT[h][i];
                 }
-            }
+            });
         }
 
         public void RunDirectRayCast(bool run, CancellationToken ct, int steps, ref int stepCnt)
@@ -451,10 +453,11 @@ Dz = sin(Ralt);
             });
 
             Console.WriteLine("Compute dMRT...");
-            for (int i = 0; i < Probes.Count; i++)
+            // Bolt: Parallelized SolarGain computation to improve result mapping speed.
+            Parallel.For(0, Probes.Count, i =>
             {
                 Probes[i].SolarGain_dMRT = SolarGain.ComputeStanding(Weather, Probes[i].TotalRad, Probes[i].DirRad);
-            }
+            });
 
             ReportProgress(ref stepCnt, steps);
             Console.WriteLine("Solar gain finished");
@@ -475,13 +478,21 @@ Dz = sin(Ralt);
         {
             if (!File.Exists(illFileName)) return new float[0][]; // Safety handle
 
-            // Bolt: Replaced File.ReadAllLines with File.ReadLines for lazy evaluation,
-            // preventing LOH allocations. Lines are processed using PLINQ to maintain
-            // parallel processing speed without loading the entire file as a string array first.
+            // Bolt: Optimized parsing using ReadOnlySpan<char> and header hints.
+            // Replaces millions of string allocations with zero-allocation slicing.
             int skip = 0;
+            int nCols = -1;
             foreach (var line in File.ReadLines(illFileName))
             {
-                if (line.Contains("FORMAT")) { skip += 2; break; }
+                if (line.StartsWith("NCOLS="))
+                {
+                    int.TryParse(line.AsSpan(6), CultureInfo.InvariantCulture, out nCols);
+                }
+                if (line.Contains("FORMAT"))
+                {
+                    skip += 2;
+                    break;
+                }
                 skip++;
             }
 
@@ -491,8 +502,62 @@ Dz = sin(Ralt);
                        .AsOrdered()
                        .Select(line =>
                        {
-                           var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                           return parts.Select(s => float.Parse(s, CultureInfo.InvariantCulture)).ToArray();
+                           var span = line.AsSpan().Trim();
+                           if (span.IsEmpty) return Array.Empty<float>();
+
+                           // If nCols is unknown, we fall back to a two-pass counting approach to avoid List<float> overhead
+                           if (nCols <= 0)
+                           {
+                               int count = 0;
+                               int startIdx = 0;
+                               for (int i = 0; i < span.Length; i++)
+                               {
+                                   if (span[i] == ' ' || span[i] == '\t')
+                                   {
+                                       if (i > startIdx) count++;
+                                       startIdx = i + 1;
+                                   }
+                               }
+                               if (startIdx < span.Length) count++;
+                               if (count == 0) return Array.Empty<float>();
+
+                               var result = new float[count];
+                               int resIdx = 0;
+                               startIdx = 0;
+                               for (int i = 0; i < span.Length; i++)
+                               {
+                                   if (span[i] == ' ' || span[i] == '\t')
+                                   {
+                                       if (i > startIdx)
+                                           result[resIdx++] = float.Parse(span.Slice(startIdx, i - startIdx), CultureInfo.InvariantCulture);
+                                       startIdx = i + 1;
+                                   }
+                               }
+                               if (startIdx < span.Length)
+                                   result[resIdx] = float.Parse(span.Slice(startIdx), CultureInfo.InvariantCulture);
+                               return result;
+                           }
+
+                           var row = new float[nCols];
+                           int colIndex = 0;
+                           int start = 0;
+                           for (int i = 0; i < span.Length; i++)
+                           {
+                               if (span[i] == ' ' || span[i] == '\t')
+                               {
+                                   if (i > start)
+                                   {
+                                       if (colIndex < nCols)
+                                           row[colIndex++] = float.Parse(span.Slice(start, i - start), CultureInfo.InvariantCulture);
+                                   }
+                                   start = i + 1;
+                               }
+                           }
+                           if (start < span.Length && colIndex < nCols)
+                           {
+                               row[colIndex] = float.Parse(span.Slice(start), CultureInfo.InvariantCulture);
+                           }
+                           return row;
                        })
                        .ToArray();
         }

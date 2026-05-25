@@ -710,7 +710,7 @@ namespace RhinoPlugin.Test.Xunit
         /// and tab-separated values. This test verifies the fix for a regression where
         /// Skip(1) incorrectly skipped the first data value after RemoveEmptyEntries.
         /// </summary>
-        [RhinoRequiredFact]
+        [Fact]
         public void LoadDDSIll_ParsesCorrectNumberOfColumns()
         {
             // Arrange - Create a test .ill file with the Radiance format
