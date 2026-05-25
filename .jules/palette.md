@@ -13,3 +13,15 @@
 ## 2026-03-10 - Undo support and cursor states for manual toggles
 **Learning:** Manual toggle components (like Safety Toggle) that bypass standard parameter wiring must explicitly call `RecordUndoEvent` before state changes to remain consistent with Grasshopper's UX. Additionally, `RespondToMouseMove` overrides should always check `!Owner.Locked` before changing the cursor to a "Hand" to avoid misleading users when the component is interaction-locked.
 **Action:** Always wrap state changes in manual interaction handlers with undo events and respect the `Locked` property in mouse move handlers.
+
+## 2026-03-10 - Immediate Canvas and Viewport Feedback
+**Learning:** For Grasshopper components that calculate or visualize orientation (like the Wind Compass), providing immediate feedback on the canvas via the `Message` property (e.g., displaying "North") and adding fixed orientation markers (like an "N" indicator) in the viewport preview significantly improves usability. It reduces the need for users to connect additional components (like Panels) just to understand the current state or orientation of the component.
+**Action:** Always consider adding a summary `Message` to components that have an internal state or primary result, and include orientation markers for spatial visualization components.
+
+## 2024-05-18 - On-face dropdowns for complex settings
+**Learning:** For components with many categorical integer inputs (like Mesh Mode or Turbulence Model), the standard Grasshopper right-click menu is often undiscovered by users. Implementing `DropdownComponentAttributes` with visible arrow (▼) menus on the component capsule significantly improves discoverability and ease of use. It is crucial that these custom attributes explicitly check `Owner.Locked` in their interaction handlers (`RespondToMouseDown`, `RespondToMouseMove`) to prevent misleading cursor changes or menu interactions on locked components.
+**Action:** Use `DropdownComponentAttributes` for components with hidden categorical options and ensure the attributes respect the component's `Locked` state.
+
+## 2026-03-11 - Momentary push-buttons on component capsules
+**Learning:** For components that trigger one-off actions (like starting a simulation), implementing momentary push-buttons on the component capsule using `GH_ToggleParam` and `ProbeRunButtonAttributes` provides a superior UX compared to standard boolean inputs. To prevent the component from entering a "missing data" warning state when no external wire is connected, these parameters must be explicitly set as `Optional = true` in `RegisterInputParams`.
+**Action:** When implementing on-face toggle buttons, always ensure the corresponding `GH_ToggleParam` is marked as `Optional` to maintain a clean component state.

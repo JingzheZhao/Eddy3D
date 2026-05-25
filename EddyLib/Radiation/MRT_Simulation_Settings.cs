@@ -54,7 +54,7 @@ namespace EddyLib.Radiation
                 var set = new JsonSerializerSettings
                 {
                     Formatting = Formatting.Indented,
-                    TypeNameHandling = TypeNameHandling.Auto
+                    TypeNameHandling = TypeNameHandling.None
                 };
                 return JsonConvert.DeserializeObject<T>(json, set);
             }
@@ -66,7 +66,7 @@ namespace EddyLib.Radiation
             var set = new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
-                TypeNameHandling = TypeNameHandling.Auto
+                TypeNameHandling = TypeNameHandling.None
             };
             return JsonConvert.SerializeObject(component, set);
         }

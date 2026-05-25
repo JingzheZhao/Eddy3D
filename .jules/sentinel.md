@@ -82,3 +82,8 @@
 **Vulnerability:** Command injection via argument delimiters when creating `ProcessStartInfo` instances manually without `ArgumentList` in `DockerEnvironment.cs`.
 **Learning:** Using `ProcessStartInfo.Arguments = "some command " + userInput` allows an attacker to inject spaces and subsequent flags/parameters. For instance, in `image inspect`, an attacker could supply `"imageName\" --format \"malicious\""`.
 **Prevention:** Always use `ProcessStartInfo.ArgumentList` and explicitly `Add()` each argument, allowing .NET to securely escape the parameters to the OS, rather than relying on string concatenation for the `Arguments` property.
+
+## 2025-05-27 - Insecure JSON Deserialization via TypeNameHandling
+**Vulnerability:** Remote Code Execution (RCE) risk due to `TypeNameHandling.Auto` in `Newtonsoft.Json` settings, allowing arbitrary type instantiation via the `$type` property in untrusted JSON payloads.
+**Learning:** Switching to `TypeNameHandling.None` revealed that classes using `[DataContract]` (like `Tree_Settings`) require explicit `[DataMember]` attributes on all properties intended for serialization; otherwise, properties previously serialized via reflection-based "Auto" defaults might be lost during round-trip.
+**Prevention:** Default to `TypeNameHandling.None` and use explicit `[DataMember]` attributes. Always verify security hardening with round-trip unit tests for all affected data models.

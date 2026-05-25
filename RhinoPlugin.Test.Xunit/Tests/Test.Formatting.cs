@@ -38,5 +38,39 @@ namespace RhinoPlugin.Test.Xunit
 
             Assert.Contains("0.00015", summary);
         }
+
+        [Fact]
+        public void WritePV_FormatsPointCorrectly()
+        {
+            var p = new Rhino.Geometry.Point3d(1.1234, 2.5678, 3.9012);
+            using var sw = new System.IO.StringWriter();
+
+            Utilities.WritePV(sw, p);
+
+            Assert.Equal("1.123 2.568 3.901", sw.ToString());
+        }
+
+        [Fact]
+        public void WritePV_FormatsVectorCorrectly()
+        {
+            var v = new Rhino.Geometry.Vector3d(0.1234, -1.5678, 10.9012);
+            using var sw = new System.IO.StringWriter();
+
+            Utilities.WritePV(sw, v);
+
+            Assert.Equal("0.123 -1.568 10.901", sw.ToString());
+        }
+
+        [Fact]
+        public void WritePV_FormatsPointAndNormalCorrectly()
+        {
+            var p = new Rhino.Geometry.Point3d(1.0, 2.0, 3.0);
+            var n = new Rhino.Geometry.Vector3d(0.0, 0.0, 1.0);
+            using var sw = new System.IO.StringWriter();
+
+            Utilities.WritePV(sw, p, n);
+
+            Assert.Equal("1 2 3 0 0 1", sw.ToString());
+        }
     }
 }

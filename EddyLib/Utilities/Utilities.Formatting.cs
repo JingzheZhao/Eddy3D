@@ -54,6 +54,21 @@ namespace EddyLib
             tw.Write(v.Z.ToString("0.###", eddy3dculture));
         }
 
+        public static void WritePV(System.IO.TextWriter tw, Point3d p, Vector3d n)
+        {
+            tw.Write(p.X.ToString("0.###", eddy3dculture));
+            tw.Write(' ');
+            tw.Write(p.Y.ToString("0.###", eddy3dculture));
+            tw.Write(' ');
+            tw.Write(p.Z.ToString("0.###", eddy3dculture));
+            tw.Write(' ');
+            tw.Write(n.X.ToString("0.###", eddy3dculture));
+            tw.Write(' ');
+            tw.Write(n.Y.ToString("0.###", eddy3dculture));
+            tw.Write(' ');
+            tw.Write(n.Z.ToString("0.###", eddy3dculture));
+        }
+
         public static string FormatDouble(double d) =>
         // Preserve small non-zero physical values (e.g. roughness length z0 = 0.00015).
         String.Format(eddy3dculture, "{0:0.########}", d);

@@ -104,6 +104,8 @@ Defines a specific time period for analysis (e.g., Summer from 9am-5pm). Outputs
 
             DA.SetDataList(0, HOYS);
             DA.SetDataList(1, HOYSDateTime);
+
+            Message = $"{HOYS.Count} hours";
         }
 
         /// <summary>
