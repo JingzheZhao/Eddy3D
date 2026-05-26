@@ -95,5 +95,22 @@ namespace RhinoPlugin.Test.Xunit
         {
             Assert.Throws<ArgumentException>(() => DockerRunner.BuildCommandFileContent(new[] { "ls" }, "path;malicious", "Title"));
         }
+
+        [Fact]
+        public void TwoPhaseDDS_CommandLineArgsNew_ThrowsOnMaliciousPaths()
+        {
+            // We don't need a full instance if we only want to test the validation logic
+            // but it's an instance method.
+            var dds = (EddyLib.Radiation.TwoPhaseDDS)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(EddyLib.Radiation.TwoPhaseDDS));
+
+            Assert.Throws<ArgumentException>(() => dds.CommandLineArgsNew("safe", "safe", 1, "safe", "malicious&path", 1, 1, 0, 0, 1));
+            Assert.Throws<ArgumentException>(() => dds.CommandLineArgsNew("malicious&path", "safe", 1, "safe", "safe", 1, 1, 0, 0, 1));
+        }
+
+        [Fact]
+        public void TwoPhaseDDS_Constructor_ThrowsOnMaliciousWorkingDirectory()
+        {
+            Assert.Throws<ArgumentException>(() => new EddyLib.Radiation.TwoPhaseDDS("malicious&path", null, null, null, false));
+        }
     }
 }

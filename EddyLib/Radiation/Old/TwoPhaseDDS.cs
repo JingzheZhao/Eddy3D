@@ -36,8 +36,18 @@ namespace EddyLib.Radiation
         public TwoPhaseDDS(string baseWorkingDir, Mesh BuildingGeometry, List<Point3d> probes, Weather weather, bool recalc, string RadianceDir = null)
 
         {
+            // ✅ GOOD: Validate user-controlled paths before use in shell operations
+            Utilities.ValidatePathForShell(baseWorkingDir);
+            if (weather?.epwFilePath != null)
+            {
+                Utilities.ValidatePathForShell(weather.epwFilePath);
+            }
+
             // Use provided dir or default
             RadianceDir = string.IsNullOrWhiteSpace(RadianceDir) ? DefaultDirectoriesAndPaths.RadianceDir : RadianceDir;
+
+            // ✅ GOOD: Validate Radiance directory as it is used in process environment and path resolution
+            Utilities.ValidatePathForShell(RadianceDir);
 
             // Verify Radiance
             DefaultDirectoriesAndPaths.CheckRadiance(RadianceDir);
@@ -223,6 +233,12 @@ namespace EddyLib.Radiation
 
         public string CommandLineArgsNew(string RadianceDir, string baseWorkingDir, int sensorCnt, string weaname, string epwpath, int ab, int ad, SkySubdivision diffSky, SkySubdivision dirSky, int n)
         {
+            // ✅ GOOD: Validate all parameters used in shell command construction
+            Utilities.ValidatePathForShell(RadianceDir);
+            Utilities.ValidatePathForShell(baseWorkingDir);
+            Utilities.ValidatePathForShell(weaname);
+            Utilities.ValidatePathForShell(epwpath);
+
             int skysubdiv = (int)diffSky;
             int skysubdivdirect = (int)diffSky;
 
