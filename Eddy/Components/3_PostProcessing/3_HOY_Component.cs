@@ -62,9 +62,18 @@ Converts a specific Date and Time (Month, Day, Hour) into a single 'Hour of Year
             DA.GetData(1, ref d);
             DA.GetData(2, ref h);
 
-            var dt = new DateTime(2021, m, d, h, 0, 0);
-
-            DA.SetData(0, dt.HOY());
+            try
+            {
+                var dt = new DateTime(2021, m, d, h, 0, 0);
+                int hoy = dt.HOY();
+                DA.SetData(0, hoy);
+                Message = $"HOY: {hoy}";
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Invalid date or time provided.");
+                Message = "Invalid Date";
+            }
         }
 
         /// <summary>
