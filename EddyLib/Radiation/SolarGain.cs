@@ -210,13 +210,24 @@ namespace EddyLib.Radiation
             //  tsol_factor : (optional) correction to tsol based on angle of incidence
 
             var DEG_TO_RAD = 0.0174532925;
-            var hr = 6;
+            var fp = Get_fp(alt, az, posture);
+            var sinAlt = Math.Sin(alt * DEG_TO_RAD);
+
+            ERF_Optimized(fp, sinAlt, posture, Idir, tsol, fsvv, fbes, asa, out ERF, out dMRT, tsol_factor);
+        }
+
+        /// <summary>
+        /// ⚡ Bolt: Optimized ERF method for repeated calls.
+        /// Accepts pre-calculated projected sunlit fraction (fp) and solar elevation sine (sinAlt)
+        /// to avoid redundant table lookups and trigonometric calculations in hot loops.
+        /// </summary>
+        public static void ERF_Optimized(double fp, double sinAlt, Posture posture, double Idir, double tsol, double fsvv, double fbes, double asa, out double ERF, out double dMRT, double tsol_factor = 1.0)
+        {
+            const int hr = 6;
             var Idiff = 0.2 * Idir;
 
             // Floor reflectance
-            var Rfloor = 0.6;
-
-            var fp = Get_fp(alt, az, posture);
+            const double Rfloor = 0.6;
 
             double feff;
             if (posture == Posture.standing || posture == Posture.supine)
@@ -229,11 +240,11 @@ namespace EddyLib.Radiation
             }
 
             var sw_abs = asa;
-            var lw_abs = 0.95;
+            const double lw_abs = 0.95;
 
             var E_diff = feff * fsvv * 0.5 * tsol * Idiff;
             var E_direct = fp * tsol * fbes * Idir;
-            var E_refl = feff * fsvv * 0.5 * tsol * (Idir * Math.Sin(alt * DEG_TO_RAD) + Idiff) * Rfloor;
+            var E_refl = feff * fsvv * 0.5 * tsol * (Idir * sinAlt + Idiff) * Rfloor;
 
             var E_solar = E_diff + E_direct + E_refl;
             ERF = E_solar * (sw_abs / lw_abs);
@@ -259,7 +270,7 @@ namespace EddyLib.Radiation
             return (Math.PI * r2 * Math.Sin(theta) + diameter * h * Math.Cos(theta)) / cyl_surf_area;
         }
 
-        private static double Get_fp(double alt, double az, Posture posture)
+        internal static double Get_fp(double alt, double az, Posture posture)
         {
             //  This function calculates the projected sunlit fraction (fp)
             //  given a seated or standing posture, a solar altitude, and a

@@ -71,7 +71,7 @@ namespace RhinoPlugin.Test.Xunit
         //    Assert.Equal(Math.Round(fp, 2), Math.Round(2 * 0.3 * 1.75, 2));
         //}
 
-        [RhinoRequiredFact]
+        [Fact]
         public void ERFOriginal()
         {
             // Arrange
@@ -111,7 +111,7 @@ namespace RhinoPlugin.Test.Xunit
             AssertRoundedEqual(43.25, dMRT);
         }
 
-        [RhinoRequiredFact]
+        [Fact]
         public void ERFModified()
         {
             // Arrange

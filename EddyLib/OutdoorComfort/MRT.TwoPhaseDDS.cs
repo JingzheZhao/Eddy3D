@@ -71,20 +71,25 @@ namespace EddyLib.OutdoorComfort
 
                 System.Threading.Tasks.Parallel.For(0, HoursPerYear, h =>
                  {
-                     // Bolt optimization: Cache array lookups outside the inner loop
-                     // to avoid repetitive bounds checking and array indirection
+                     // Bolt optimization: Cache array lookups and pre-calculate constants outside the inner probe loop.
+                     // Hoisting fp lookup and sinAlt calculation reduces redundant trigonometric and table-lookup
+                     // operations by O(N_probes), which typically eliminates millions of calls in an annual simulation.
                      double elev = weather.SolarElevation[h];
                      double azi = weather.SolarAzi[h];
                      double dryBulb = weather.DryBulbTemp[h];
                      double sTemp = sky.Temp[h];
                      double[] ddsTotalH = DDSTOTAL[h];
 
+                     var posture = SolarGain.Posture.standing;
+                     double fp = SolarGain.Get_fp(elev, azi, posture);
+                     double sinAlt = Math.Sin(elev * 0.0174532925); // DEG_TO_RAD constant from SolarGain
+
                      for (int p = 0; p < probes.Length; p++)
                      {
                          double dMRT;
                          double ERF;
 
-                         SolarGain.ERF(elev, azi, SolarGain.Posture.standing, ddsTotalH[p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
+                         SolarGain.ERF_Optimized(fp, sinAlt, posture, ddsTotalH[p], sol_trans, ViewFactors[p], f_bes, 0.6, out ERF, out dMRT);
 
                          var surfaceTempBuilding = dryBulb * (1 - ViewFactors[p]);
                          var skyTemp = sTemp * ViewFactors[p];
