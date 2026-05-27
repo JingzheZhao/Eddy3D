@@ -167,7 +167,7 @@ namespace EddyLib.OutdoorComfort
                 }
             }
 
-            int processedSensors = 0;
+            int processedHours = 0;
 
             #region progressbar
 
@@ -179,33 +179,53 @@ namespace EddyLib.OutdoorComfort
 
             Console.WriteLine("Calculating: Wind reduction factors");
 
-            Parallel.For(0, numberOfSensors, p =>
+            // Bolt: Transpose WFSpatial to [direction, sensor] to ensure contiguous access
+            // in the inner loop of the temporal calculation. Stride becomes 1 instead of numberOfDirections.
+            int numberOfDirections = WFSpatial.GetLength(1);
+            double[,] WFSpatialT = new double[numberOfDirections, numberOfSensors];
+            for (int p = 0; p < numberOfSensors; p++)
             {
-                for (int h = 0; h < numberOfHours; h++)
+                for (int d = 0; d < numberOfDirections; d++)
                 {
-                    // We need to multiply the normalized velocity with respect to the approaching flow
-                    // for every probing point and multiply that with the scaled-down, measured airport velocity.
-                    double ratioSimProbingPoint;
+                    WFSpatialT[d, p] = WFSpatial[p, d];
+                }
+            }
 
-                    if (!interpolate)
-                    {
-                        ratioSimProbingPoint = WFSpatial[p, closestSimDirectionIndices[h]];
-                    }
-                    else
-                    {
-                        ratioSimProbingPoint =
-                            (WFSpatial[p, lowerIndices[h]] * lowerWeights[h]) +
-                            (WFSpatial[p, higherIndices[h]] * upperWeights[h]);
-                    }
+            // Bolt: Swapped loop order to parallelize by hour and iterate over sensors in the inner loop.
+            // This ensures all writes to the large 2D array ValuesTemporalAtProbingHeight[hour, sensor]
+            // are sequential in memory (row-major), drastically reducing cache misses and improving performance.
+            Parallel.For(0, numberOfHours, h =>
+            {
+                double speed = windSpeedAtProbingHeightByHour[h];
 
-                    ValuesTemporalAtProbingHeight[h, p] = Math.Round(windSpeedAtProbingHeightByHour[h] * ratioSimProbingPoint, round);
+                if (!interpolate)
+                {
+                    int clstIdx = closestSimDirectionIndices[h];
+                    for (int p = 0; p < numberOfSensors; p++)
+                    {
+                        double ratioSimProbingPoint = WFSpatialT[clstIdx, p];
+                        ValuesTemporalAtProbingHeight[h, p] = Math.Round(speed * ratioSimProbingPoint, round);
+                    }
+                }
+                else
+                {
+                    int lowIdx = lowerIndices[h];
+                    int highIdx = higherIndices[h];
+                    double lowW = lowerWeights[h];
+                    double highW = upperWeights[h];
+
+                    for (int p = 0; p < numberOfSensors; p++)
+                    {
+                        double ratioSimProbingPoint = (WFSpatialT[lowIdx, p] * lowW) + (WFSpatialT[highIdx, p] * highW);
+                        ValuesTemporalAtProbingHeight[h, p] = Math.Round(speed * ratioSimProbingPoint, round);
+                    }
                 }
 
-                var processed = System.Threading.Interlocked.Increment(ref processedSensors);
+                var processed = System.Threading.Interlocked.Increment(ref processedHours);
 
                 #region progressbar
 
-                progress.Report((double)processed / numberOfSensors);
+                progress.Report((double)processed / numberOfHours);
 
                 #endregion progressbar
             });
