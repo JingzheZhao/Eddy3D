@@ -25,3 +25,7 @@
 ## 2026-03-11 - Momentary push-buttons on component capsules
 **Learning:** For components that trigger one-off actions (like starting a simulation), implementing momentary push-buttons on the component capsule using `GH_ToggleParam` and `ProbeRunButtonAttributes` provides a superior UX compared to standard boolean inputs. To prevent the component from entering a "missing data" warning state when no external wire is connected, these parameters must be explicitly set as `Optional = true` in `RegisterInputParams`.
 **Action:** When implementing on-face toggle buttons, always ensure the corresponding `GH_ToggleParam` is marked as `Optional` to maintain a clean component state.
+
+## 2026-03-11 - Immediate Canvas Feedback for Stress Categories
+**Learning:** For components that categorize continuous data into discrete ratings (like UTCI stress levels), displaying the human-readable category name (e.g., "No thermal stress") directly in the `GH_Component.Message` property significantly improves the "at-a-glance" usability of the canvas. When dealing with lists of data, falling back to a count summary (e.g., "8760 values") maintains a consistent visual feedback pattern.
+**Action:** Implement `Message` feedback for all classification components to surface internal results without requiring Panels.

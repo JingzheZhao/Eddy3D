@@ -62,7 +62,11 @@ Classifies UTCI values into readable categories ranging from ""Extreme Cold Stre
             List<int> rating = new List<int>();
 
             List<double> data = new List<double>();
-            DA.GetDataList(0, data);
+            if (!DA.GetDataList(0, data) || data.Count == 0)
+            {
+                Message = string.Empty;
+                return;
+            }
 
             foreach (var d in data)
             {
@@ -70,6 +74,34 @@ Classifies UTCI values into readable categories ranging from ""Extreme Cold Stre
             }
 
             DA.SetDataList(0, rating);
+
+            if (rating.Count == 1)
+            {
+                Message = GetConditionName(rating[0]);
+            }
+            else
+            {
+                Message = $"{rating.Count} values";
+            }
+        }
+
+        private static string GetConditionName(int rating)
+        {
+            switch (rating)
+            {
+                case -5: return "Extreme cold stress";
+                case -4: return "Very strong cold stress";
+                case -3: return "Strong cold stress";
+                case -2: return "Moderate cold stress";
+                case -1: return "Slight cold stress";
+                case 0: return "No thermal stress";
+                case 1: return "Slight heat stress";
+                case 2: return "Moderate heat stress";
+                case 3: return "Strong heat stress";
+                case 4: return "Very strong heat stress";
+                case 5: return "Extreme heat stress";
+                default: return "Unknown stress";
+            }
         }
 
         /// <summary>
