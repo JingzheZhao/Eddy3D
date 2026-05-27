@@ -112,5 +112,29 @@ namespace RhinoPlugin.Test.Xunit
         {
             Assert.Throws<ArgumentException>(() => new EddyLib.Radiation.TwoPhaseDDS("malicious&path", null, null, null, false));
         }
+
+        [Theory]
+        [InlineData("command;malicious")]
+        [InlineData("command&malicious")]
+        [InlineData("command|malicious")]
+        public void ProcessRunner_Methods_ThrowOnMaliciousCommands(string maliciousCommand)
+        {
+            Assert.Throws<ArgumentException>(() => EddyLib.Helpers.ProcessRunner.RunCommand(maliciousCommand, true));
+            Assert.Throws<ArgumentException>(() => EddyLib.Helpers.ProcessRunner.RunCommandAsync(maliciousCommand, true));
+        }
+
+        [Fact]
+        public void ProcessRunner_RunGnuplot_ThrowsOnMaliciousPath()
+        {
+            Assert.Throws<ArgumentException>(() => EddyLib.Helpers.ProcessRunner.RunGnuplot("script.plt;malicious", true));
+        }
+
+        [Theory]
+        [InlineData("arg;malicious")]
+        [InlineData("arg&malicious")]
+        public void StartProcess_StartProcessCMDNT_ThrowsOnMaliciousArguments(string maliciousArg)
+        {
+            Assert.Throws<ArgumentException>(() => Utilities.StartProcess.StartProcessCMDNT(maliciousArg, true));
+        }
     }
 }

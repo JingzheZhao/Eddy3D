@@ -11,8 +11,9 @@ namespace EddyLib
         {
             public static void StartProcessCMDNT(string argument, bool createnowindow, bool waitforexit = true, bool close = false, bool startInNewThread = false, string executable = @"C:\Windows\System32\cmd.exe", EventHandler eh = null, string workingDir = null)
             {
-                if (!File.Exists(executable)) { return; }
                 ValidatePathForShell(executable);
+                ValidatePathForShell(argument);
+                if (!File.Exists(executable)) { return; }
 
                 ThreadStart ths = new ThreadStart(() =>
                 {

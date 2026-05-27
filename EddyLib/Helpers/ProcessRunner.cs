@@ -43,33 +43,31 @@ namespace EddyLib.Helpers
             bool closeAfter = false,
             string executable = DefaultCmdPath)
         {
-            var process = new Process
+            Utilities.ValidatePathForShell(executable);
+            Utilities.ValidatePathForShell(command);
+
+            var psi = new ProcessStartInfo
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = executable,
-                    UseShellExecute = false,
-                    RedirectStandardInput = true,
-                    CreateNoWindow = hideWindow
-                }
+                FileName = executable,
+                UseShellExecute = false,
+                CreateNoWindow = hideWindow
             };
 
-            process.Start();
+            // ✅ GOOD: Pass parameters as discrete tokens in ArgumentList instead of piping to StandardInput.
+            psi.ArgumentList.Add("/c");
+            psi.ArgumentList.Add(command);
 
-            using (var writer = process.StandardInput)
+            using (var process = Process.Start(psi))
             {
-                writer.WriteLine(command);
-                writer.Flush();
-            }
+                if (waitForExit)
+                {
+                    process?.WaitForExit();
+                }
 
-            if (waitForExit)
-            {
-                process.WaitForExit();
-            }
-
-            if (closeAfter)
-            {
-                process.Close();
+                if (closeAfter)
+                {
+                    process?.Close();
+                }
             }
         }
 
@@ -81,6 +79,7 @@ namespace EddyLib.Helpers
         /// <param name="waitForExit">If true, waits for completion.</param>
         public static void RunGnuplot(string scriptPath, bool hideWindow, bool waitForExit = false)
         {
+            Utilities.ValidatePathForShell(scriptPath);
             RunCommand(scriptPath, hideWindow, waitForExit, executable: DefaultCmdPath);
         }
 
@@ -99,6 +98,9 @@ namespace EddyLib.Helpers
             string executable = DefaultCmdPath,
             EventHandler onCompleted = null)
         {
+            Utilities.ValidatePathForShell(executable);
+            Utilities.ValidatePathForShell(command);
+
             if (!File.Exists(executable))
             {
                 return;
@@ -106,34 +108,28 @@ namespace EddyLib.Helpers
 
             var thread = new Thread(() =>
             {
-                var process = new Process
+                var psi = new ProcessStartInfo
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = executable,
-                        UseShellExecute = false,
-                        RedirectStandardInput = true,
-                        CreateNoWindow = hideWindow
-                    }
+                    FileName = executable,
+                    UseShellExecute = false,
+                    CreateNoWindow = hideWindow
                 };
 
-                string fullCommand = closeAfter ? command + "\r\nexit\r\n" : command;
+                // ✅ GOOD: Avoid StandardInput and string concatenation. Use ArgumentList for shell parameters.
+                psi.ArgumentList.Add("/c");
+                psi.ArgumentList.Add(command);
 
-                process.Start();
-
-                using (var writer = process.StandardInput)
+                using (var process = Process.Start(psi))
                 {
-                    writer.WriteLine(fullCommand);
+                    process?.WaitForExit();
+
+                    if (closeAfter)
+                    {
+                        process?.Close();
+                    }
+
+                    onCompleted?.Invoke(process, EventArgs.Empty);
                 }
-
-                process.WaitForExit();
-
-                if (closeAfter)
-                {
-                    process.Close();
-                }
-
-                onCompleted?.Invoke(process, EventArgs.Empty);
             });
 
             thread.Start();
