@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 
 namespace EddyLib
@@ -43,6 +44,20 @@ namespace EddyLib
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Validates that a path is a safe relative path.
+        /// </summary>
+        public static void ValidateRelativePath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return;
+            ValidatePathForShell(path);
+
+            if (Path.IsPathRooted(path) || path.Contains(".."))
+            {
+                throw new ArgumentException("Path must be relative and not contain '..': " + path);
+            }
         }
 
         /// <summary>

@@ -223,6 +223,9 @@ namespace Eddy
                     {
                         if (!string.IsNullOrEmpty(info.Path) && !relPath.Replace("\\", "/").StartsWith(info.Path)) continue;
 
+                        // ✅ GOOD: Validate relative path to prevent path traversal.
+                        Utilities.ValidateRelativePath(relPath);
+
                         var localPath = Path.Combine(targetDir, relPath);
                         var localSub = Path.GetDirectoryName(localPath);
                         if (!Directory.Exists(localSub)) Directory.CreateDirectory(localSub);

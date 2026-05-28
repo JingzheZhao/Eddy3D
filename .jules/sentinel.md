@@ -68,6 +68,11 @@
 **Learning:** Hardcoded or predictable strings passed to `Path.Combine(Path.GetTempPath(), ...)` allow an attacker to preemptively create symlinks or files with restricted permissions, intercepting or overwriting installer packages before they are executed or extracted.
 **Prevention:** Always ensure temporary file paths are inherently unpredictable by interpolating cryptographically strong identifiers, such as `Guid.NewGuid():N`, directly into the file name string before it is instantiated.
 
+## 2026-05-28 - Path Traversal in GitHub Template Downloader
+**Vulnerability:** Path traversal when downloading files from external GitHub repositories in `SelectTemplate_Component` due to using unsanitized relative paths (`relPath`) from the GitHub API.
+**Learning:** Even when fetching data from trusted platforms like GitHub, the content (filenames) is still user-controlled and can contain directory traversal sequences like `..` or be absolute paths, allowing an attacker to write files outside of the intended application data directory.
+**Prevention:** Implement a centralized `Utilities.ValidateRelativePath` helper that checks for `Path.IsPathRooted` and the presence of `..` before combining relative paths with a base directory.
+
 ## 2026-03-10 - Secure Shell Path Validation
 **Vulnerability:** Command injection via breakout from quoted arguments in shell commands (e.g., `cmd.exe /c MKLINK /J "path"`) when user-controlled paths contain double quotes.
 **Learning:** Even when wrapping arguments in quotes, attackers can use the same quote character to terminate the literal and inject shell metacharacters (e.g., `"path" & malicious_command & "`).
