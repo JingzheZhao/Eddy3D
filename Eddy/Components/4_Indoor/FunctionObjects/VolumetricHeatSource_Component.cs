@@ -12,6 +12,8 @@ namespace Eddy.Components.Indoor
 {
     public class VolumetricHeatSource_Component : GH_Component
     {
+        private static readonly string[] TypeNames = { "Absolute", "Specific" };
+
         /// <summary>
         /// Initializes a new instance of the Emitter class.
         /// </summary>
@@ -26,6 +28,14 @@ Models a heat-generating object within the indoor space, such as equipment, elec
         {
         }
 
+        public override void CreateAttributes()
+        {
+            m_attributes = new DropdownComponentAttributes(this, new DropdownComponentAttributes.DropdownDef[]
+            {
+                new DropdownComponentAttributes.DropdownDef(3, TypeNames, 0)
+            });
+        }
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -35,10 +45,12 @@ Models a heat-generating object within the indoor space, such as equipment, elec
             pManager.AddNumberParameter("Power", "P", "Heat output. Units: W (absolute) or W/m³ (specific).", GH_ParamAccess.item);
             pManager.AddTextParameter("Name", "Name", "Identifier for this heat source.", GH_ParamAccess.item, "");
 
-            pManager.AddIntegerParameter("Power Type", "Type", "0: Absolute [W], 1: Specific [W/m³]", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Power Type", "Type", "0: Absolute [W], 1: Specific [W/m³]", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[3] as Param_Integer;
-            param.AddNamedValue("Absolute", 0);
-            param.AddNamedValue("Specific", 1);
+            for (int i = 0; i < TypeNames.Length; i++)
+            {
+                param.AddNamedValue(TypeNames[i], i);
+            }
 
             pManager[3].Optional = true;
         }

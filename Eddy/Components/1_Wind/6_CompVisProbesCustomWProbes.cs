@@ -25,6 +25,15 @@ namespace Eddy
 {
     public class CompVisProbesCustomWProbes : GH_Component
     {
+        private static readonly string[] InterpolationNames =
+        {
+            "cell",
+            "cellPoint",
+            "cellPointFace",
+            "pointMVC",
+            "cellPatchConstrained"
+        };
+
         public override GH_Exposure Exposure
         {
             get { return GH_Exposure.senary; }
@@ -79,6 +88,14 @@ Generates visualizations of the wind field, including vector arrows and streamli
         {
         }
 
+        public override void CreateAttributes()
+        {
+            m_attributes = new DropdownComponentAttributes(this, new DropdownComponentAttributes.DropdownDef[]
+            {
+                new DropdownComponentAttributes.DropdownDef(3, InterpolationNames, 0)
+            });
+        }
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -90,11 +107,10 @@ Generates visualizations of the wind field, including vector arrows and streamli
 
             pManager.AddIntegerParameter("Interpolation Scheme", "IS", "Interpolation Scheme", GH_ParamAccess.item, 0);
             Param_Integer interpolationScheme = pManager[3] as Param_Integer;
-            interpolationScheme.AddNamedValue("cell", 0);
-            interpolationScheme.AddNamedValue("cellPoint", 1);
-            interpolationScheme.AddNamedValue("cellPointFace", 2);
-            interpolationScheme.AddNamedValue("pointMVC", 3);
-            interpolationScheme.AddNamedValue("cellPatchConstrained", 4);
+            for (int i = 0; i < InterpolationNames.Length; i++)
+            {
+                interpolationScheme.AddNamedValue(InterpolationNames[i], i);
+            }
 
             pManager.AddBooleanParameter("Run", "Run", "Run the component.", GH_ParamAccess.item, false);
         }
