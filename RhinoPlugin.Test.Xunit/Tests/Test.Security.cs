@@ -136,5 +136,24 @@ namespace RhinoPlugin.Test.Xunit
         {
             Assert.Throws<ArgumentException>(() => Utilities.StartProcess.StartProcessCMDNT(maliciousArg, true));
         }
+
+        [Theory]
+        [InlineData("templates/file.ghx")]
+        [InlineData("file.gh")]
+        public void ValidateRelativePath_SafePaths_DoesNotThrow(string path)
+        {
+            Utilities.ValidateRelativePath(path);
+        }
+
+        [Theory]
+        [InlineData("/absolute/path")]
+        [InlineData("C:\\absolute\\path")]
+        [InlineData("../traversal")]
+        [InlineData("path/../traversal")]
+        [InlineData("path;malicious")]
+        public void ValidateRelativePath_UnsafePaths_ThrowsArgumentException(string path)
+        {
+            Assert.Throws<ArgumentException>(() => Utilities.ValidateRelativePath(path));
+        }
     }
 }
