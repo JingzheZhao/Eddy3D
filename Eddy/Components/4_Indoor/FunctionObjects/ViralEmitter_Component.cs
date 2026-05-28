@@ -12,6 +12,8 @@ namespace Eddy.Components.Indoor
 {
     public class ViralEmitter_Component : GH_Component
     {
+        private static readonly string[] TypeNames = { "Absolute", "Specific" };
+
         /// <summary>
         /// Initializes a new instance of the Emitter class.
         /// </summary>
@@ -24,6 +26,14 @@ Simulates the release of airborne pathogens (e.g., viruses) from a specific loca
 " + EddyVersion.toString(),
               EddyVersion.Name, "9 | Indoor")
         {
+        }
+
+        public override void CreateAttributes()
+        {
+            m_attributes = new DropdownComponentAttributes(this, new DropdownComponentAttributes.DropdownDef[]
+            {
+                new DropdownComponentAttributes.DropdownDef(3, TypeNames, 0)
+            });
         }
 
         /// <summary>
@@ -41,8 +51,10 @@ Simulates the release of airborne pathogens (e.g., viruses) from a specific loca
             //3
             pManager.AddIntegerParameter("Type", "Typ", "Type: Absolute [-] or specific [1/m³]", GH_ParamAccess.item, 0);
             Param_Integer param = pManager[3] as Param_Integer;
-            param.AddNamedValue("Absolute", 0);
-            param.AddNamedValue("Specific", 1);
+            for (int i = 0; i < TypeNames.Length; i++)
+            {
+                param.AddNamedValue(TypeNames[i], i);
+            }
 
             pManager[3].Optional = true;
         }
