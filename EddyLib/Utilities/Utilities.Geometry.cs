@@ -153,37 +153,31 @@ namespace EddyLib
         }
 
         /// <summary>
-        /// Calculates the area of a mesh face using Heron's formula.
+        /// Calculates the area of a mesh face using the cross product.
         /// </summary>
         public static double MeshFaceArea(int faceIndex, Mesh m)
         {
+            // Bolt: Optimized area calculation using cross product instead of Heron's formula.
+            // This reduces the number of Math.Sqrt calls from 4 to 1 per triangle, significantly
+            // improving performance when calculating areas for large meshes.
             MeshFace face = m.Faces[faceIndex];
             Point3d p0 = m.Vertices[face.A];
             Point3d p1 = m.Vertices[face.B];
             Point3d p2 = m.Vertices[face.C];
 
-            double area1 = TriangleAreaHeron(p0, p1, p2);
+            Vector3d v1 = p1 - p0;
+            Vector3d v2 = p2 - p0;
+            double area = Vector3d.CrossProduct(v1, v2).Length * 0.5;
 
             if (face.IsQuad)
             {
                 Point3d p3 = m.Vertices[face.D];
-                double area2 = TriangleAreaHeron(p0, p2, p3);
-                return area1 + area2;
+                Vector3d v3 = p3 - p0;
+                // For quads, we sum the two triangles (p0, p1, p2) and (p0, p2, p3)
+                area += Vector3d.CrossProduct(v2, v3).Length * 0.5;
             }
 
-            return area1;
-        }
-
-        /// <summary>
-        /// Calculates triangle area using Heron's formula.
-        /// </summary>
-        private static double TriangleAreaHeron(Point3d p0, Point3d p1, Point3d p2)
-        {
-            double a = p0.DistanceTo(p1);
-            double b = p1.DistanceTo(p2);
-            double c = p2.DistanceTo(p0);
-            double s = 0.5 * (a + b + c);
-            return Math.Sqrt(s * (s - a) * (s - b) * (s - c));
+            return area;
         }
 
         /// <summary>

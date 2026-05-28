@@ -13,3 +13,11 @@
 ## 2025-05-15 - [Temporal Wind Factor Cache Locality and Transposition]
 **Learning:** In `WindFactorsTemporal.CalcWindFactorsTemporal`, iterating over 8760 hours inside a per-sensor parallel loop caused massive cache misses due to the large stride of the `ValuesTemporalAtProbingHeight[hour, sensor]` array. Additionally, the `WFSpatial[sensor, direction]` input array had poor locality in the inner loop.
 **Action:** Parallelize the temporal loop by hour and iterate sensors in the inner loop. To ensure the inner loop remains efficient, transpose the `WFSpatial` input once before the main loop to `[direction, sensor]`. This ensures both read and write operations in the hot path are sequential, leading to significant performance gains (~30%+) for large probe sets.
+
+## 2026-05-28 - [MeshFaceArea Mathematical Optimization]
+**Learning:**  originally used Heron's formula, which requires 4 `Math.Sqrt` calls per triangle (3 for edge lengths, 1 for area). Replacing this with a vector cross-product magnitude calculation reduced this to exactly 1 `Math.Sqrt` call per triangle. In large meshes (e.g. city-scale models used in Radiance/OpenFOAM), this 4x reduction in transcendental operations provides a measurable speedup in pre-processing and result mapping.
+**Action:** Use vector cross products for area calculations instead of Heron's formula. Heron's is only preferable if you only have edge lengths and not vertex coordinates, which is rarely the case in this codebase.
+
+## 2025-05-16 - [MeshFaceArea Mathematical Optimization]
+**Learning:** `Utilities.MeshFaceArea` originally used Heron's formula, which requires 4 `Math.Sqrt` calls per triangle (3 for edge lengths, 1 for area). Replacing this with a vector cross-product magnitude calculation reduced this to exactly 1 `Math.Sqrt` call per triangle. In large meshes (e.g. city-scale models used in Radiance/OpenFOAM), this 4x reduction in transcendental operations provides a measurable speedup in pre-processing and result mapping.
+**Action:** Use vector cross products for area calculations instead of Heron's formula. Heron's is only preferable if you only have edge lengths and not vertex coordinates, which is rarely the case in this codebase.
