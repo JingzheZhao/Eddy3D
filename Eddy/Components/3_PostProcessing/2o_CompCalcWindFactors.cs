@@ -123,8 +123,7 @@ This yields a datatree of the size [8760 h x number of sensor points].", GH_Para
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             // mode to select environment
-            if (!interpolate) { Message = "No interpolation"; }
-            else { Message = "Interpolation"; }
+            Message = interpolate ? "Interpolated" : "Nearest direction";
 
             OFResult RES = null;
             if (!DA.GetData(0, ref RES) || RES == null)

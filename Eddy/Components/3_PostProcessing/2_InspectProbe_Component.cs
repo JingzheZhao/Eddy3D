@@ -425,6 +425,8 @@ Visualizes simulation data at specific sensor points. Displays metrics like Wind
             DA.SetDataList(1, meshes);
 
             DA.SetDataList(2, data);
+
+            Message = $"{ProbeInspectorMode}: {h}";
         }
 
         /// <summary>

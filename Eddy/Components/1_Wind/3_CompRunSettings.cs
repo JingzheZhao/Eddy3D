@@ -291,6 +291,8 @@ namespace Eddy
             };
 
             DA.SetData(0, runSet);
+
+            Message = $"{endTime} iter | {TurbNames[turb]} | {(cpus == -1 ? "Auto" : cpus.ToString())} CPUs";
         }
     }
 }

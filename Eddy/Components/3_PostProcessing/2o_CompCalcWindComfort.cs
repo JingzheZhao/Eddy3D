@@ -175,14 +175,16 @@ NEN8100 Safety
             if (!WeibullFit) { Message = "Counting of Discrete Bins"; }
             else { Message = "Weibull Fit"; }
 
+            int cmftMetricGH = 0;
+            DA.GetData("Wind Comfort Metric", ref cmftMetricGH);
+            Message = (WeibullFit ? "Weibull: " : "Counting: ") + MetricNames[cmftMetricGH];
+
             WindFactorsSpatial WFS = null;
             DA.GetData(0, ref WFS);
 
             WindFactorsTemporal WFA = null;
             DA.GetData(1, ref WFA);
 
-            int cmftMetricGH = 0;
-            DA.GetData("Wind Comfort Metric", ref cmftMetricGH);
             WindComfortHelper.PedCmftMetric cmftMetric = (WindComfortHelper.PedCmftMetric)cmftMetricGH;
 
             #region Wind Comfort

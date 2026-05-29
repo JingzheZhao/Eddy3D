@@ -29,3 +29,7 @@
 ## 2026-03-11 - Immediate Canvas Feedback for Stress Categories
 **Learning:** For components that categorize continuous data into discrete ratings (like UTCI stress levels), displaying the human-readable category name (e.g., "No thermal stress") directly in the `GH_Component.Message` property significantly improves the "at-a-glance" usability of the canvas. When dealing with lists of data, falling back to a count summary (e.g., "8760 values") maintains a consistent visual feedback pattern.
 **Action:** Implement `Message` feedback for all classification components to surface internal results without requiring Panels.
+
+## 2026-05-29 - Enhanced Canvas Feedback via Component Messages
+**Learning:** Grasshopper's `GH_Component.Message` property is an effective, non-intrusive way to surface internal state (like active indices in inspector components), configuration choices (like interpolation modes), or primary results (like comfort percentages) directly on the canvas. This provides immediate context and reduces the need for users to connect temporary Panels for simple status checks.
+**Action:** Consistently use `Message` to display concise, relevant metadata or summaries that improve the "at-a-glance" readability of the visual script.

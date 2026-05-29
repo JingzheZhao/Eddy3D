@@ -102,6 +102,8 @@ namespace Eddy.Components.Radiation
 
             DA.SetDataList(0, Bins);
             DA.SetDataList(1, ComfortableHours);
+
+            Message = $"{NoStress * 100:F1}% Comfortable";
         }
 
         /// <summary>
