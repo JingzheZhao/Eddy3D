@@ -447,6 +447,8 @@ Visualizes simulation results on surface polygons (e.g., building facades, groun
                 DA.SetDataList(2, data);
             }
 
+            Message = $"{ProbePolyMode}: {h}";
+
             if (metric == RPolyMetric.SurfaceTemperature && data.Count == 0)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
