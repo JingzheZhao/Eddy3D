@@ -148,9 +148,11 @@ namespace EddyLib
 
             var Condition = new int[HoursPerYear, numberOfProbes];
 
-            Parallel.For(0, numberOfProbes, probe =>
+            // Bolt: Parallelize by hour and iterate probes in inner loop to align with
+            // row-major memory layout [hour, probe]. This drastically reduces cache misses.
+            Parallel.For(0, HoursPerYear, hour =>
             {
-                for (int hour = 0; hour < HoursPerYear; hour++)
+                for (int probe = 0; probe < numberOfProbes; probe++)
                 {
                     Condition[hour, probe] = CalcConditionOfPerson(UTCI[hour, probe]);
                 }
@@ -211,24 +213,28 @@ namespace EddyLib
 
         private static double[] CalcAnnualComfortableHours(int[,] ValuesCondition)
         {
-            // Bolt: Optimized memory allocation by removing the temporary O(N*M) 2D array and
-            // calculating the sum inline for each probe, which eliminates the O(N) column extraction
-            // and array summing overhead.
+            // Bolt: Optimized to use cache-friendly row-major iteration (hour then probe).
+            // This ensures sequential memory access for the 2D array and avoids multi-threading
+            // overhead for a simple counting task, providing a significant speedup for large probe sets.
             int numberOfProbes = ValuesCondition.GetLength(1);
             var ValuesAnnualPercentage = new double[numberOfProbes];
+            int[] comfortableCounts = new int[numberOfProbes];
 
-            Parallel.For(0, numberOfProbes, probe =>
+            for (int hour = 0; hour < HoursPerYear; hour++)
             {
-                int comfortableHours = 0;
-                for (int hour = 0; hour < HoursPerYear; hour++)
+                for (int probe = 0; probe < numberOfProbes; probe++)
                 {
                     if (ValuesCondition[hour, probe] == 0)
                     {
-                        comfortableHours++;
+                        comfortableCounts[probe]++;
                     }
                 }
-                ValuesAnnualPercentage[probe] = (double)comfortableHours / HoursPerYear;
-            });
+            }
+
+            for (int probe = 0; probe < numberOfProbes; probe++)
+            {
+                ValuesAnnualPercentage[probe] = (double)comfortableCounts[probe] / HoursPerYear;
+            }
 
             return ValuesAnnualPercentage;
         }
