@@ -155,5 +155,48 @@ namespace RhinoPlugin.Test.Xunit
         {
             Assert.Throws<ArgumentException>(() => Utilities.ValidateRelativePath(path));
         }
+
+        [Theory]
+        [InlineData("weather.epw;malicious")]
+        [InlineData("weather.epw&malicious")]
+        public void RadianceFiles_Epw2Wea_ThrowsOnMaliciousPaths(string maliciousPath)
+        {
+            Assert.Throws<ArgumentException>(() => RadianceFiles.Epw2Wea(maliciousPath, "safe_target"));
+            Assert.Throws<ArgumentException>(() => RadianceFiles.Epw2Wea("safe.epw", maliciousPath));
+        }
+
+        [Theory]
+        [InlineData("scene.rad;malicious")]
+        public void RadianceHelpers_RunOconv_ThrowsOnMaliciousPaths(string maliciousPath)
+        {
+            Assert.Throws<ArgumentException>(() => EddyLib.Radiation.RadianceHelpers.RunOconv(maliciousPath, "safe.oct"));
+            Assert.Throws<ArgumentException>(() => EddyLib.Radiation.RadianceHelpers.RunOconv("safe.rad", maliciousPath));
+        }
+
+        [Theory]
+        [InlineData("scene.oct;malicious")]
+        public void RadianceHelpers_RunRTrace_ThrowsOnMaliciousPaths(string maliciousPath)
+        {
+            Assert.Throws<ArgumentException>(() => EddyLib.Radiation.RadianceHelpers.RunRayCastMat(maliciousPath, "safe.pts", "safe.dat"));
+            Assert.Throws<ArgumentException>(() => EddyLib.Radiation.RadianceHelpers.RunRayCastMat("safe.oct", maliciousPath, "safe.dat"));
+            Assert.Throws<ArgumentException>(() => EddyLib.Radiation.RadianceHelpers.RunRayCastMat("safe.oct", "safe.pts", maliciousPath));
+        }
+
+        [Theory]
+        [InlineData("scene.rad;malicious")]
+        public void SkyViewFactor_RunOconv_ThrowsOnMaliciousPaths(string maliciousPath)
+        {
+            Assert.Throws<ArgumentException>(() => EddyLib.Radiation.SkyViewFactor.RunOconv(maliciousPath, "safe.oct"));
+            Assert.Throws<ArgumentException>(() => EddyLib.Radiation.SkyViewFactor.RunOconv("safe.rad", maliciousPath));
+        }
+
+        [Theory]
+        [InlineData("scene.oct;malicious")]
+        public void SkyViewFactor_RunRTrace_ThrowsOnMaliciousPaths(string maliciousPath)
+        {
+            Assert.Throws<ArgumentException>(() => EddyLib.Radiation.SkyViewFactor.RunRayCastMat(maliciousPath, "safe.pts", "safe.dat"));
+            Assert.Throws<ArgumentException>(() => EddyLib.Radiation.SkyViewFactor.RunRayCastMat("safe.oct", maliciousPath, "safe.dat"));
+            Assert.Throws<ArgumentException>(() => EddyLib.Radiation.SkyViewFactor.RunRayCastMat("safe.oct", "safe.pts", maliciousPath));
+        }
     }
 }

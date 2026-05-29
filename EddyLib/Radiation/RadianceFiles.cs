@@ -19,6 +19,10 @@ namespace EddyLib
 
         public static string Epw2Wea(string weatherFilePath, string targetPath)
         {
+            // ✅ GOOD: Validate user-controlled paths before use in process execution
+            Utilities.ValidatePathForShell(weatherFilePath);
+            Utilities.ValidatePathForShell(targetPath);
+
             string epwdatname = Path.GetFileNameWithoutExtension(weatherFilePath);
 
             try

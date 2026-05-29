@@ -88,6 +88,10 @@ namespace EddyLib.Radiation
 
         public static void RunOconv(string radFilePath, string octFilePath)
         {
+            // ✅ GOOD: Validate user-controlled paths before use in process execution
+            Utilities.ValidatePathForShell(radFilePath);
+            Utilities.ValidatePathForShell(octFilePath);
+
             // get executing platform
             var platform = new ExecutingPlatform();
 
@@ -122,6 +126,11 @@ namespace EddyLib.Radiation
 
         private static void RunRTrace(string o_flag, string octree_path, string pts_path, string output_path)
         {
+            // ✅ GOOD: Validate user-controlled paths before use in process execution
+            Utilities.ValidatePathForShell(octree_path);
+            Utilities.ValidatePathForShell(pts_path);
+            Utilities.ValidatePathForShell(output_path);
+
             // get executing platform
             var platform = new ExecutingPlatform();
 
