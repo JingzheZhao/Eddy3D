@@ -12,9 +12,19 @@ namespace Eddy.Components.Radiation
 {
     public class MakeVegetationSurface_Component : GH_Component
     {
+        private static readonly string[] SimTypeNames = Enum.GetNames(typeof(SimulationType));
+
         public override GH_Exposure Exposure
         {
             get { return GH_Exposure.primary; }
+        }
+
+        public override void CreateAttributes()
+        {
+            m_attributes = new DropdownComponentAttributes(this, new DropdownComponentAttributes.DropdownDef[]
+            {
+                new DropdownComponentAttributes.DropdownDef(3, SimTypeNames, 1)
+            });
         }
 
         /// <summary>
@@ -114,6 +124,8 @@ Surface temperatures are typically lower than paved surfaces.
             int simType = 0;
             if (!DA.GetData(3, ref simType)) return;
             SimulationType simsim = (SimulationType)simType;
+
+            Message = SimTypeNames[simType];
 
             float[] toverride = new float[8760];
             List<double> temperatureOverride = new List<double>();
