@@ -181,11 +181,12 @@ namespace EddyLib.OutdoorComfort
 
             // Bolt: Transpose WFSpatial to [direction, sensor] to ensure contiguous access
             // in the inner loop of the temporal calculation. Stride becomes 1 instead of numberOfDirections.
+            // Loop order is optimized to ensure sequential writes to WFSpatialT (the larger dimension).
             int numberOfDirections = WFSpatial.GetLength(1);
             double[,] WFSpatialT = new double[numberOfDirections, numberOfSensors];
-            for (int p = 0; p < numberOfSensors; p++)
+            for (int d = 0; d < numberOfDirections; d++)
             {
-                for (int d = 0; d < numberOfDirections; d++)
+                for (int p = 0; p < numberOfSensors; p++)
                 {
                     WFSpatialT[d, p] = WFSpatial[p, d];
                 }
