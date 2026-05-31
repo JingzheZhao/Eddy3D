@@ -424,13 +424,23 @@ namespace Eddy
 
             string trimmed = input.Trim().Trim('"');
 
+            string token = trimmed;
             if (File.Exists(trimmed))
             {
-                string contents = File.ReadAllText(trimmed).Trim();
-                return string.IsNullOrWhiteSpace(contents) ? null : contents;
+                token = File.ReadAllText(trimmed).Trim();
             }
 
-            return trimmed;
+            if (string.IsNullOrWhiteSpace(token))
+                return null;
+
+            // ✅ GOOD: Reject tokens containing CRLF or tabs to prevent HTTP header injection
+            // when the token is passed to curl via 'Authorization: Bearer'
+            if (token.IndexOfAny(new[] { '\r', '\n', '\t' }) != -1)
+            {
+                throw new ArgumentException("HuggingFace token contains invalid characters (newline or tab).");
+            }
+
+            return token;
         }
 
         private static string GetCurlPath()

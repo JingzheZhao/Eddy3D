@@ -74,11 +74,11 @@ namespace EddyLib
             char[] metachars;
             if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
             {
-                metachars = new[] { '&', '|', ';', '$', '`', '<', '>', '(', ')', '[', ']', '{', '}', '*', '?', '!', '\n', '\r', '\'', '"' };
+                metachars = new[] { '&', '|', ';', '$', '`', '<', '>', '(', ')', '[', ']', '{', '}', '*', '?', '!', '\n', '\r', '\t', '\0', '%', '^', '\'', '"' };
             }
             else
             {
-                metachars = new[] { '&', '|', ';', '$', '`', '<', '>', '(', ')', '[', ']', '{', '}', '*', '?', '!', '\n', '\r', '\\', '\'', '"' };
+                metachars = new[] { '&', '|', ';', '$', '`', '<', '>', '(', ')', '[', ']', '{', '}', '*', '?', '!', '\n', '\r', '\t', '\0', '%', '^', '\\', '\'', '"' };
             }
 
             if (path.IndexOfAny(metachars) != -1)
