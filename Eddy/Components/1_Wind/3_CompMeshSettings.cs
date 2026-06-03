@@ -166,6 +166,16 @@ namespace Eddy
             }
 
             DA.SetData(GH_Strings.Common.MeshSettings, meshSettings);
+
+            string modeMsg = mode switch
+            {
+                0 => "No Snapping",
+                1 => "Snapping",
+                2 => "Snapping + Layers",
+                _ => "Custom"
+            };
+
+            Message = $"{modeMsg} | {PresetNames[preset]}";
         }
 
         /// <summary>
