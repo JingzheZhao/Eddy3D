@@ -17,9 +17,12 @@ namespace EddyLib.OutdoorComfort
         {
             var velocities = new double[sensorPointCount, numberOfWindDirs];
 
-            Parallel.For(0, numberOfWindDirs, d =>
+            // Bolt optimization: Parallelize by sensor point and iterate over wind directions in the inner loop.
+            // This ensures contiguous memory access for both reading and writing (row-major),
+            // eliminates false sharing between threads, and significantly improves cache locality.
+            Parallel.For(0, sensorPointCount, p =>
             {
-                for (int p = 0; p < sensorPointCount; p++)
+                for (int d = 0; d < numberOfWindDirs; d++)
                 {
                     velocities[p, d] = vectorProbes[p, d].Length;
                 }

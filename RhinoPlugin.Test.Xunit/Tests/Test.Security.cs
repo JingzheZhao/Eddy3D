@@ -32,6 +32,10 @@ namespace RhinoPlugin.Test.Xunit
         [InlineData("path?with?question")]
         [InlineData("path!with!bang")]
         [InlineData("path\nwith\nnewline")]
+        [InlineData("path\twith\ttab")]
+        [InlineData("path\0with\0null")]
+        [InlineData("path%with%percent")]
+        [InlineData("path^with^caret")]
         [InlineData("path'with'singlequote")]
         [InlineData("path\"with\"doublequote")]
         public void ValidatePathForShell_MaliciousPaths_ThrowsArgumentException(string path)

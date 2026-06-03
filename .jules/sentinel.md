@@ -88,6 +88,11 @@
 **Learning:** Using `ProcessStartInfo.Arguments = "some command " + userInput` allows an attacker to inject spaces and subsequent flags/parameters. For instance, in `image inspect`, an attacker could supply `"imageName\" --format \"malicious\""`.
 **Prevention:** Always use `ProcessStartInfo.ArgumentList` and explicitly `Add()` each argument, allowing .NET to securely escape the parameters to the OS, rather than relying on string concatenation for the `Arguments` property.
 
+## 2026-03-11 - CRLF and Tab Injection in HuggingFace Tokens
+**Vulnerability:** HTTP header injection and shell argument breaking in `MLModelCMP.cs` via unsanitized HuggingFace tokens.
+**Learning:** Tokens passed to external tools like `curl` via the `Authorization: Bearer` header are vulnerable to CRLF injection (`\r\n`) which can be used to inject malicious HTTP headers, or tab characters (`\t`) which some CLI parsers might treat as argument delimiters even if the string is quoted.
+**Prevention:** Explicitly validate and reject sensitive string inputs (like API tokens) that contain control characters like `\r`, `\n`, or `\t` before passing them to external processes or network requests.
+
 ## 2025-05-27 - Insecure JSON Deserialization via TypeNameHandling
 **Vulnerability:** Remote Code Execution (RCE) risk due to `TypeNameHandling.Auto` in `Newtonsoft.Json` settings, allowing arbitrary type instantiation via the `$type` property in untrusted JSON payloads.
 **Learning:** Switching to `TypeNameHandling.None` revealed that classes using `[DataContract]` (like `Tree_Settings`) require explicit `[DataMember]` attributes on all properties intended for serialization; otherwise, properties previously serialized via reflection-based "Auto" defaults might be lost during round-trip.
