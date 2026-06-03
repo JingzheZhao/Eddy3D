@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace EddyLib
@@ -583,8 +584,16 @@ namespace EddyLib
                 byte[] buffer = b.ReadBytes(totalFloats * sizeof(float));
                 float[] flat = new float[totalFloats];
                 Buffer.BlockCopy(buffer, 0, flat, 0, buffer.Length);
-                for (int idx = 0; idx < totalFloats; idx++)
-                    data[idx / jDim, idx % jDim] = flat[idx];
+                // Bolt: Swapped single loop with nested loops to avoid expensive division/modulo
+                // and improve cache locality during the population of the 2D array.
+                int idx = 0;
+                for (int i = 0; i < iDim; i++)
+                {
+                    for (int j = 0; j < jDim; j++)
+                    {
+                        data[i, j] = flat[idx++];
+                    }
+                }
             }
 
             return data;
@@ -607,8 +616,17 @@ namespace EddyLib
                 byte[] buffer = b.ReadBytes(totalFloats * sizeof(float));
                 float[] flat = new float[totalFloats];
                 Buffer.BlockCopy(buffer, 0, flat, 0, buffer.Length);
-                for (int idx = 0; idx < totalFloats; idx++)
-                    data[idx / jDim, idx % jDim] = flat[idx];
+
+                // Bolt: Swapped single loop with nested loops to avoid expensive division/modulo
+                // and improve cache locality during the population of the 2D array.
+                int idx = 0;
+                for (int i = 0; i < iDim; i++)
+                {
+                    for (int j = 0; j < jDim; j++)
+                    {
+                        data[i, j] = flat[idx++];
+                    }
+                }
             }
 
             return data;
@@ -687,17 +705,21 @@ namespace EddyLib
                     throw new ArgumentException("Cannot write empty or null data to Radiance binary file. This often happens if the Radiance simulation failed to produce results.");
                 }
 
-                bw.Write((int)values.Length);
-                bw.Write((int)values[0].Length);
+                int iDim = values.Length;
+                int jDim = values[0].Length;
+                bw.Write((int)iDim);
+                bw.Write((int)jDim);
 
-                for (int i = 0; i < values.Length; i++)
+                // Bolt: Buffered approach using a row buffer to minimize BinaryWriter.Write(float) calls.
+                // Converting a row of doubles to a float[] buffer before writing reduces call overhead.
+                float[] rowBuffer = new float[jDim];
+                for (int i = 0; i < iDim; i++)
                 {
-                    for (int j = 0; j < values[i].Length; j++)
+                    for (int j = 0; j < jDim; j++)
                     {
-                        float fval = (float)values[i][j];
-
-                        bw.Write(fval);
+                        rowBuffer[j] = (float)values[i][j];
                     }
+                    bw.Write(MemoryMarshal.AsBytes(rowBuffer.AsSpan()));
                 }
             }
             catch (IOException e)
@@ -728,16 +750,21 @@ namespace EddyLib
             //writing into the file
             try
             {
-                bw.Write((Int32)values.GetLength(0));
-                bw.Write((Int32)values.GetLength(1));
+                int iDim = values.GetLength(0);
+                int jDim = values.GetLength(1);
+                bw.Write((Int32)iDim);
+                bw.Write((Int32)jDim);
 
-                for (int i = 0; i < values.GetLength(0); i++)
+                // Bolt: Buffered approach using a row buffer to minimize BinaryWriter.Write(float) calls.
+                // Converting a row of doubles to a float[] buffer before writing reduces call overhead.
+                float[] rowBuffer = new float[jDim];
+                for (int i = 0; i < iDim; i++)
                 {
-                    for (int j = 0; j < values.GetLength(1); j++)
+                    for (int j = 0; j < jDim; j++)
                     {
-                        float fval = (float)values[i, j];
-                        bw.Write(fval);
+                        rowBuffer[j] = (float)values[i, j];
                     }
+                    bw.Write(MemoryMarshal.AsBytes(rowBuffer.AsSpan()));
                 }
             }
             catch (IOException e)
@@ -768,13 +795,16 @@ namespace EddyLib
             //writing into the file
             try
             {
-                bw.Write((Int32)values.GetLength(0));
+                int length = values.GetLength(0);
+                bw.Write((Int32)length);
 
-                for (int i = 0; i < values.GetLength(0); i++)
+                // Bolt: Buffered approach using a buffer to minimize BinaryWriter.Write(float) calls.
+                float[] buffer = new float[length];
+                for (int i = 0; i < length; i++)
                 {
-                    float fval = (float)values[i];
-                    bw.Write(fval);
+                    buffer[i] = (float)values[i];
                 }
+                bw.Write(MemoryMarshal.AsBytes(buffer.AsSpan()));
             }
             catch (IOException e)
             {
@@ -803,14 +833,16 @@ namespace EddyLib
             try
             {
                 // Write array dimensions
-                bw.Write((Int32)values.GetLength(0));
+                int length = values.GetLength(0);
+                bw.Write((Int32)length);
 
-                for (int i = 0; i < values.GetLength(0); i++)
+                // Bolt: Buffered approach using a buffer to minimize BinaryWriter.Write(float) calls.
+                float[] buffer = new float[length];
+                for (int i = 0; i < length; i++)
                 {
-                    float val = (float)values[i];
-
-                    bw.Write(val);
+                    buffer[i] = (float)values[i];
                 }
+                bw.Write(MemoryMarshal.AsBytes(buffer.AsSpan()));
             }
             catch (IOException e)
             {
@@ -826,34 +858,22 @@ namespace EddyLib
 
             double[] data;
 
-            //   int numberOfWindDirs;
-
             //reading from the file
-            // 1.
             using (BinaryReader b = new BinaryReader(
                 File.Open(filename, FileMode.Open)))
             {
-                // 2. Position and length variables.
-                int pos = 0;
-
-                // 2A. Use BaseStream.
-                int length = (int)b.BaseStream.Length;
-
                 int iDim = b.ReadInt32();
-
                 data = new double[iDim];
-                pos += sizeof(int);
 
-                int i = 0;
+                // Bolt: Optimized block read to replace repeated ReadSingle() calls.
+                // Reading all floats at once into a buffer and then populating the double[] result.
+                byte[] buffer = b.ReadBytes(iDim * sizeof(float));
+                float[] flat = new float[iDim];
+                Buffer.BlockCopy(buffer, 0, flat, 0, buffer.Length);
 
-                while (pos < length)
+                for (int i = 0; i < iDim; i++)
                 {
-                    float x = b.ReadSingle();
-                    data[i] = (x);
-
-                    pos += sizeof(float);
-
-                    i++;
+                    data[i] = flat[i];
                 }
             }
 
@@ -879,21 +899,19 @@ namespace EddyLib
             try
             {
                 // Write array dimensions
-                bw.Write((Int32)values.GetLength(0));
+                int length = values.GetLength(0);
+                bw.Write((Int32)length);
 
-                for (int i = 0; i < values.GetLength(0); i++)
+                // Bolt: Buffered approach using a buffer to minimize BinaryWriter.Write(float) calls.
+                float[] buffer = new float[length * 3];
+                for (int i = 0; i < length; i++)
                 {
-                    //  for (int j = 0; j < values.GetLength(1); j++)
-                    //  {
-                    float fvalX = (float)values[i].X;
-                    float fvalY = (float)values[i].Y;
-                    float fvalZ = (float)values[i].Z;
-
-                    bw.Write(fvalX);
-                    bw.Write(fvalY);
-                    bw.Write(fvalZ);
-                    // }
+                    int baseIdx = i * 3;
+                    buffer[baseIdx] = (float)values[i].X;
+                    buffer[baseIdx + 1] = (float)values[i].Y;
+                    buffer[baseIdx + 2] = (float)values[i].Z;
                 }
+                bw.Write(MemoryMarshal.AsBytes(buffer.AsSpan()));
             }
             catch (IOException e)
             {
@@ -910,39 +928,23 @@ namespace EddyLib
             Vector3d[] data;
 
             //reading from the file
-            // 1.
             using (BinaryReader b = new BinaryReader(
                 File.Open(filename, FileMode.Open)))
             {
-                // 2. Position and length variables.
-                int pos = 0;
-
-                // 2A. Use BaseStream.
-                int length = (int)b.BaseStream.Length;
-
                 int iDim = b.ReadInt32();
-
                 data = new Vector3d[iDim];
-                pos += sizeof(int);
 
-                int i = 0;
+                // Bolt: Optimized block read to replace repeated ReadSingle() calls.
+                // Each Vector3d consists of 3 floats.
+                int totalFloats = iDim * 3;
+                byte[] buffer = b.ReadBytes(totalFloats * sizeof(float));
+                float[] flat = new float[totalFloats];
+                Buffer.BlockCopy(buffer, 0, flat, 0, buffer.Length);
 
-                while (pos < length)
+                for (int i = 0; i < iDim; i++)
                 {
-                    float x = b.ReadSingle();
-                    data[i].X = (x);
-
-                    float y = b.ReadSingle();
-                    data[i].Y = (y);
-
-                    float z = b.ReadSingle();
-                    data[i].Z = (z);
-
-                    pos += sizeof(float);
-                    pos += sizeof(float);
-                    pos += sizeof(float);
-
-                    i++;
+                    int baseIdx = i * 3;
+                    data[i] = new Vector3d(flat[baseIdx], flat[baseIdx + 1], flat[baseIdx + 2]);
                 }
             }
 
@@ -955,56 +957,38 @@ namespace EddyLib
 
             Vector3d[,] data;
 
-            int numberOfWindDirs;
-
             //reading from the file
-            // 1.
             using (BinaryReader b = new BinaryReader(
                 File.Open(filename, FileMode.Open)))
             {
-                // 2. Position and length variables.
-                int pos = 0;
-
-                // 2A. Use BaseStream.
-                int length = (int)b.BaseStream.Length;
-
                 int iDim = b.ReadInt32();
                 int jDim = b.ReadInt32();
                 data = new Vector3d[iDim, jDim];
-                pos += sizeof(int);
-                pos += sizeof(int);
 
                 // Read wind dirs
-                numberOfWindDirs = b.ReadInt32();
-                pos += sizeof(int);
-
+                int numberOfWindDirs = b.ReadInt32();
                 windDirs = new int[numberOfWindDirs];
 
                 for (int wd = 0; wd < numberOfWindDirs; wd++)
                 {
                     windDirs[wd] = b.ReadInt32();
-                    pos += sizeof(int);
                 }
 
-                int i = 0;
-                int j = 0;
-                while (pos < length)
+                // Bolt: Optimized block read to replace repeated ReadSingle() calls.
+                // Each Vector3d consists of 3 floats.
+                int totalFloats = iDim * jDim * 3;
+                byte[] buffer = b.ReadBytes(totalFloats * sizeof(float));
+                float[] flat = new float[totalFloats];
+                Buffer.BlockCopy(buffer, 0, flat, 0, buffer.Length);
+
+                int idx = 0;
+                for (int i = 0; i < iDim; i++)
                 {
-                    float x = b.ReadSingle();
-                    data[i, j].X = (x);
-
-                    float y = b.ReadSingle();
-                    data[i, j].Y = (y);
-
-                    float z = b.ReadSingle();
-                    data[i, j].Z = (z);
-
-                    pos += sizeof(float);
-                    pos += sizeof(float);
-                    pos += sizeof(float);
-
-                    j++;
-                    if (j == jDim) { j = 0; i++; }
+                    for (int j = 0; j < jDim; j++)
+                    {
+                        data[i, j] = new Vector3d(flat[idx], flat[idx + 1], flat[idx + 2]);
+                        idx += 3;
+                    }
                 }
             }
 
@@ -1032,8 +1016,10 @@ namespace EddyLib
             try
             {
                 // Write array dimensions
-                bw.Write((Int32)values.GetLength(0));
-                bw.Write((Int32)values.GetLength(1));
+                int iDim = values.GetLength(0);
+                int jDim = values.GetLength(1);
+                bw.Write((Int32)iDim);
+                bw.Write((Int32)jDim);
 
                 // Write wind directions
                 bw.Write(windDirs.Length);
@@ -1043,18 +1029,18 @@ namespace EddyLib
                     bw.Write(dir);
                 }
 
-                for (int i = 0; i < values.GetLength(0); i++)
+                // Bolt: Buffered approach using a row buffer to minimize BinaryWriter.Write(float) calls.
+                float[] rowBuffer = new float[jDim * 3];
+                for (int i = 0; i < iDim; i++)
                 {
-                    for (int j = 0; j < values.GetLength(1); j++)
+                    for (int j = 0; j < jDim; j++)
                     {
-                        float fvalX = (float)values[i, j].X;
-                        float fvalY = (float)values[i, j].Y;
-                        float fvalZ = (float)values[i, j].Z;
-
-                        bw.Write(fvalX);
-                        bw.Write(fvalY);
-                        bw.Write(fvalZ);
+                        int baseIdx = j * 3;
+                        rowBuffer[baseIdx] = (float)values[i, j].X;
+                        rowBuffer[baseIdx + 1] = (float)values[i, j].Y;
+                        rowBuffer[baseIdx + 2] = (float)values[i, j].Z;
                     }
+                    bw.Write(MemoryMarshal.AsBytes(rowBuffer.AsSpan()));
                 }
             }
             catch (IOException e)
