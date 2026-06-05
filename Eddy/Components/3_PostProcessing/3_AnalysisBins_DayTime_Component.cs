@@ -28,6 +28,14 @@ Afternoon (4-5pm), Dinner (6-9pm), Nightlife (10pm-12am).
         {
         }
 
+        public override void CreateAttributes()
+        {
+            m_attributes = new DropdownComponentAttributes(this, new DropdownComponentAttributes.DropdownDef[]
+            {
+                new DropdownComponentAttributes.DropdownDef(1, Enum.GetNames(typeof(DayTime.DayTimeE)), 0)
+            });
+        }
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -69,6 +77,8 @@ Afternoon (4-5pm), Dinner (6-9pm), Nightlife (10pm-12am).
             DA.GetData(1, ref DTE);
 
             var UserDayTime = new DayTime((DayTime.DayTimeE)DTE);
+
+            Message = ((DayTime.DayTimeE)DTE).ToString();
 
             DateTime dt1 = new DateTime(2021, 1, 1, UserDayTime.HourBegin, 0, 0);
             DateTime dt2 = new DateTime(2021, 12, 31, UserDayTime.HourEnd, 0, 0);

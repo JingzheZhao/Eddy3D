@@ -28,6 +28,14 @@ Use to calculate seasonal comfort or radiation metrics.
         {
         }
 
+        public override void CreateAttributes()
+        {
+            m_attributes = new DropdownComponentAttributes(this, new DropdownComponentAttributes.DropdownDef[]
+            {
+                new DropdownComponentAttributes.DropdownDef(0, Enum.GetNames(typeof(Season.SeasonE)), 0)
+            });
+        }
+
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -63,6 +71,8 @@ Use to calculate seasonal comfort or radiation metrics.
             DA.GetData(0, ref S);
 
             var UserSeason = new Season((Season.SeasonE)S);
+
+            Message = ((Season.SeasonE)S).ToString();
 
             DateTime dt1 = new DateTime(UserSeason.YearBegin, UserSeason.MonthBegin, UserSeason.DayBegin);
             DateTime dt2 = new DateTime(UserSeason.YearEnd, UserSeason.MonthEnd, UserSeason.DayEnd);
