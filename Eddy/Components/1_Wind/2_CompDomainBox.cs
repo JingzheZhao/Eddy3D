@@ -276,6 +276,8 @@ Defines a box-shaped computational domain for the wind simulation. Best suited f
 
                 FillWindDirRenderList(bCond, DOMBOX);
 
+                Message = $"Cell: {blockDimension}m";
+
                 DA.SetData(0, DOMBOX);
 
                 if (DOMBOX.HasTerrain)

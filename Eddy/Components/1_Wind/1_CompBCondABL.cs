@@ -188,6 +188,8 @@ GH_Strings.ABL.Desc + EddyVersion.toString(),
             // Create a dataframe-like structure
             var formattedSummary = BCHelpers.BuildTable(windDirs, Uref, zref, z0, zGround, epwFilePath);
 
+            Message = $"{windDirs.Count} Direction{(windDirs.Count == 1 ? "" : "s")}";
+
             // Set the description of the output parameter
             DA.SetData(GH_Strings.ABL.BC, BCC);
         }
