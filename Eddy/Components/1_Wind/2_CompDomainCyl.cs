@@ -294,6 +294,8 @@ Defines a cylindrical computational domain. Recommended for multi-directional wi
 
                 FillWindDirRenderList(bCond, DOMCYL);
 
+                Message = $"Cell: {coreBlockSize}m";
+
                 DA.SetData(0, DOMCYL);
 
                 if (DOMCYL.HasTerrain)

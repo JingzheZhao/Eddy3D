@@ -86,6 +86,7 @@ refinement levels (halving) are needed to reach your target resolution.
 
             int level = (int)Math.Max(0, Math.Ceiling(Math.Log(baseSize / targetSize, 2.0)));
 
+            Message = $"Level: {level}";
             DA.SetData("Refinement Level", level);
             DA.SetData("Refinement Level + 1", level + 1);
         }

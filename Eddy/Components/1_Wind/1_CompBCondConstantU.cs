@@ -150,6 +150,8 @@ Sets a constant wind speed across the entire inlet. Useful for wind tunnel calib
 
             var formattedSummary = BCHelpers.BuildTable(windDirs, Uref, z0, epwFilePath);
 
+            Message = $"{windDirs.Count} Direction{(windDirs.Count == 1 ? "" : "s")}";
+
             // Set the description of the output parameter
             Params.Output[0].Description = formattedSummary.ToString();
 
