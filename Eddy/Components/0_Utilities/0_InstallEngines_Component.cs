@@ -165,12 +165,14 @@ namespace Eddy
                 string missingStr = "The following tools are missing: " + string.Join(", ", missing);
                 this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, missingStr);
                 log += missingStr + "\n";
+                Message = missing.Count == 1 ? $"Missing: {missing[0]}" : $"Missing {missing.Count} Tools";
             }
             else
             {
                 string presentStr = "All simulation tools are correctly installed.";
                 this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, presentStr);
                 log += presentStr + "\n";
+                Message = "All Installed";
             }
 
             if (installEP)
