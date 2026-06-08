@@ -33,3 +33,7 @@
 ## 2026-05-29 - Enhanced Canvas Feedback via Component Messages
 **Learning:** Grasshopper's `GH_Component.Message` property is an effective, non-intrusive way to surface internal state (like active indices in inspector components), configuration choices (like interpolation modes), or primary results (like comfort percentages) directly on the canvas. This provides immediate context and reduces the need for users to connect temporary Panels for simple status checks.
 **Action:** Consistently use `Message` to display concise, relevant metadata or summaries that improve the "at-a-glance" readability of the visual script.
+
+## 2024-06-07 - Immediate Canvas Feedback for Engine Installation
+**Learning:** For components that perform environment or dependency checks (like 'Install Engines'), displaying the status summary directly in the `GH_Component.Message` property (e.g., "All Installed" or "Missing 2 Tools") provides immediate, glanceable feedback on the Grasshopper canvas. This is more discoverable than requiring users to check runtime message balloons or the output log.
+**Action:** Implement `Message` feedback for all setup and diagnostic components to surface environment health at a glance.
