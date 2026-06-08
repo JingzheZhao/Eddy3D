@@ -96,7 +96,7 @@ namespace RhinoPlugin.Test.Xunit.Tests
             Assert.Equal(0.0, dims[2], 1e-6);
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         public void GetDimensionsArray_ValidMesh_ReturnsCorrectDimensions()
         {
             // Cube 10x10x10
@@ -127,7 +127,7 @@ namespace RhinoPlugin.Test.Xunit.Tests
             Assert.Equal(10.0, dims[2], 1e-6);
         }
 
-        [Fact]
+        [RhinoRequiredFact]
         public void GetDimensionsArray_FlatMesh_ReturnsZeroThickness()
         {
             // Flat square 10x10 in XY plane
