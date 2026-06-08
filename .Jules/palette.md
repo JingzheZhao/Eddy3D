@@ -9,3 +9,7 @@
 ## 2024-05-17 - Custom ToolTips for non-standard component regions
 **Learning:** For Grasshopper components with custom rendered UI elements (like mode-switching buttons added to the capsule), standard tooltips for parameters do not cover these extra regions. Overriding `IsTooltipRegion(PointF)` and `SetupTooltip(PointF, GH_TooltipDisplayEventArgs)` allows providing context-sensitive help for these custom interactive areas, significantly improving discoverability of cryptic mode icons.
 **Action:** When adding custom interactive regions to `GH_ComponentAttributes`, always implement corresponding tooltip overrides to explain the functionality of those regions.
+
+## 2024-05-18 - ToolTips for Custom Attributes Regions
+**Learning:** In Grasshopper plugins, when adding custom interactive regions (like buttons) via `GH_ComponentAttributes`, the standard component tooltips do not automatically cover these custom areas. It is necessary to explicitly override `IsTooltipRegion(PointF)` and `SetupTooltip(PointF, GH_TooltipDisplayEventArgs)` to enable tooltips. It's also critical to ensure the target bounds evaluated in these overrides are inflated identically to the bounds used in mouse event handlers (e.g., `bounds.Inflate(2, 2)`) to provide a consistent interaction zone.
+**Action:** When adding or maintaining custom interactive UI elements in component attributes, verify that tooltip overrides are implemented and that their bounding box logic matches the hit-test bounds.
