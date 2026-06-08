@@ -178,5 +178,30 @@ namespace EddyLib.UI
 
             return false;
         }
+
+        public override bool IsTooltipRegion(PointF canvasPoint)
+        {
+            var hoverBounds = ButtonBounds;
+            hoverBounds.Inflate(2, 2);
+            if (hoverBounds.Contains(Point.Round(canvasPoint)))
+            {
+                return true;
+            }
+            return base.IsTooltipRegion(canvasPoint);
+        }
+
+        public override void SetupTooltip(PointF canvasPoint, GH_TooltipDisplayEventArgs e)
+        {
+            var hoverBounds = ButtonBounds;
+            hoverBounds.Inflate(2, 2);
+            if (hoverBounds.Contains(Point.Round(canvasPoint)))
+            {
+                e.Title = ButtonText;
+                e.Text = "Click to execute or show menu.";
+                return;
+            }
+            base.SetupTooltip(canvasPoint, e);
+        }
+
     }
 }
