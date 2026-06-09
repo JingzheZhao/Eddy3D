@@ -37,3 +37,6 @@
 ## 2024-06-07 - Immediate Canvas Feedback for Engine Installation
 **Learning:** For components that perform environment or dependency checks (like 'Install Engines'), displaying the status summary directly in the `GH_Component.Message` property (e.g., "All Installed" or "Missing 2 Tools") provides immediate, glanceable feedback on the Grasshopper canvas. This is more discoverable than requiring users to check runtime message balloons or the output log.
 **Action:** Implement `Message` feedback for all setup and diagnostic components to surface environment health at a glance.
+## 2026-03-12 - Inflated Hit-test Bounds for Toggles
+**Learning:** Small interactive controls in Grasshopper (like toggles or arrows) can be difficult to hit precisely. Inflate their hit-test bounding boxes by a few pixels (e.g., `bounds.Inflate(2f, 2f)`) identically across all mouse interaction handlers (e.g., `RespondToMouseMove`, `RespondToMouseDown`, and `RespondToMouseDoubleClick`). Failing to update all relevant handlers creates a frustrating UX where the visual affordance mismatches the actual clickable area.
+**Action:** When creating or maintaining custom interactive elements with `GH_ComponentAttributes`, verify that identical bounds inflation logic is consistently applied in all mouse, click, and tooltip handler overrides.
