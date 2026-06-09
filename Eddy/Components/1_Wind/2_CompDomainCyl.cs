@@ -225,43 +225,36 @@ Defines a cylindrical computational domain. Recommended for multi-directional wi
             }
             else // (terrain.Count > 0)
             {
+                var terrainList = new System.Collections.Generic.List<Mesh>();
                 foreach (GeometryBase b in terrain)
                 {
                     if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
                     {
-                        Mesh obj = (Mesh)b;
-                        terrainMeshes.Append(obj);
+                        terrainList.Add((Mesh)b);
                     }
                     else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
                     {
-                        Brep obj = (Brep)b;
-                        Mesh[] m = Mesh.CreateFromBrep(obj, mp);
-                        foreach (Mesh mm in m)
-                        {
-                            terrainMeshes.Append(mm);
-                        }
+                        Mesh[] m = Mesh.CreateFromBrep((Brep)b, mp);
+                        if (m != null) terrainList.AddRange(m);
                     }
                 }
+                terrainMeshes.Append(terrainList);
             }
 
+            var buildingList = new System.Collections.Generic.List<Mesh>();
             foreach (GeometryBase b in buildings)
             {
                 if (b.ObjectType == Rhino.DocObjects.ObjectType.Mesh)
                 {
-                    Mesh obj = new Mesh();
-                    obj = (Mesh)b;
-                    buildingGeometry.Append(obj);
+                    buildingList.Add((Mesh)b);
                 }
                 else if (b.ObjectType == Rhino.DocObjects.ObjectType.Brep || b.ObjectType == Rhino.DocObjects.ObjectType.Extrusion || b.ObjectType == Rhino.DocObjects.ObjectType.Surface)
                 {
-                    Brep obj = (Brep)b;
-                    Mesh[] m = Mesh.CreateFromBrep(obj, mp);
-                    foreach (Mesh mm in m)
-                    {
-                        buildingGeometry.Append(mm);
-                    }
+                    Mesh[] m = Mesh.CreateFromBrep((Brep)b, mp);
+                    if (m != null) buildingList.AddRange(m);
                 }
             }
+            buildingGeometry.Append(buildingList);
 
             // For radiation simulation
 
