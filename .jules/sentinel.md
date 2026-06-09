@@ -97,3 +97,8 @@
 **Vulnerability:** Remote Code Execution (RCE) risk due to `TypeNameHandling.Auto` in `Newtonsoft.Json` settings, allowing arbitrary type instantiation via the `$type` property in untrusted JSON payloads.
 **Learning:** Switching to `TypeNameHandling.None` revealed that classes using `[DataContract]` (like `Tree_Settings`) require explicit `[DataMember]` attributes on all properties intended for serialization; otherwise, properties previously serialized via reflection-based "Auto" defaults might be lost during round-trip.
 **Prevention:** Default to `TypeNameHandling.None` and use explicit `[DataMember]` attributes. Always verify security hardening with round-trip unit tests for all affected data models.
+
+## 2024-06-09 - Prevent Header Injection via Unsanitized API Tokens
+**Vulnerability:** HTTP header injection and command argument breaking when unsanitized tokens (containing \r, \n, or \t) are passed to curl via `Authorization: Bearer`.
+**Learning:** Tokens should never contain newlines or tabs, but an attacker or careless paste could include them, allowing injection into curl's HTTP headers.
+**Prevention:** Explicitly reject inputs containing `\r`, `\n`, or `\t` before passing them to external processes or network clients.
