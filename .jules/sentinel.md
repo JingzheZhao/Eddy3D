@@ -102,3 +102,8 @@
 **Vulnerability:** HTTP header injection and command argument breaking when unsanitized tokens (containing \r, \n, or \t) are passed to curl via `Authorization: Bearer`.
 **Learning:** Tokens should never contain newlines or tabs, but an attacker or careless paste could include them, allowing injection into curl's HTTP headers.
 **Prevention:** Explicitly reject inputs containing `\r`, `\n`, or `\t` before passing them to external processes or network clients.
+
+## 2024-06-11 - Use native SetUnixFileMode over Process.Start("chmod")
+**Vulnerability:** Command injection and Time-of-Check to Time-of-Use (TOCTOU) race conditions when using `Process.Start("chmod")` to add executable permissions to files (e.g. after extraction).
+**Learning:** Shelling out to an external executable relies on the system `PATH` and is not atomic. On .NET 8, `System.IO.File` natively supports setting Unix file permissions, which avoids the external process attack surface entirely.
+**Prevention:** Use `File.SetUnixFileMode(file, File.GetUnixFileMode(file) | UnixFileMode.UserExecute)` instead of `Process.Start("chmod")`. Guard this with `!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)` and use `#pragma warning disable CA1416` to handle cross-platform compatibility correctly.
