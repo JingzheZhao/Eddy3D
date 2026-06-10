@@ -89,6 +89,8 @@ namespace Eddy
 
         public override Grasshopper.GUI.Canvas.GH_ObjectResponse RespondToMouseDoubleClick(Grasshopper.GUI.Canvas.GH_Canvas sender, Grasshopper.GUI.GH_CanvasMouseEvent e)
         {
+            if (Owner.Locked) return base.RespondToMouseDoubleClick(sender, e);
+
             var clickRect = Bounds;
             clickRect.Inflate(2f, 2f);
             if (clickRect.Contains(e.CanvasLocation))

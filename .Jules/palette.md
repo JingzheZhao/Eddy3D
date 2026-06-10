@@ -13,3 +13,7 @@
 ## 2024-05-18 - ToolTips for Custom Attributes Regions
 **Learning:** In Grasshopper plugins, when adding custom interactive regions (like buttons) via `GH_ComponentAttributes`, the standard component tooltips do not automatically cover these custom areas. It is necessary to explicitly override `IsTooltipRegion(PointF)` and `SetupTooltip(PointF, GH_TooltipDisplayEventArgs)` to enable tooltips. It's also critical to ensure the target bounds evaluated in these overrides are inflated identically to the bounds used in mouse event handlers (e.g., `bounds.Inflate(2, 2)`) to provide a consistent interaction zone.
 **Action:** When adding or maintaining custom interactive UI elements in component attributes, verify that tooltip overrides are implemented and that their bounding box logic matches the hit-test bounds.
+
+## 2024-05-18 - Respecting `Locked` State in Custom Attributes
+**Learning:** In Grasshopper plugins, when overriding mouse interaction handlers (e.g., `RespondToMouseDown`, `RespondToMouseDoubleClick`) in custom `GH_ComponentAttributes`, the custom interactive regions (like toggle buttons or mode switches) will continue to respond to clicks even when the component is disabled unless explicitly handled. This creates an inconsistent UX where disabled components still change internal state or open menus.
+**Action:** Always check `if (Owner.Locked) return base.RespondToMouse...;` at the beginning of any custom interaction method in `GH_ComponentAttributes` to ensure the component properly ignores custom user interactions when disabled or locked.
