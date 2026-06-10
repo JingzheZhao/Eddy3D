@@ -108,6 +108,8 @@ namespace Eddy.Components.Radiation
 
             public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
             {
+                if (Owner.Locked) return base.RespondToMouseDown(sender, e);
+
                 if (e.Button == System.Windows.Forms.MouseButtons.Left)
                 {
                     InspectProbe_Component comp = Owner as InspectProbe_Component;
