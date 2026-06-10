@@ -321,16 +321,16 @@ namespace Eddy
                 string binDir = Path.Combine(targetDir, "radiance", "bin");
                 if (Directory.Exists(binDir))
                 {
-                    var psi = new ProcessStartInfo
+                    if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
                     {
-                        FileName = "chmod",
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    };
-                    psi.ArgumentList.Add("-R");
-                    psi.ArgumentList.Add("+x");
-                    psi.ArgumentList.Add(binDir);
-                    Process.Start(psi)?.WaitForExit(10000);
+                        string[] files = Directory.GetFiles(binDir, "*", SearchOption.AllDirectories);
+                        foreach (string file in files)
+                        {
+#pragma warning disable CA1416 // Validate platform compatibility
+                            File.SetUnixFileMode(file, File.GetUnixFileMode(file) | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
+#pragma warning restore CA1416 // Validate platform compatibility
+                        }
+                    }
                 }
 
                 // Clean up zip
