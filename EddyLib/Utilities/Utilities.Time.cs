@@ -82,24 +82,17 @@ namespace EddyLib
             if (hour_end > 24) { hour_end = 24; }
 
             int cnt = 0;
+            int[] daysInMonth = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
             for (int m = 0; m < 12; m++) // 0-11
             {
-                for (int d = 0; d < 31; d++) // 0-30
+                for (int d = 0; d < daysInMonth[m]; d++)
                 {
                     for (int h = 0; h < 24; h++) // 0-23
                     {
-                        // Check if already gone through month
-
-                        if (m == 2 && d > 27) { continue; }
-                        else if ((m == 4 || m == 6 || m == 9 || m == 10) && d > 29) { continue; }
-
-                        //
-
                         cnt++;
 
                         // Fill list
-
                         if (m >= month_start && m < month_end && d >= day_start && d < day_end && h >= hour_start && h < hour_end)
                         {
                             hoursToEvaluate.Add(cnt);
