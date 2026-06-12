@@ -41,3 +41,7 @@
 ## 2024-05-18 - ToolTips for Custom Attributes Regions
 **Learning:** In Grasshopper plugins, when adding custom interactive regions (like buttons) via `GH_ComponentAttributes`, the standard component tooltips do not automatically cover these custom areas. It is necessary to explicitly override `IsTooltipRegion(PointF)` and `SetupTooltip(PointF, GH_TooltipDisplayEventArgs)` to enable tooltips. It's also critical to ensure the target bounds evaluated in these overrides are inflated identically to the bounds used in mouse event handlers (e.g., `bounds.Inflate(2, 2)`) to provide a consistent interaction zone.
 **Action:** When adding or maintaining custom interactive UI elements in component attributes, verify that tooltip overrides are implemented and that their bounding box logic matches the hit-test bounds.
+
+## 2026-03-12 - Inflated Hit-test Bounds for Toggles
+**Learning:** Small interactive controls in Grasshopper (like toggles or arrows) can be difficult to hit precisely. Inflate their hit-test bounding boxes by a few pixels (e.g., `bounds.Inflate(2f, 2f)`) identically across all mouse interaction handlers (e.g., `RespondToMouseMove`, `RespondToMouseDown`, and `RespondToMouseDoubleClick`). Failing to update all relevant handlers creates a frustrating UX where the visual affordance mismatches the actual clickable area.
+**Action:** When creating or maintaining custom interactive elements with `GH_ComponentAttributes`, verify that identical bounds inflation logic is consistently applied in all mouse, click, and tooltip handler overrides.

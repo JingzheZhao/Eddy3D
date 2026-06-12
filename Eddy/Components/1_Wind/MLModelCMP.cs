@@ -324,6 +324,11 @@ namespace Eddy
 
                 if (hasToken)
                 {
+                    if (hfToken.Contains("\r") || hfToken.Contains("\n") || hfToken.Contains("\t"))
+                    {
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "HuggingFace token contains invalid characters (CR, LF, or Tab).");
+                        return;
+                    }
                     psi.ArgumentList.Add("-H");
                     psi.ArgumentList.Add($"Authorization: Bearer {hfToken}");
                 }
@@ -459,6 +464,11 @@ namespace Eddy
         /// </summary>
         private static string ValidateToken(string curlPath, string token, string apiUrl, string tempFile)
         {
+            if (token != null && (token.Contains("\r") || token.Contains("\n") || token.Contains("\t")))
+            {
+                return "AUTH_FAIL: HuggingFace token contains invalid characters (CR, LF, or Tab).";
+            }
+
             if (File.Exists(tempFile))
                 File.Delete(tempFile);
 

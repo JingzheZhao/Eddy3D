@@ -36,3 +36,7 @@
 ## 2024-06-08 - Rhino mesh dimension overhead
 **Learning:** Iterating through Rhino geometry components like `mesh.Vertices` manually inside C# incurs major performance penalties due to interop overhead between .NET and native Rhino. Using built-in Rhino functions like `mesh.GetBoundingBox(true)` pushes the loop into native C++, performing orders of magnitude faster.
 **Action:** For geometry operations, avoid manual O(N) vertex/face loops in C#; instead, rely on bulk native Rhino operations (e.g. `GetBoundingBox`, `Append`) wherever possible.
+
+## 2024-06-12 - Rhino mesh bulk append optimization
+**Learning:** Iterating through Grasshopper/Rhino meshes to append them one-by-one (e.g. `foreach(var obj in geometry) mesh.Append(obj)`) forces Rhino to reallocate its internal unmanaged arrays repeatedly. Caching them into a `List<Mesh>` and using the bulk `mesh.Append(IEnumerable<Mesh>)` method is significantly faster because it calculates the final needed size upfront.
+**Action:** When merging multiple `Mesh` objects, replace iterative `.Append(obj)` calls inside loops with a single bulk `.Append(IEnumerable<Mesh>)` call at the end of the collection process.

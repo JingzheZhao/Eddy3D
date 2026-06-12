@@ -89,24 +89,45 @@ namespace Eddy
 
         public override Grasshopper.GUI.Canvas.GH_ObjectResponse RespondToMouseDoubleClick(Grasshopper.GUI.Canvas.GH_Canvas sender, Grasshopper.GUI.GH_CanvasMouseEvent e)
         {
-            ((FalseOnStartCMP)Owner).Toggle();
-            return Grasshopper.GUI.Canvas.GH_ObjectResponse.Handled;
+            if (Owner.Locked) return base.RespondToMouseDoubleClick(sender, e);
+
+            var clickRect = Bounds;
+            clickRect.Inflate(2f, 2f);
+            if (clickRect.Contains(e.CanvasLocation))
+            {
+                ((FalseOnStartCMP)Owner).Toggle();
+                return Grasshopper.GUI.Canvas.GH_ObjectResponse.Handled;
+            }
+            return base.RespondToMouseDoubleClick(sender, e);
         }
 
         public override bool IsTooltipRegion(PointF canvasPoint)
         {
-            return Bounds.Contains(canvasPoint);
+            var clickRect = Bounds;
+            clickRect.Inflate(2f, 2f);
+            return clickRect.Contains(canvasPoint);
         }
 
         public override void SetupTooltip(PointF canvasPoint, GH_TooltipDisplayEventArgs e)
         {
-            e.Title = "Safety Toggle";
-            e.Text = "Double-click to toggle the 'Run' state. This component always resets to FALSE when the file is opened.";
+            var clickRect = Bounds;
+            clickRect.Inflate(2f, 2f);
+            if (clickRect.Contains(canvasPoint))
+            {
+                e.Title = "Safety Toggle";
+                e.Text = "Double-click to toggle the 'Run' state. This component always resets to FALSE when the file is opened.";
+            }
+            else
+            {
+                base.SetupTooltip(canvasPoint, e);
+            }
         }
 
         public override Grasshopper.GUI.Canvas.GH_ObjectResponse RespondToMouseMove(Grasshopper.GUI.Canvas.GH_Canvas sender, Grasshopper.GUI.GH_CanvasMouseEvent e)
         {
-            if (!Owner.Locked && Bounds.Contains(e.CanvasLocation))
+            var clickRect = Bounds;
+            clickRect.Inflate(2f, 2f);
+            if (!Owner.Locked && clickRect.Contains(e.CanvasLocation))
             {
                 if (_attachCursorMethod != null)
                 {
