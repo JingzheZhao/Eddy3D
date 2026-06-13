@@ -2,6 +2,7 @@
 using EddyLib;
 using Grasshopper.Kernel;
 using System;
+using System.Collections.Generic;
 
 // In order to load the result of this wizard, you will also need to add the output bin/ folder of
 // this project to the list of loaded folder in Grasshopper. You can use the
@@ -34,6 +35,9 @@ Combines:
 - Wind Speed (0.5-17 m/s)
 - Relative Humidity
 
+Inputs Tair, Wind, and RH each accept a list of N hourly values. MRT accepts a list of M probe values.
+Output: flat list of M values — per-probe UTCI averaged across all N hours.
+
 " + EddyVersion.toString(),
               EddyVersion.Name, "3 | PostProcessing")
         {
@@ -46,23 +50,23 @@ Combines:
         {
             pManager.AddNumberParameter(
                 "Air Temperature", "Tair",
-                "Ambient air temperature. Units: °C. Valid: -50 to +50°C",
-                GH_ParamAccess.item, 0);
+                "Ambient air temperature per hour. Units: °C. Valid: -50 to +50°C",
+                GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
                 "Mean Radiant Temp", "MRT",
-                "Mean radiant temperature from MRT simulation or sensors. Units: °C",
-                GH_ParamAccess.item, 0);
+                "Mean radiant temperature per probe. Units: °C",
+                GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
                 "Wind Speed", "Wind",
-                "Wind velocity at pedestrian height (1.5m). Units: m/s. Valid: 0.5-17 m/s",
-                GH_ParamAccess.item, 0);
+                "Wind velocity per hour at pedestrian height (1.5m). Units: m/s. Valid: 0.5-17 m/s",
+                GH_ParamAccess.list);
 
             pManager.AddNumberParameter(
                 "Relative Humidity", "RH",
-                "Relative humidity. Units: % (0-100)",
-                GH_ParamAccess.item, 0);
+                "Relative humidity per hour. Units: % (0-100)",
+                GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -70,7 +74,7 @@ Combines:
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("UTCI", "UTCI", "Universal Thermal Climate Index. Units: °C equivalent temperature", GH_ParamAccess.item);
+            pManager.AddNumberParameter("UTCI", "UTCI", "Per-probe average UTCI across all input hours. Units: °C equivalent temperature", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -82,34 +86,60 @@ Combines:
         /// </param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            var tamb = 0.0;
-            DA.GetData("Air Temperature", ref tamb);
+            var tairList = new List<double>();
+            var mrtList  = new List<double>();
+            var windList = new List<double>();
+            var rhList   = new List<double>();
 
-            var wind = 0.0;
-            DA.GetData("Wind Speed", ref wind);
+            if (!DA.GetDataList("Air Temperature", tairList)) return;
+            if (!DA.GetDataList("Mean Radiant Temp", mrtList)) return;
+            if (!DA.GetDataList("Wind Speed", windList)) return;
+            if (!DA.GetDataList("Relative Humidity", rhList)) return;
 
-            var mrt = 0.0;
-            DA.GetData("Mean Radiant Temp", ref mrt);
+            if (tairList == null || tairList.Count == 0) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Tair list is null or empty."); return; }
+            if (windList == null || windList.Count == 0) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Wind list is null or empty."); return; }
+            if (rhList   == null || rhList.Count   == 0) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "RH list is null or empty.");   return; }
+            if (mrtList  == null || mrtList.Count  == 0) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "MRT list is null or empty.");  return; }
 
-            var rh = 0.0;
-            DA.GetData("Relative Humidity", ref rh);
+            int n = tairList.Count;
+            int m = mrtList.Count;
 
-            var utci = EddyLib.UTCI.CalcUTCICorrectBounds(tamb, rh, wind, mrt, out bool outOfBounds);
-
-            if (outOfBounds == true)
+            if (windList.Count != n || rhList.Count != n)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "The input values for the UTCI calculation are outside of the accepted bounds.");
+                var mismatches = new System.Text.StringBuilder("Tair, Wind, and RH must all have the same number of values (N hours). Lengths received: ");
+                mismatches.Append($"Tair={n}, Wind={windList.Count}, RH={rhList.Count}.");
+                if (windList.Count != n) mismatches.Append(" Wind length does not match Tair.");
+                if (rhList.Count   != n) mismatches.Append(" RH length does not match Tair.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, mismatches.ToString());
+                return;
             }
-            //if (outofbounds && wind_new != wind)
-            //{
-            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "All wind velocities values outside acceptible bounds were replace with either 0.5 m/s or 17m/s.");
-            //}
-            //if (outofbounds && mrt_new != mrt)
-            //{
-            //    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "All MRT values outside acceptible bounds were replace with either MRT =  t_amb - 30°C or MRT = t_amb + 70°C.");
-            //}
 
-            DA.SetData(0, utci);
+            // Accumulate UTCI sum per probe across all hours, then average.
+            var utciSums = new double[m];
+            bool anyOutOfBounds = false;
+
+            for (int h = 0; h < n; h++)
+            {
+                double tair = tairList[h];
+                double wind = windList[h];
+                double rh   = rhList[h];
+
+                for (int p = 0; p < m; p++)
+                {
+                    double utci = EddyLib.UTCI.CalcUTCICorrectBounds(tair, rh, wind, mrtList[p], out bool outOfBounds);
+                    if (outOfBounds) anyOutOfBounds = true;
+                    utciSums[p] += utci;
+                }
+            }
+
+            if (anyOutOfBounds)
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Some input values were outside UTCI accepted bounds and were clamped.");
+
+            var result = new List<double>(m);
+            for (int p = 0; p < m; p++)
+                result.Add(utciSums[p] / n);
+
+            DA.SetDataList(0, result);
         }
 
         /// <summary>
