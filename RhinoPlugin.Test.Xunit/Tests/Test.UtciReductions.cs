@@ -183,5 +183,78 @@ namespace RhinoPlugin.Test.Xunit
 
             Assert.Equal((double)expectedComfortable / HoursPerYear, result[0], 12);
         }
+
+        /// <summary>
+        /// Regression baseline for the UTCI GH component fix (switch to GH_ParamAccess.list
+        /// with explicit outer-hour × inner-probe loop and per-probe averaging).
+        ///
+        /// Expected values were captured from a real Grasshopper run with 40 probe points
+        /// across four weather periods. Each case feeds N hours of weather + one probe's MRT
+        /// and asserts the averaged output matches the recorded GH output to 6 decimal places.
+        ///
+        /// Any accidental reversal of the hour/probe loop order, wrong averaging denominator,
+        /// or regression in CalcUTCICorrectBounds will cause this test to fail.
+        /// </summary>
+        [Fact]
+        public void UTCI_GHComponent_ReproducesKnownOutputs()
+        {
+            static double RunSingleProbe(double[] tair, double[] wind, double[] rh, double mrt)
+            {
+                double sum = 0;
+                for (int h = 0; h < tair.Length; h++)
+                    sum += EddyLib.UTCI.CalcUTCICorrectBounds(tair[h], rh[h], wind[h], mrt, out _);
+                return sum / tair.Length;
+            }
+
+            // Period 1 — 3 hours (summer morning peak)
+            double[] tair1 = { 24.0, 26.0, 27.8 };
+            double[] wind1 = { 5.6,  5.6,  7.2  };
+            double[] rh1   = { 78.0, 74.0, 58.0 };
+
+            // Probe 0: open sky (Sky Exposure = 0.51)
+            Assert.Equal(31.507523, Math.Round(RunSingleProbe(tair1, wind1, rh1, 66.078342), 6));
+            // Probe 4: open sky, higher MRT (Sky Exposure = 0.89)
+            Assert.Equal(32.474236, Math.Round(RunSingleProbe(tair1, wind1, rh1, 70.188322), 6));
+            // Probe 7: under building (Sky Exposure = 0, lower MRT)
+            Assert.Equal(30.20874,  Math.Round(RunSingleProbe(tair1, wind1, rh1, 60.54855),  5));
+            // Probe 39: open sky, highest MRT in period (Sky Exposure = 0.96)
+            Assert.Equal(32.650236, Math.Round(RunSingleProbe(tair1, wind1, rh1, 70.935591), 6));
+
+            // Period 2 — 7 hours
+            double[] tair2 = { 24.0, 26.0, 27.8, 30.0, 30.0, 31.0, 31.0 };
+            double[] wind2 = { 5.6,  5.6,  7.2,  9.2,  8.7,  10.8, 11.3 };
+            double[] rh2   = { 78.0, 74.0, 58.0, 71.0, 66.0, 58.0, 49.0 };
+
+            // Probe 0: open sky
+            Assert.Equal(34.256664, Math.Round(RunSingleProbe(tair2, wind2, rh2, 68.536816), 6));
+            // Probe 7: under building
+            Assert.Equal(33.022049, Math.Round(RunSingleProbe(tair2, wind2, rh2, 62.903944), 6));
+            // Probe 39: highest MRT
+            Assert.Equal(35.351829, Math.Round(RunSingleProbe(tair2, wind2, rh2, 73.48461),  6));
+
+            // Period 3 — 1 hour (single-hour edge case)
+            double[] tair3 = { 27.0 };
+            double[] wind3 = { 10.8 };
+            double[] rh3   = { 36.0 };
+
+            // Probe 0: open sky
+            Assert.Equal(29.594003, Math.Round(RunSingleProbe(tair3, wind3, rh3, 66.545835), 6));
+            // Probe 7: under building (Sky Exposure = 0, MRT higher than open sky due to ground)
+            Assert.Equal(31.180157, Math.Round(RunSingleProbe(tair3, wind3, rh3, 72.716213), 6));
+
+            // Period 4 — 7 hours (afternoon/evening cool-down)
+            double[] tair4 = { 28.9, 27.0, 27.0, 25.3, 23.0, 21.0, 20.0 };
+            double[] wind4 = { 12.3, 10.8, 10.2, 10.3,  8.2,  6.1,  6.2 };
+            double[] rh4   = { 25.0, 36.0, 41.0, 36.0, 41.0, 46.0, 49.0 };
+
+            // Probe 0: open sky
+            Assert.Equal(22.808508, Math.Round(RunSingleProbe(tair4, wind4, rh4, 47.165242), 6));
+            // Probe 4: open sky, lower MRT (more shaded)
+            Assert.Equal(20.947438, Math.Round(RunSingleProbe(tair4, wind4, rh4, 40.003771), 6));
+            // Probe 7: under building (higher MRT due to ground radiation)
+            Assert.Equal(25.33555,  Math.Round(RunSingleProbe(tair4, wind4, rh4, 56.800676), 5));
+            // Probe 39: lowest MRT in period
+            Assert.Equal(20.610785, Math.Round(RunSingleProbe(tair4, wind4, rh4, 38.701686), 6));
+        }
     }
 }
