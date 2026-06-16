@@ -1,6 +1,8 @@
 ﻿using Eddy.Properties;
 using EddyLib;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
 using System;
 using System.Collections.Generic;
 
@@ -35,8 +37,8 @@ Combines:
 - Wind Speed (0.5-17 m/s)
 - Relative Humidity
 
-Inputs Tair, Wind, and RH each accept a list of N hourly values. MRT accepts a list of M probe values.
-Output: flat list of M values — per-probe UTCI averaged across all N hours.
+Inputs Tair, Wind, and RH each accept a list of N hourly values. MRT accepts a tree with M branches (one per probe), each containing N hourly values.
+Outputs: Hourly UTCI (tree, same structure as MRT) and Averaged UTCI (flat list of M values, one per probe).
 
 " + EddyVersion.toString(),
               EddyVersion.Name, "3 | PostProcessing")
@@ -55,8 +57,8 @@ Output: flat list of M values — per-probe UTCI averaged across all N hours.
 
             pManager.AddNumberParameter(
                 "Mean Radiant Temp", "MRT",
-                "Mean radiant temperature per probe. Units: °C",
-                GH_ParamAccess.list);
+                "Mean radiant temperature as a tree: one branch per probe, N hourly values per branch. Units: °C",
+                GH_ParamAccess.tree);
 
             pManager.AddNumberParameter(
                 "Wind Speed", "Wind",
@@ -74,7 +76,8 @@ Output: flat list of M values — per-probe UTCI averaged across all N hours.
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("UTCI", "UTCI", "Per-probe average UTCI across all input hours. Units: °C equivalent temperature", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Hourly UTCI", "HourlyUTCI", "UTCI per hour per probe as a tree: one branch per probe, N hourly values per branch. Units: °C equivalent temperature", GH_ParamAccess.tree);
+            pManager.AddNumberParameter("Averaged UTCI", "AvgUTCI", "Per-probe average UTCI across all input hours. Units: °C equivalent temperature", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -87,22 +90,22 @@ Output: flat list of M values — per-probe UTCI averaged across all N hours.
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             var tairList = new List<double>();
-            var mrtList  = new List<double>();
             var windList = new List<double>();
             var rhList   = new List<double>();
+            var mrtTree  = new GH_Structure<GH_Number>();
 
             if (!DA.GetDataList("Air Temperature", tairList)) return;
-            if (!DA.GetDataList("Mean Radiant Temp", mrtList)) return;
             if (!DA.GetDataList("Wind Speed", windList)) return;
             if (!DA.GetDataList("Relative Humidity", rhList)) return;
+            if (!DA.GetDataTree("Mean Radiant Temp", out mrtTree)) return;
 
             if (tairList == null || tairList.Count == 0) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Tair list is null or empty."); return; }
             if (windList == null || windList.Count == 0) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Wind list is null or empty."); return; }
             if (rhList   == null || rhList.Count   == 0) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "RH list is null or empty.");   return; }
-            if (mrtList  == null || mrtList.Count  == 0) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "MRT list is null or empty.");  return; }
+            if (mrtTree  == null || mrtTree.PathCount == 0) { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "MRT tree is null or empty."); return; }
 
             int n = tairList.Count;
-            int m = mrtList.Count;
+            int m = mrtTree.PathCount;
 
             if (windList.Count != n || rhList.Count != n)
             {
@@ -114,20 +117,25 @@ Output: flat list of M values — per-probe UTCI averaged across all N hours.
                 return;
             }
 
-            // Accumulate UTCI sum per probe across all hours, then average.
-            var utciSums = new double[m];
+            var hourlyUtci = new GH_Structure<GH_Number>();
+            var utciSums   = new double[m];
             bool anyOutOfBounds = false;
 
-            for (int h = 0; h < n; h++)
+            for (int p = 0; p < m; p++)
             {
-                double tair = tairList[h];
-                double wind = windList[h];
-                double rh   = rhList[h];
-
-                for (int p = 0; p < m; p++)
+                var mrtBranch = mrtTree.Branches[p];
+                if (mrtBranch.Count != n)
                 {
-                    double utci = EddyLib.UTCI.CalcUTCICorrectBounds(tair, rh, wind, mrtList[p], out bool outOfBounds);
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"MRT branch {p} has {mrtBranch.Count} values but expected {n} (one per hour).");
+                    return;
+                }
+
+                var path = new GH_Path(p);
+                for (int h = 0; h < n; h++)
+                {
+                    double utci = EddyLib.UTCI.CalcUTCICorrectBounds(tairList[h], rhList[h], windList[h], mrtBranch[h].Value, out bool outOfBounds);
                     if (outOfBounds) anyOutOfBounds = true;
+                    hourlyUtci.Append(new GH_Number(utci), path);
                     utciSums[p] += utci;
                 }
             }
@@ -135,11 +143,12 @@ Output: flat list of M values — per-probe UTCI averaged across all N hours.
             if (anyOutOfBounds)
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Some input values were outside UTCI accepted bounds and were clamped.");
 
-            var result = new List<double>(m);
+            var avgUtci = new List<double>(m);
             for (int p = 0; p < m; p++)
-                result.Add(utciSums[p] / n);
+                avgUtci.Add(utciSums[p] / n);
 
-            DA.SetDataList(0, result);
+            DA.SetDataTree(0, hourlyUtci);
+            DA.SetDataList(1, avgUtci);
         }
 
         /// <summary>

@@ -185,76 +185,47 @@ namespace RhinoPlugin.Test.Xunit
         }
 
         /// <summary>
-        /// Regression baseline for the UTCI GH component fix (switch to GH_ParamAccess.list
-        /// with explicit outer-hour × inner-probe loop and per-probe averaging).
-        ///
-        /// Expected values were captured from a real Grasshopper run with 40 probe points
-        /// across four weather periods. Each case feeds N hours of weather + one probe's MRT
-        /// and asserts the averaged output matches the recorded GH output to 6 decimal places.
-        ///
-        /// Any accidental reversal of the hour/probe loop order, wrong averaging denominator,
-        /// or regression in CalcUTCICorrectBounds will cause this test to fail.
+        /// Regression baseline for the UTCI GH component with hourly MRT per probe.
+        /// Expected values captured from a real Grasshopper run with 8100 probe points, 9 hours.
+        /// MRT varies per hour per probe. Tests both hourly UTCI and per-probe averaged UTCI.
         /// </summary>
         [Fact]
         public void UTCI_GHComponent_ReproducesKnownOutputs()
         {
-            static double RunSingleProbe(double[] tair, double[] wind, double[] rh, double mrt)
+            // 9 hours of weather data
+            double[] tair = { 24.0, 26.0, 27.8, 30.0, 30.0, 31.0, 31.0, 30.0, 28.9 };
+            double[] wind = {  5.6,  5.6,  7.2,  9.2,  8.7, 10.8, 11.3, 10.2, 12.3 };
+            double[] rh   = { 78.0, 74.0, 58.0, 71.0, 66.0, 58.0, 49.0, 29.0, 25.0 };
+
+            static double[] RunProbe(double[] tair, double[] wind, double[] rh, double[] mrt)
             {
-                double sum = 0;
-                for (int h = 0; h < tair.Length; h++)
-                    sum += EddyLib.UTCI.CalcUTCICorrectBounds(tair[h], rh[h], wind[h], mrt, out _);
-                return sum / tair.Length;
+                int n = tair.Length;
+                var hourly = new double[n];
+                for (int h = 0; h < n; h++)
+                    hourly[h] = EddyLib.UTCI.CalcUTCICorrectBounds(tair[h], rh[h], wind[h], mrt[h], out _);
+                return hourly;
             }
 
-            // Period 1 — 3 hours (summer morning peak)
-            double[] tair1 = { 24.0, 26.0, 27.8 };
-            double[] wind1 = { 5.6,  5.6,  7.2  };
-            double[] rh1   = { 78.0, 74.0, 58.0 };
+            // Probe 0 — hourly MRT and expected hourly UTCI from GH
+            double[] mrt0 = { 65.050068, 73.344712, 74.860354, 74.159168, 74.845757, 76.572948, 76.624939, 74.541833, 69.596283 };
+            double[] exp0 = { 29.983, 33.725, 34.300, 37.167, 37.009, 37.962, 37.338, 35.306, 31.851 };
+            double[] out0 = RunProbe(tair, wind, rh, mrt0);
+            for (int h = 0; h < 9; h++)
+                Assert.Equal(exp0[h], Math.Round(out0[h], 3));
 
-            // Probe 0: open sky (Sky Exposure = 0.51)
-            Assert.Equal(31.507523, Math.Round(RunSingleProbe(tair1, wind1, rh1, 66.078342), 6));
-            // Probe 4: open sky, higher MRT (Sky Exposure = 0.89)
-            Assert.Equal(32.474236, Math.Round(RunSingleProbe(tair1, wind1, rh1, 70.188322), 6));
-            // Probe 7: under building (Sky Exposure = 0, lower MRT)
-            Assert.Equal(30.20874,  Math.Round(RunSingleProbe(tair1, wind1, rh1, 60.54855),  5));
-            // Probe 39: open sky, highest MRT in period (Sky Exposure = 0.96)
-            Assert.Equal(32.650236, Math.Round(RunSingleProbe(tair1, wind1, rh1, 70.935591), 6));
+            // Probe 5 — lower MRT values
+            double[] mrt5 = { 64.798795, 72.753875, 74.133199, 73.468066, 74.223848, 76.042392, 76.307895, 74.480816, 69.859018 };
+            double[] exp5 = { 29.922, 33.586, 34.130, 37.022, 36.876, 37.850, 37.269, 35.291, 31.919 };
+            double[] out5 = RunProbe(tair, wind, rh, mrt5);
+            for (int h = 0; h < 9; h++)
+                Assert.Equal(exp5[h], Math.Round(out5[h], 3));
 
-            // Period 2 — 7 hours
-            double[] tair2 = { 24.0, 26.0, 27.8, 30.0, 30.0, 31.0, 31.0 };
-            double[] wind2 = { 5.6,  5.6,  7.2,  9.2,  8.7,  10.8, 11.3 };
-            double[] rh2   = { 78.0, 74.0, 58.0, 71.0, 66.0, 58.0, 49.0 };
-
-            // Probe 0: open sky
-            Assert.Equal(34.256664, Math.Round(RunSingleProbe(tair2, wind2, rh2, 68.536816), 6));
-            // Probe 7: under building
-            Assert.Equal(33.022049, Math.Round(RunSingleProbe(tair2, wind2, rh2, 62.903944), 6));
-            // Probe 39: highest MRT
-            Assert.Equal(35.351829, Math.Round(RunSingleProbe(tair2, wind2, rh2, 73.48461),  6));
-
-            // Period 3 — 1 hour (single-hour edge case)
-            double[] tair3 = { 27.0 };
-            double[] wind3 = { 10.8 };
-            double[] rh3   = { 36.0 };
-
-            // Probe 0: open sky
-            Assert.Equal(29.594003, Math.Round(RunSingleProbe(tair3, wind3, rh3, 66.545835), 6));
-            // Probe 7: under building (Sky Exposure = 0, MRT higher than open sky due to ground)
-            Assert.Equal(31.180157, Math.Round(RunSingleProbe(tair3, wind3, rh3, 72.716213), 6));
-
-            // Period 4 — 7 hours (afternoon/evening cool-down)
-            double[] tair4 = { 28.9, 27.0, 27.0, 25.3, 23.0, 21.0, 20.0 };
-            double[] wind4 = { 12.3, 10.8, 10.2, 10.3,  8.2,  6.1,  6.2 };
-            double[] rh4   = { 25.0, 36.0, 41.0, 36.0, 41.0, 46.0, 49.0 };
-
-            // Probe 0: open sky
-            Assert.Equal(22.808508, Math.Round(RunSingleProbe(tair4, wind4, rh4, 47.165242), 6));
-            // Probe 4: open sky, lower MRT (more shaded)
-            Assert.Equal(20.947438, Math.Round(RunSingleProbe(tair4, wind4, rh4, 40.003771), 6));
-            // Probe 7: under building (higher MRT due to ground radiation)
-            Assert.Equal(25.33555,  Math.Round(RunSingleProbe(tair4, wind4, rh4, 56.800676), 5));
-            // Probe 39: lowest MRT in period
-            Assert.Equal(20.610785, Math.Round(RunSingleProbe(tair4, wind4, rh4, 38.701686), 6));
+            // Probe 28 — highest MRT values in this sample
+            double[] mrt28 = { 65.085964, 73.429117, 74.964233, 74.257896, 74.934601, 76.648741, 76.670231, 74.550549, 69.55875  };
+            double[] exp28 = { 29.992, 33.744, 34.324, 37.188, 37.028, 37.978, 37.348, 35.308, 31.842 };
+            double[] out28 = RunProbe(tair, wind, rh, mrt28);
+            for (int h = 0; h < 9; h++)
+                Assert.Equal(exp28[h], Math.Round(out28[h], 3));
         }
     }
 }

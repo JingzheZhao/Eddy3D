@@ -31,9 +31,7 @@ Output value range: 0.0 (fully obstructed) to 1.0 (fully open sky).
                 "Positions", "Positions",
                 @"List of 3D points at which sky exposure is computed.
 
-Rays are cast from 0.918 m above each input point (pedestrian height offset). Use ground surface points directly as input — no manual height offset needed.
-
-For analysis at a custom height, adjust the Z value of the input points accordingly.",
+Rays are cast from the Offset height above each input point (default 0.918 m). Use ground surface points directly as input — no manual height offset needed.",
                 GH_ParamAccess.list);
 
             pManager.AddGeometryParameter(
@@ -43,6 +41,12 @@ For analysis at a custom height, adjust the Z value of the input points accordin
 Ground surface does not need to be included — only geometry that blocks sky visibility matters.
 Accepts: Mesh, Brep, Surface.",
                 GH_ParamAccess.list);
+
+            pManager.AddNumberParameter(
+                "Offset", "Offset",
+                "Vertical offset above each input point from which rays are cast. Default: 0.918 m (pedestrian eye height). Units: m.",
+                GH_ParamAccess.item, 0.918);
+            pManager[2].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -57,9 +61,11 @@ Accepts: Mesh, Brep, Surface.",
         {
             var positions = new List<Point3d>();
             var contextGeo = new List<GeometryBase>();
+            double rayOffset = 0.918;
 
             if (!DA.GetDataList("Positions", positions)) return;
             if (!DA.GetDataList("Context", contextGeo)) return;
+            DA.GetData("Offset", ref rayOffset);
 
             if (positions == null || positions.Count == 0)
             {
@@ -100,9 +106,6 @@ Accepts: Mesh, Brep, Surface.",
             }
             int nDirs = idx; // 145
 
-            // Ray origin offset: lift above the point to avoid self-intersection
-            const double humanHeight = 1.8;
-            const double rayOffset   = humanHeight / 100.0 + humanHeight / 2.0; // 0.918 m
 
             // Convert context geometry to a single combined mesh
             var combined = new Mesh();
@@ -149,6 +152,7 @@ Accepts: Mesh, Brep, Surface.",
             int      cNDirs  = nDirs;
             var      cMesh   = combined;
             double   cOffset = rayOffset;
+
 
             Parallel.For(0, nPts, i =>
             {
