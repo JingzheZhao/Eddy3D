@@ -44,7 +44,7 @@ Accepts: Mesh, Brep, Surface.",
 
             pManager.AddNumberParameter(
                 "Offset", "Offset",
-                "Vertical offset above each input point from which rays are cast. Default: 0.918 m (pedestrian eye height). Units: m.",
+                "Vertical offset above each input point from which rays are cast. Default: 0.918 m (pedestrian height offset). Units: m.",
                 GH_ParamAccess.item, 0.918);
             pManager[2].Optional = true;
         }
