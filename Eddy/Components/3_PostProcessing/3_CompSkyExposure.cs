@@ -18,6 +18,15 @@ namespace Eddy
 Computes the Sky View Factor (SVF) for each input point using the Tregenza sky subdivision.
 Casts 145 rays toward the upper hemisphere and returns the fraction of unobstructed sky directions.
 
+The 145-patch discretization is a variant of the Tregenza (1987) sky subdivision scheme,
+adopted for daylight coefficient simulations by Mardaljevic (1999) and Reinhart & Herkel (2000),
+and has since become the standard sky basis in Radiance and Daysim.
+
+References:
+- Tregenza, P.R. (1987). Lighting Research & Technology, 19(1), 13-14.
+- Mardaljevic, J. (2000). PhD Thesis, De Montfort University.
+- Reinhart, C. & Herkel, S. (2000). Energy and Buildings, 32(2), 167-187.
+
 Output value range: 0.0 (fully obstructed) to 1.0 (fully open sky).
 
 " + EddyVersion.toString(),
